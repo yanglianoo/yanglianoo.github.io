@@ -4,13 +4,52 @@
   
     
     <entry>
-      <title>Hello World</title>
-      <link href="/2023/06/06/hello-world/"/>
-      <url>/2023/06/06/hello-world/</url>
+      <title>vector</title>
+      <link href="/2023/06/07/vector/"/>
+      <url>/2023/06/07/vector/</url>
       
-        <content type="html"><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.</p><h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo new <span class="string">&quot;My New Post&quot;</span></span><br></pre></td></tr></table></figure><p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p><h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure><p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p><h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure><p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p><h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure><p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>]]></content>
+        <content type="html"><![CDATA[<h2 id="Vector-概述"><a href="#Vector-概述" class="headerlink" title="Vector 概述"></a>Vector 概述</h2><h2 id="构造函数"><a href="#构造函数" class="headerlink" title="构造函数"></a>构造函数</h2><h2 id="操作接口"><a href="#操作接口" class="headerlink" title="操作接口"></a>操作接口</h2><h2 id="测试"><a href="#测试" class="headerlink" title="测试"></a>测试</h2>]]></content>
       
       
+      <categories>
+          
+          <category> 手写STL </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> C++ </tag>
+            
+            <tag> 数据结构 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>1.概述</title>
+      <link href="/2023/06/06/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-1.%E6%A6%82%E8%BF%B0/"/>
+      <url>/2023/06/06/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-1.%E6%A6%82%E8%BF%B0/</url>
+      
+        <content type="html"><![CDATA[<h2 id="环境配置"><a href="#环境配置" class="headerlink" title="环境配置"></a>环境配置</h2><ul><li><p>开发环境：</p><ul><li><code>ubuntu20.04.5 WSL</code></li><li><code>sudo apt install nasm</code>: 安装汇编编译器 nasm</li><li><code>sudo apt install bochs-x</code>: 安装虚拟机 bochs</li><li><code>sudo apt-get install qemu-system</code> ：下载安装可以模拟全部硬件的qemu</li><li><code>sudo apt install gdb</code> ：安装gdb调试器</li><li><code>sudo apt-get install gcc-multilib</code>&amp;&amp;<code>sudo apt-get install g++-multilib</code>： 安装在64位的机器上产生32位的程序</li></ul></li><li><p>参考书籍:</p><ul><li>操作系统真相还原</li><li>30天自制操作系统</li><li>Orange’S:一个操作系统的实现</li></ul></li></ul><blockquote><p>源码地址：<a href="https://github.com/yanglianoo/Onix">yanglianoo&#x2F;Onix: 基于X86的操作系统，C语言 (github.com)</a></p></blockquote><h2 id="操作系统大纲"><a href="#操作系统大纲" class="headerlink" title="操作系统大纲"></a>操作系统大纲</h2><ul><li><p>系统引导</p><ul><li>自写bootloader</li><li>grub 引导</li></ul></li><li><p>硬件及驱动</p><ul><li>CPU : 32位X86架构</li><li>显示器：VGA</li><li>中断控制器：8259A</li><li>键盘</li><li>硬盘</li><li>时钟：内部时钟，外部时钟</li><li>网卡</li></ul></li><li><p>任务调度：内核进程，用户态线程</p></li><li><p>中断系统：外部中断、软中断、异常</p></li><li><p>内存管理</p></li><li><p>文件系统</p></li><li><p>系统调用</p></li><li><p>shell</p></li><li><p>网络</p></li></ul>]]></content>
+      
+      
+      <categories>
+          
+          <category> 从零手写操作系统-X86架构 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> 操作系统 </tag>
+            
+        </tags>
       
     </entry>
     
