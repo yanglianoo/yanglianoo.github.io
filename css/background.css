@@ -64,3 +64,8 @@ img {
     cursor: url(https://cdn.jsdelivr.net/gh/sviptzk/HexoStaticFile@latest/Hexo/img/pointer.cur),
         default;
 }
+@font-face {
+  font-family: 'YunFont';
+  font-display: swap;
+  src: url('/fonts/YunFont.ttf') format("truetype");  
+}

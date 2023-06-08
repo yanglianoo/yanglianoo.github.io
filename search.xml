@@ -4,6 +4,31 @@
   
     
     <entry>
+      <title>1.概述</title>
+      <link href="/2023/06/08/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-1.%E6%A6%82%E8%BF%B0/"/>
+      <url>/2023/06/08/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-1.%E6%A6%82%E8%BF%B0/</url>
+      
+        <content type="html"><![CDATA[<h2 id="1-环境配置"><a href="#1-环境配置" class="headerlink" title="1.环境配置"></a>1.环境配置</h2><ul><li><p>开发环境：</p><ul><li><code>ubuntu20.04.5 WSL</code></li><li><code>sudo apt install nasm</code>: 安装汇编编译器 nasm</li><li><code>sudo apt install bochs-x</code>: 安装虚拟机 bochs</li><li><code>sudo apt-get install qemu-system</code> ：下载安装可以模拟全部硬件的qemu</li><li><code>sudo apt install gdb</code> ：安装gdb调试器</li><li><code>sudo apt-get install gcc-multilib</code>&amp;&amp;<code>sudo apt-get install g++-multilib</code>： 安装在64位的机器上产生32位的程序</li></ul></li><li><p>参考书籍:</p><ul><li>操作系统真相还原</li><li>30天自制操作系统</li><li>Orange’S:一个操作系统的实现</li></ul></li></ul><blockquote><p>源码地址：<a href="https://github.com/yanglianoo/Onix">yanglianoo&#x2F;Onix: 基于X86的操作系统，C语言 (github.com)</a></p></blockquote><h2 id="2-操作系统大纲"><a href="#2-操作系统大纲" class="headerlink" title="2.操作系统大纲"></a>2.操作系统大纲</h2><ul><li>系统引导<ul><li>自写bootloader</li><li>grub 引导</li></ul></li><li>硬件及驱动<ul><li>CPU : 32位X86架构</li><li>显示器：VGA</li><li>中断控制器：8259A</li><li>键盘</li><li>硬盘</li><li>时钟：内部时钟，外部时钟</li><li>网卡</li></ul></li><li>任务调度：内核进程，用户态线程</li><li>中断系统：外部中断、软中断、异常</li><li>内存管理</li><li>文件系统</li><li>系统调用</li><li>shell</li><li>网络</li></ul><h2 id="3-计算机组成概述"><a href="#3-计算机组成概述" class="headerlink" title="3.计算机组成概述"></a>3.计算机组成概述</h2><p>通常，计算机由以下几部分组成：</p><ul><li>负责计算和处理数据的 CPU</li><li>负责存储程序和数据的存储器</li><li>和外部进行数据交换的 I&#x2F;O（Input&#x2F;Output，输入输出装置）。</li></ul><p>各部分<code>通过总线连接</code>就构成了一台计算机</p><p><img src="/2023/06/08/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-1.%E6%A6%82%E8%BF%B0/08.1.2.001-16862005447604.png" alt="img"></p><p>CPU在运行程序的逻辑如下：</p><ul><li><p><code>1.将磁盘上的程序加载到内存中</code></p></li><li><p><code>2.读取内存中的指令</code></p><p>首先，CPU 要把即将执行的指令从内存中读取出来。CPU 中有个 PC（Program Counter，程序计数器）寄存器，其中保存着即将执行的指令的地址。指令的读取是通过将 PC 寄存器的值输出给内存，由内存返回该值对应地址中的指令</p></li><li><p><code>3.对指令进行解码</code></p><p>然后，CPU 对读取的指令所对应的操作进行解码。指令有很多种，有进行各种运算的指令、控制下一条命令的指令、对内存和 I&#x2F;O 进行读写的指令，还有对 CPU 进行控制的指令。这些指令由 CPU 中被称为指令解码器的模块进行解码。可以用来保存地址和运算结果的寄存器称为通用寄存器（General Purpose Register）</p></li><li><p><code>4.执行指令</code></p><p>最后，CPU 对解码器确定的操作进行处理。CPU 可以从内部存储装置——寄存器或外部的内存读取数据并处理，然后将结果写回寄存器或内存。</p></li></ul><p><img src="/2023/06/08/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-1.%E6%A6%82%E8%BF%B0/08.1.2.004.png" alt="img"></p><p>CPU 执行的指令，由代表操作种类的<code>操作码</code>和代表操作对象的<code>操作数</code>两部分组成。指令本身用特定的二进制序列来表示，这种二进制序列称为机器语言。</p><p><img src="/2023/06/08/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-1.%E6%A6%82%E8%BF%B0/08.1.2.005.png" alt="img"></p><blockquote><p>操作数：通常为寄存器地址、内存地址、立即数等</p><p>操作码：对应为cpu具体的操作，如加法、减法等</p></blockquote><p>根据执行的指令的特征，CPU 分为 <code>RISC</code>（Reduced Instruction Set Computer，精简指令集计算机）和 <code>CISC</code>（Complex Instruction Set Computer，复杂指令集计算机）两种</p><h3 id="3-1-内存和地址"><a href="#3-1-内存和地址" class="headerlink" title="3.1 内存和地址"></a>3.1 内存和地址</h3><p>所有能够存储数据的存储器都可称为内存，内存是用来存放运行时指令（程序）和数据的存储器。</p><p>我们一般说的电脑的内存条为DRAM，就是用来保存<code>程序运行</code>时的指令和数据。像固态硬盘、机械硬盘等存储介质也可用于存储指令和数据，但由于其访问速度实在是太慢，因此适用于计算机<code>长期保存数据和程序</code>的存储器。</p><p>内存使用地址的概念来管理存储的数据。地址表示的是数据存储的位置，如同数据的住所一样。每个数据单元都有一个地址。大多情况下数据单元是一个字节（8 位）长度。这种方式称为字节编址。</p><p><img src="/2023/06/08/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-1.%E6%A6%82%E8%BF%B0/08.1.2.006.png" alt="img"></p><p>如上图，CPU可通过总线寻址找到内存空间每个数据单元，并从中取出每个数据单元存储的数据。</p><p>内存等存储器的特点是速度越快成本越高。因此通常使用“高速小容量”、“中速中等容量”到“低速大容量”等多种存储器组合的混合型架构。这种构造称为存储器层级。</p><p><img src="/2023/06/08/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-1.%E6%A6%82%E8%BF%B0/08.1.2.007.png" alt="img"></p><p>在存储层面，速度最快的是 CPU 中的寄存器。CPU 比内存速度快很多，由 CPU 直 接访问内存效率较低。为了提高内存访问速度，在 CPU 和内存间增加了被称为缓存的高速小容量存储器。</p><p>缓存可以暂时性地缓冲存储从内存中读取的数据。CPU 在访问内存时，如果需要的数据已经保存在缓存中，则可直接从缓存中读取，以提高访问效率。根据容量和速度的不同，缓存也分为多个层级，通常为一级缓存、二级缓存等多个级别</p><h3 id="3-2-IO"><a href="#3-2-IO" class="headerlink" title="3.2 IO"></a>3.2 IO</h3><p>I&#x2F;O（Input&#x2F;Output）是进行数据输入输出的装置。计算机通过 I&#x2F;O 和外部实现数据交换。计算机的处理操作按照从外部读取数据、在内部处理数据、再向外部输出结果的顺序进行。以个人电脑为例，如下图所示，它从鼠标或键盘输入数据，处理器根据程序处理数据，通过显示器等向外部输出结果。</p><p><img src="/2023/06/08/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-1.%E6%A6%82%E8%BF%B0/08.1.2.009.png" alt="img"></p><p>访问 I&#x2F;O 的方式大致分为<code>存储器映射 I/O</code> 和<code>端口映射 I/O </code>两种。</p><ul><li><code>存储器映射 I/O</code> :存储器映射 I&#x2F;O 方式中，I&#x2F;O 也和内存一样使用地址进行管理，可以和访问内存一样的方式进行访问</li></ul><p><img src="/2023/06/08/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-1.%E6%A6%82%E8%BF%B0/08.1.2.010.png" alt="img"></p><ul><li><code>端口映射访问</code>:端口映射 I&#x2F;O 方式中，CPU 含有支持访问 I&#x2F;O 的专用指令。</li></ul><p><img src="/2023/06/08/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-1.%E6%A6%82%E8%BF%B0/08.1.2.011.png" alt="img"></p><h3 id="3-3-字节序"><a href="#3-3-字节序" class="headerlink" title="3.3 字节序"></a>3.3 字节序</h3><p>将多字节数据存储在内存中时，各字节的存储顺序称为字节序。比如，将 4 字节数据 0x12345678 放入内存时，地址 0 中放 0x12、地址 1 中放 0x34、地址 2 中放 0x56、地址 3 中放 0x78 的方式，称为大端序。相对地，地址 0 中放 0x78、地址 1 中放 0x56、地址 2 中放 0x34、地址 3 中放 0x12 的方式，称为小端序。不同CPU采用的字节序不尽相同</p><p><img src="/2023/06/08/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-1.%E6%A6%82%E8%BF%B0/08.1.2.008.png" alt="img"></p><h3 id="3-4-总线"><a href="#3-4-总线" class="headerlink" title="3.4 总线"></a>3.4 总线</h3><p>总线是 CPU、内存和 I&#x2F;O 之间交换数据的共同通道。总线将一根信号线在多个模块间共享进行通信。</p><blockquote><p>个人理解：总线用于CPU寻址，不同的外设都会有一个地址，CPU通过总线去找到对应的外设。</p></blockquote><p><img src="/2023/06/08/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-1.%E6%A6%82%E8%BF%B0/08.1.2.012.png" alt="img"></p>]]></content>
+      
+      
+      <categories>
+          
+          <category> 从零手写操作系统-X86架构 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> 操作系统 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>vector</title>
       <link href="/2023/06/07/vector/"/>
       <url>/2023/06/07/vector/</url>
@@ -23,31 +48,6 @@
             <tag> C++ </tag>
             
             <tag> 数据结构 </tag>
-            
-        </tags>
-      
-    </entry>
-    
-    
-    
-    <entry>
-      <title>1.概述</title>
-      <link href="/2023/06/06/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-1.%E6%A6%82%E8%BF%B0/"/>
-      <url>/2023/06/06/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-1.%E6%A6%82%E8%BF%B0/</url>
-      
-        <content type="html"><![CDATA[<h2 id="环境配置"><a href="#环境配置" class="headerlink" title="环境配置"></a>环境配置</h2><ul><li><p>开发环境：</p><ul><li><code>ubuntu20.04.5 WSL</code></li><li><code>sudo apt install nasm</code>: 安装汇编编译器 nasm</li><li><code>sudo apt install bochs-x</code>: 安装虚拟机 bochs</li><li><code>sudo apt-get install qemu-system</code> ：下载安装可以模拟全部硬件的qemu</li><li><code>sudo apt install gdb</code> ：安装gdb调试器</li><li><code>sudo apt-get install gcc-multilib</code>&amp;&amp;<code>sudo apt-get install g++-multilib</code>： 安装在64位的机器上产生32位的程序</li></ul></li><li><p>参考书籍:</p><ul><li>操作系统真相还原</li><li>30天自制操作系统</li><li>Orange’S:一个操作系统的实现</li></ul></li></ul><blockquote><p>源码地址：<a href="https://github.com/yanglianoo/Onix">yanglianoo&#x2F;Onix: 基于X86的操作系统，C语言 (github.com)</a></p></blockquote><h2 id="操作系统大纲"><a href="#操作系统大纲" class="headerlink" title="操作系统大纲"></a>操作系统大纲</h2><ul><li><p>系统引导</p><ul><li>自写bootloader</li><li>grub 引导</li></ul></li><li><h2 id="硬件及驱动-CPU-32位X86架构-显示器：VGA"><a href="#硬件及驱动-CPU-32位X86架构-显示器：VGA" class="headerlink" title="硬件及驱动- CPU : 32位X86架构- 显示器：VGA"></a>硬件及驱动<br>- CPU : 32位X86架构<br>- 显示器：VGA</h2><ul><li>中断控制器：8259A</li><li>键盘</li><li>硬盘</li><li>时钟：内部时钟，外部时钟</li><li>网卡</li></ul></li><li><p>任务调度：内核进程，用户态线程</p></li><li><p>中断系统：外部中断、软中断、异常</p></li><li><p>内存管理</p></li><li><p>文件系统</p></li><li><p>系统调用</p></li><li><p>shell</p></li><li><p>网络</p></li></ul><h2 id="计算机组成概述"><a href="#计算机组成概述" class="headerlink" title="计算机组成概述"></a>计算机组成概述</h2><p>通常，计算机由以下几部分组成：</p><ul><li>负责计算和处理数据的 CPU</li><li>负责存储程序和数据的存储器</li><li>和外部进行数据交换的 I&#x2F;O（Input&#x2F;Output，输入输出装置）。</li></ul><p>各部分&#x3D;&#x3D;通过总线连接&#x3D;&#x3D;就构成了一台计算机</p><p><img src="/image/08.1.2.001.png" alt="img"></p><p>CPU在运行程序的逻辑如下：</p><ul><li><p>1.将磁盘上的程序加载到内存中</p></li><li><p>2.读取内存中的指令</p></li><li><p>3.对指令进行解码</p></li><li><p>4.执行指令</p></li></ul><p><img src="/image/08.1.2.003.png" alt="img"></p>]]></content>
-      
-      
-      <categories>
-          
-          <category> 从零手写操作系统-X86架构 </category>
-          
-      </categories>
-      
-      
-        <tags>
-            
-            <tag> 操作系统 </tag>
             
         </tags>
       
