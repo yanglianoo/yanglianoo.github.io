@@ -1,0 +1,346 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>2.X86寄存器详解 | TimerのBlog</title><meta name="author" content="Timer"><meta name="copyright" content="Timer"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="1.什么是寄存器寄存器是CPU内部用来存放数据的一些小型存储区域，用来暂时存放参与运算的数据和运算结果以及一些CPU运行需要的信息 x86架构CPU走的是复杂指令集（CISC） 路线，提供了丰富的指令来实现强大的功能，与此同时也提供了大量寄存器来辅助功能实现。  通用寄存器：EAX、EBX、ECX、EDX、ESI、EDI、ESP、EBP 标志寄存器：EFLAGS 指令寄存器：EIP 段寄存器：CS">
+<meta property="og:type" content="article">
+<meta property="og:title" content="2.X86寄存器详解">
+<meta property="og:url" content="https://yanglianoo.github.io/2023/06/08/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-2.X86%E5%AF%84%E5%AD%98%E5%99%A8%E8%AF%A6%E8%A7%A3/index.html">
+<meta property="og:site_name" content="TimerのBlog">
+<meta property="og:description" content="1.什么是寄存器寄存器是CPU内部用来存放数据的一些小型存储区域，用来暂时存放参与运算的数据和运算结果以及一些CPU运行需要的信息 x86架构CPU走的是复杂指令集（CISC） 路线，提供了丰富的指令来实现强大的功能，与此同时也提供了大量寄存器来辅助功能实现。  通用寄存器：EAX、EBX、ECX、EDX、ESI、EDI、ESP、EBP 标志寄存器：EFLAGS 指令寄存器：EIP 段寄存器：CS">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yanglianoo.github.io/2023/06/08/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-2.X86%E5%AF%84%E5%AD%98%E5%99%A8%E8%AF%A6%E8%A7%A3/register.png">
+<meta property="article:published_time" content="2023-06-08T08:26:10.000Z">
+<meta property="article:modified_time" content="2023-06-08T10:02:12.875Z">
+<meta property="article:author" content="Timer">
+<meta property="article:tag" content="操作系统">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://yanglianoo.github.io/2023/06/08/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-2.X86%E5%AF%84%E5%AD%98%E5%99%A8%E8%AF%A6%E8%A7%A3/register.png"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://yanglianoo.github.io/2023/06/08/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-2.X86%E5%AF%84%E5%AD%98%E5%99%A8%E8%AF%A6%E8%A7%A3/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"languages":{"hits_empty":"找不到您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: {"chs_to_cht":"你已切换为繁体","cht_to_chs":"你已切换为简体","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"bottom-left"},
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '2.X86寄存器详解',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2023-06-08 18:02:12'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+    win.getCSS = (url,id = false) => new Promise((resolve, reject) => {
+      const link = document.createElement('link')
+      link.rel = 'stylesheet'
+      link.href = url
+      if (id) link.id = id
+      link.onerror = reject
+      link.onload = link.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        link.onload = link.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(link)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/background.css"><meta name="generator" content="Hexo 6.3.0"><link rel="alternate" href="/atom.xml" title="TimerのBlog" type="application/atom+xml">
+</head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/head.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">3</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">3</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">2</div></a></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/2023/06/08/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-2.X86%E5%AF%84%E5%AD%98%E5%99%A8%E8%AF%A6%E8%A7%A3/background.png')"><nav id="nav"><span id="blog-info"><a href="/" title="TimerのBlog"><span class="site-name">TimerのBlog</span></a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search" href="javascript:void(0);"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">2.X86寄存器详解</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2023-06-08T08:26:10.000Z" title="发表于 2023-06-08 16:26:10">2023-06-08</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2023-06-08T10:02:12.875Z" title="更新于 2023-06-08 18:02:12">2023-06-08</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E4%BB%8E%E9%9B%B6%E6%89%8B%E5%86%99%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-X86%E6%9E%B6%E6%9E%84/">从零手写操作系统-X86架构</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="2.X86寄存器详解"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="1-什么是寄存器"><a href="#1-什么是寄存器" class="headerlink" title="1.什么是寄存器"></a>1.什么是寄存器</h1><p>寄存器是CPU内部用来存放数据的一些小型存储区域，用来暂时存放参与运算的数据和运算结果以及一些CPU运行需要的信息</p>
+<p>x86架构CPU走的是<code>复杂指令集（CISC）</code> 路线，提供了丰富的指令来实现强大的功能，与此同时也提供了大量寄存器来辅助功能实现。</p>
+<ul>
+<li>通用寄存器：<code>EAX、EBX、ECX、EDX、ESI、EDI、ESP、EBP</code></li>
+<li>标志寄存器：<code>EFLAGS</code></li>
+<li>指令寄存器：<code>EIP</code></li>
+<li>段寄存器：<code>CS、DS、ES、FS、GS、SS</code></li>
+<li>控制寄存器：<code>CR0、CR1、CR2、CR3、CR4</code></li>
+<li>调试寄存器：<code>DR0、DR1、DR2、DR3、DR4、DR5、DR6、DR7</code></li>
+<li>描述符寄存器：<code>GDTR、IDTR、LDTR、TR</code></li>
+</ul>
+<h1 id="2-实模式下寄存器（16bit）"><a href="#2-实模式下寄存器（16bit）" class="headerlink" title="2.实模式下寄存器（16bit）"></a>2.实模式下寄存器（16bit）</h1><p>在x86架构下，实模式可以使用的通用寄存器有 <code>AX、BX、CX、DX、SI、DI、BP</code> 和 <code>SP</code>。这些寄存器都是16位的，可以分为两个8位的寄存器来使用。</p>
+<p>此外，还有一些特殊用途的寄存器，包括：</p>
+<ul>
+<li><code>IP</code>（指令指针寄存器）：保存当前执行的指令地址。</li>
+<li><code>CS</code>（代码段寄存器）：保存代码段的起始地址。</li>
+<li><code>DS</code>（数据段寄存器）：保存数据段的起始地址。</li>
+<li><code>ES</code>（附加段寄存器）：附加数据段的起始地址。</li>
+<li><code>SS</code>（堆栈段寄存器）：保存堆栈段的起始地址。</li>
+<li><code>FLAGS</code>（标志寄存器）：包含各种标志位，如零标志、进位标志、符号标志等</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>16位寄存器</th>
+<th>功能</th>
+<th>高8位</th>
+<th>低8位</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>AX</code></td>
+<td>累加寄存器</td>
+<td><code>AH</code></td>
+<td><code>AL</code></td>
+</tr>
+<tr>
+<td><code>CX</code></td>
+<td>计数寄存器</td>
+<td><code>CH</code></td>
+<td><code>CL</code></td>
+</tr>
+<tr>
+<td><code>DX</code></td>
+<td>数据寄存器</td>
+<td><code>DH</code></td>
+<td><code>DL</code></td>
+</tr>
+<tr>
+<td><code>BX</code></td>
+<td>基址寄存器</td>
+<td><code>BH</code></td>
+<td><code>BL</code></td>
+</tr>
+<tr>
+<td><code>SP</code></td>
+<td>栈指针寄存器</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><code>BP</code></td>
+<td>栈帧的基址寄存器</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><code>SI</code></td>
+<td>源变址寄存器</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><code>DI</code></td>
+<td>目的变址寄存器</td>
+<td></td>
+<td></td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>BP指向栈底，SP指向栈顶，两者共同维护了栈空间</p>
+</blockquote>
+<h2 id="2-1-寄存器用法举例"><a href="#2-1-寄存器用法举例" class="headerlink" title="2.1 寄存器用法举例"></a>2.1 寄存器用法举例</h2><ul>
+<li><p><code>SI、DI</code></p>
+<figure class="highlight avrasm"><table><tr><td class="code"><pre><span class="line">    <span class="keyword">mov</span> ecx, <span class="number">10</span>  <span class="comment">; 设置循环计数为10</span></span><br><span class="line">    <span class="keyword">mov</span> esi, <span class="number">0</span>  <span class="comment">; 设置SI寄存器为0作为初始值</span></span><br><span class="line">    <span class="keyword">mov</span> edi, <span class="number">100</span>  <span class="comment">; 设置DI寄存器为100作为初始值</span></span><br><span class="line">    </span><br><span class="line"><span class="symbol">loop_start:</span></span><br><span class="line">    <span class="keyword">mov</span> eax, [esi]  <span class="comment">; 从源地址(SI)读取数据到EAX寄存器</span></span><br><span class="line">    <span class="keyword">mov</span> [edi], eax  <span class="comment">; 将数据存储到目的地址(DI)</span></span><br><span class="line">    <span class="keyword">add</span> esi, <span class="number">4</span>  <span class="comment">; 增加SI的值，以便读取下一个双字</span></span><br><span class="line">    <span class="keyword">add</span> edi, <span class="number">4</span>  <span class="comment">; 增加DI的值，以便存储到下一个地址</span></span><br><span class="line">    loop loop_start  <span class="comment">; 循环，减少ECX计数，直到为零</span></span><br></pre></td></tr></table></figure>
+
+<p>在这个例子中，SI和DI寄存器用作源地址和目的地址。循环从源地址读取数据，然后将其存储到目的地址，然后递增SI和DI以访问下一个元素。通过loop指令和ECX计数器，循环执行直到计数为零。</p>
+</li>
+<li><p><code>BP、SP</code></p>
+<figure class="highlight avrasm"><table><tr><td class="code"><pre><span class="line"><span class="keyword">push</span> ebp         <span class="comment">; 保存当前函数的旧的基址到堆栈中</span></span><br><span class="line"><span class="keyword">mov</span> ebp, esp     <span class="comment">; 将当前堆栈指针存储到基址指针寄存器BP中</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">sub</span> esp, <span class="number">16</span>      <span class="comment">; 分配16字节的局部变量空间</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">mov</span> dword ptr [ebp<span class="number">-4</span>], <span class="number">10</span>   <span class="comment">; 将值10存储到基址指针寄存器BP-4指向的位置（局部变量）</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">mov</span> eax, dword ptr [ebp<span class="number">-4</span>]  <span class="comment">; 从基址指针寄存器BP-4指向的位置读取值到EAX寄存器</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">add</span> esp, <span class="number">16</span>      <span class="comment">; 释放局部变量空间</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">pop</span> ebp          <span class="comment">; 恢复旧的基址到基址指针寄存器BP中</span></span><br></pre></td></tr></table></figure></li>
+</ul>
+<h1 id="3-保护模式下寄存器（32bit）"><a href="#3-保护模式下寄存器（32bit）" class="headerlink" title="3.保护模式下寄存器（32bit）"></a>3.保护模式下寄存器（32bit）</h1><p>在32位保护模式下，x86架构提供了更多的通用寄存器以及扩展功能。以下是32位保护模式下可以使用的寄存器：</p>
+<ol>
+<li>通用寄存器（General Purpose Registers）：<ul>
+<li><code>EAX</code>：累加器寄存器（Accumulator Register）。</li>
+<li><code>EBX</code>：基址寄存器（Base Register）。</li>
+<li><code>ECX</code>：计数寄存器（Counter Register）。</li>
+<li><code>EDX</code>：数据寄存器（Data Register）。</li>
+<li><code>ESI</code>：源索引寄存器（Source Index Register）。</li>
+<li><code>EDI</code>：目的索引寄存器（Destination Index Register）。</li>
+<li><code>EBP</code>：基址指针寄存器（Base Pointer Register）。</li>
+<li><code>ESP</code>：堆栈指针寄存器（Stack Pointer Register）。</li>
+</ul>
+</li>
+<li>扩展通用寄存器：<ul>
+<li><code>EIP</code>：指令指针寄存器（Instruction Pointer Register）。</li>
+<li><code>EFLAGS</code>：标志寄存器（Flags Register），用于存储各种标志位，如零标志、进位标志、符号标志等。</li>
+</ul>
+</li>
+<li>段寄存器（Segment Registers）：<ul>
+<li><code>CS</code>：代码段寄存器（Code Segment Register）。</li>
+<li><code>DS</code>：数据段寄存器（Data Segment Register）。</li>
+<li><code>ES</code>：附加段寄存器（Extra Segment Register）。</li>
+<li><code>FS、GS、SS</code>：附加段寄存器，用于访问额外的数据段。</li>
+</ul>
+</li>
+<li>控制寄存器（Control Registers）：<ul>
+<li><code>CR0、CR2、CR3、CR4</code>：用于控制和管理保护模式的特性，如分页机制、特权级等。</li>
+</ul>
+</li>
+<li>段描述符寄存器（Descriptor Registers）：<ul>
+<li><code>GDTR</code>：全局描述符表寄存器（Global Descriptor Table Register）。</li>
+<li><code>IDTR</code>：中断描述符表寄存器（Interrupt Descriptor Table Register）。</li>
+<li><code>LDTR</code>：局部描述符表寄存器（Local Descriptor Table Register）。</li>
+<li><code>TR</code>：任务寄存器（Task Register）。</li>
+</ul>
+</li>
+</ol>
+<img src="/2023/06/08/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-2.X86%E5%AF%84%E5%AD%98%E5%99%A8%E8%AF%A6%E8%A7%A3/image-20230128173803324.png" alt="image-20230128173803324" style="zoom: 80%;">
+
+<h1 id="4-长模式下寄存器（64bit）"><a href="#4-长模式下寄存器（64bit）" class="headerlink" title="4.长模式下寄存器（64bit）"></a>4.长模式下寄存器（64bit）</h1><p>在长模式下，也称为64位保护模式（64-bit Protected Mode）或x86-64架构，x86处理器提供了更广泛的寄存器集合。以下是长模式下可以使用的寄存器：</p>
+<ol>
+<li>通用寄存器（General Purpose Registers）：<ul>
+<li><code>RAX</code>：累加器寄存器（Accumulator Register）。</li>
+<li><code>RBX</code>：基址寄存器（Base Register）。</li>
+<li><code>RCX</code>：计数寄存器（Counter Register）。</li>
+<li><code>RDX</code>：数据寄存器（Data Register）。</li>
+<li><code>RSI</code>：源索引寄存器（Source Index Register）。</li>
+<li><code>RDI</code>：目的索引寄存器（Destination Index Register）。</li>
+<li><code>RBP</code>：基址指针寄存器（Base Pointer Register）。</li>
+<li><code>RSP</code>：堆栈指针寄存器（Stack Pointer Register）。</li>
+<li><code>R8-R15</code>：扩展的通用寄存器。</li>
+</ul>
+</li>
+<li>扩展通用寄存器：<ul>
+<li><code>RIP</code>：指令指针寄存器（Instruction Pointer Register）。</li>
+<li><code>RFLAGS</code>：标志寄存器（Flags Register），包含各种标志位。</li>
+</ul>
+</li>
+<li>段寄存器（Segment Registers）：<ul>
+<li><code>CS</code>：代码段寄存器（Code Segment Register）。</li>
+<li><code>DS</code>：数据段寄存器（Data Segment Register）。</li>
+<li><code>ES</code>：附加段寄存器（Extra Segment Register）。</li>
+<li><code>FS、GS、SS</code>：附加段寄存器，用于访问额外的数据段。</li>
+</ul>
+</li>
+<li>控制寄存器（Control Registers）：<ul>
+<li><code>CR0、CR2、CR3、CR4、CR8</code>：用于控制和管理保护模式的特性，如分页机制、特权级等。</li>
+</ul>
+</li>
+<li>段描述符寄存器（Descriptor Registers）：<ul>
+<li><code>GDTR</code>：全局描述符表寄存器（Global Descriptor Table Register）。</li>
+<li><code>IDTR</code>：中断描述符表寄存器（Interrupt Descriptor Table Register）。</li>
+<li><code>LDTR</code>：局部描述符表寄存器（Local Descriptor Table Register）。</li>
+<li><code>TR</code>：任务寄存器（Task Register）。</li>
+</ul>
+</li>
+<li>XMM寄存器（SSE寄存器）：<ul>
+<li><code>XMM0-XMM15</code>：128位的向量寄存器，用于执行SSE（Streaming SIMD Extensions）指令集中的向量运算。</li>
+</ul>
+</li>
+<li>YMM寄存器（AVX寄存器）：<ul>
+<li><code>YMM0-YMM15</code>：256位的向量寄存器，用于执行AVX（Advanced Vector Extensions）指令集中的向量运算。</li>
+</ul>
+</li>
+<li>ZMM寄存器（AVX-512寄存器）：<ul>
+<li><code>ZMM0-ZMM31</code>：512位的向量寄存器，用于执行AVX-512指令集中的向量运算。</li>
+</ul>
+</li>
+</ol>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="https://yanglianoo.github.io">Timer</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://yanglianoo.github.io/2023/06/08/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-2.X86%E5%AF%84%E5%AD%98%E5%99%A8%E8%AF%A6%E8%A7%A3/">https://yanglianoo.github.io/2023/06/08/操作系统-2.X86寄存器详解/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://yanglianoo.github.io" target="_blank">TimerのBlog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">操作系统</a></div><div class="post_share"><div class="social-share" data-image="/2023/06/08/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-2.X86%E5%AF%84%E5%AD%98%E5%99%A8%E8%AF%A6%E8%A7%A3/register.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/2023/06/08/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-1.%E6%A6%82%E8%BF%B0/" title="1.概述"><img class="cover" src="/2023/06/08/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-1.%E6%A6%82%E8%BF%B0/08.1.2.001-16862005447604.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">1.概述</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2023/06/08/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-1.%E6%A6%82%E8%BF%B0/" title="1.概述"><img class="cover" src="/2023/06/08/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-1.%E6%A6%82%E8%BF%B0/08.1.2.001-16862005447604.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-06-08</div><div class="title">1.概述</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/head.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">Timer</div><div class="author-info__description">没有一个健康的身体，如何支撑我龌龊的灵魂!</div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">3</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">3</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">2</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/yanglianoo"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content is-expand"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E4%BB%80%E4%B9%88%E6%98%AF%E5%AF%84%E5%AD%98%E5%99%A8"><span class="toc-text">1.什么是寄存器</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-%E5%AE%9E%E6%A8%A1%E5%BC%8F%E4%B8%8B%E5%AF%84%E5%AD%98%E5%99%A8%EF%BC%8816bit%EF%BC%89"><span class="toc-text">2.实模式下寄存器（16bit）</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#2-1-%E5%AF%84%E5%AD%98%E5%99%A8%E7%94%A8%E6%B3%95%E4%B8%BE%E4%BE%8B"><span class="toc-text">2.1 寄存器用法举例</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-%E4%BF%9D%E6%8A%A4%E6%A8%A1%E5%BC%8F%E4%B8%8B%E5%AF%84%E5%AD%98%E5%99%A8%EF%BC%8832bit%EF%BC%89"><span class="toc-text">3.保护模式下寄存器（32bit）</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-%E9%95%BF%E6%A8%A1%E5%BC%8F%E4%B8%8B%E5%AF%84%E5%AD%98%E5%99%A8%EF%BC%8864bit%EF%BC%89"><span class="toc-text">4.长模式下寄存器（64bit）</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2023/06/08/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-2.X86%E5%AF%84%E5%AD%98%E5%99%A8%E8%AF%A6%E8%A7%A3/" title="2.X86寄存器详解"><img src="/2023/06/08/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-2.X86%E5%AF%84%E5%AD%98%E5%99%A8%E8%AF%A6%E8%A7%A3/register.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="2.X86寄存器详解"/></a><div class="content"><a class="title" href="/2023/06/08/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-2.X86%E5%AF%84%E5%AD%98%E5%99%A8%E8%AF%A6%E8%A7%A3/" title="2.X86寄存器详解">2.X86寄存器详解</a><time datetime="2023-06-08T08:26:10.000Z" title="发表于 2023-06-08 16:26:10">2023-06-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/06/08/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-1.%E6%A6%82%E8%BF%B0/" title="1.概述"><img src="/2023/06/08/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-1.%E6%A6%82%E8%BF%B0/08.1.2.001-16862005447604.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="1.概述"/></a><div class="content"><a class="title" href="/2023/06/08/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-1.%E6%A6%82%E8%BF%B0/" title="1.概述">1.概述</a><time datetime="2023-06-08T05:01:20.418Z" title="发表于 2023-06-08 13:01:20">2023-06-08</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/06/07/vector/" title="vector">vector</a><time datetime="2023-06-07T12:36:53.000Z" title="发表于 2023-06-07 20:36:53">2023-06-07</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('/2023/06/08/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-2.X86%E5%AF%84%E5%AD%98%E5%99%A8%E8%AF%A6%E8%A7%A3/background.png')"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2023 By Timer</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><div class="js-pjax"></div><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/fireworks.min.js"></script><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div class="no-result" id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js"></script></div></div></body></html>
