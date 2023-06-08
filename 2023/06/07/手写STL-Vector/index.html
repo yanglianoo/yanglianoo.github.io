@@ -1,0 +1,345 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>手写STL之Vector | TimerのBlog</title><meta name="author" content="Timer"><meta name="copyright" content="Timer"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="1.Vector 概述在C++ STL（标准模板库）中，vector 是一个动态数组容器，它是一个模板类具有以下特性：  动态大小: vector 的大小可以根据需要动态增长或缩小。它可以自动调整内部存储空间，以适应容器中元素的数量。 连续存储: vector 中的元素在内存中是连续存储的，这使得对元素的随机访问变得高效。 快速插入和删除: 在 vector 的末尾插入或删除元素是高效的，时间复杂">
+<meta property="og:type" content="article">
+<meta property="og:title" content="手写STL之Vector">
+<meta property="og:url" content="https://yanglianoo.github.io/2023/06/07/%E6%89%8B%E5%86%99STL-Vector/index.html">
+<meta property="og:site_name" content="TimerのBlog">
+<meta property="og:description" content="1.Vector 概述在C++ STL（标准模板库）中，vector 是一个动态数组容器，它是一个模板类具有以下特性：  动态大小: vector 的大小可以根据需要动态增长或缩小。它可以自动调整内部存储空间，以适应容器中元素的数量。 连续存储: vector 中的元素在内存中是连续存储的，这使得对元素的随机访问变得高效。 快速插入和删除: 在 vector 的末尾插入或删除元素是高效的，时间复杂">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yanglianoo.github.io/2023/06/07/%E6%89%8B%E5%86%99STL-Vector/image-20230608195534311.png">
+<meta property="article:published_time" content="2023-06-07T12:36:53.000Z">
+<meta property="article:modified_time" content="2023-06-08T17:06:26.241Z">
+<meta property="article:author" content="Timer">
+<meta property="article:tag" content="C++">
+<meta property="article:tag" content="数据结构">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://yanglianoo.github.io/2023/06/07/%E6%89%8B%E5%86%99STL-Vector/image-20230608195534311.png"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://yanglianoo.github.io/2023/06/07/%E6%89%8B%E5%86%99STL-Vector/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"languages":{"hits_empty":"找不到您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: {"chs_to_cht":"你已切换为繁体","cht_to_chs":"你已切换为简体","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"bottom-left"},
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '手写STL之Vector',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2023-06-09 01:06:26'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+    win.getCSS = (url,id = false) => new Promise((resolve, reject) => {
+      const link = document.createElement('link')
+      link.rel = 'stylesheet'
+      link.href = url
+      if (id) link.id = id
+      link.onerror = reject
+      link.onload = link.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        link.onload = link.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(link)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/background.css"><meta name="generator" content="Hexo 6.3.0"><link rel="alternate" href="/atom.xml" title="TimerのBlog" type="application/atom+xml">
+</head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/head.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">4</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">3</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">2</div></a></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/2023/06/07/%E6%89%8B%E5%86%99STL-Vector/background.png')"><nav id="nav"><span id="blog-info"><a href="/" title="TimerのBlog"><span class="site-name">TimerのBlog</span></a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search" href="javascript:void(0);"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">手写STL之Vector</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2023-06-07T12:36:53.000Z" title="发表于 2023-06-07 20:36:53">2023-06-07</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2023-06-08T17:06:26.241Z" title="更新于 2023-06-09 01:06:26">2023-06-09</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E6%89%8B%E5%86%99STL/">手写STL</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="手写STL之Vector"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h2 id="1-Vector-概述"><a href="#1-Vector-概述" class="headerlink" title="1.Vector 概述"></a>1.Vector 概述</h2><p>在C++ STL（标准模板库）中，<code>vector</code> 是一个动态数组容器，它是一个模板类具有以下特性：</p>
+<ol>
+<li><strong>动态大小</strong>: <code>vector</code> 的大小可以根据需要动态增长或缩小。它可以自动调整内部存储空间，以适应容器中元素的数量。</li>
+<li><strong>连续存储</strong>: <code>vector</code> 中的元素在内存中是连续存储的，这使得对元素的随机访问变得高效。</li>
+<li><strong>快速插入和删除</strong>: 在 <code>vector</code> 的末尾插入或删除元素是高效的，时间复杂度为常数。但在中间或开头插入或删除元素的操作可能会导致元素的移动，时间复杂度为线性。</li>
+<li><strong>随机访问</strong>: <code>vector</code> 支持通过索引进行随机访问。可以使用下标运算符 <code>[]</code> 或 <code>at()</code> 函数来访问特定位置的元素。</li>
+<li><strong>动态调整内存</strong>: 当 <code>vector</code> 的大小超过当前分配的内存空间时，它会重新分配更大的内存块，并将现有元素移动到新的内存中。这可以确保容器始终具有足够的内存来存储元素。</li>
+<li><strong>元素访问</strong>: 可以使用迭代器来遍历 <code>vector</code> 中的元素。可以使用 <code>begin()</code> 和 <code>end()</code> 成员函数获取指向容器开头和结尾的迭代器。</li>
+<li><strong>容器操作</strong>: <code>vector</code> 支持许多常见的容器操作，如排序、查找、插入和删除元素。它还提供了与其他容器兼容的接口，例如迭代器、范围构造函数和算法函数。</li>
+</ol>
+<p><code>STL</code>库中<code>vector</code>的定义如下:</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">template</span>&lt; <span class="keyword">class</span> <span class="title class_">T</span>,<span class="keyword">class</span> <span class="title class_">Allocator</span> = std::allocator&lt;T&gt;&gt; </span><br><span class="line">    <span class="keyword">class</span> vector;</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>T</th>
+<th>元素的类型。<code>T</code> 必须满足<a target="_blank" rel="noopener" href="https://zh.cppreference.com/w/cpp/named_req/CopyAssignable"><em>可复制赋值</em> <em>(CopyAssignable)</em> </a>和<a target="_blank" rel="noopener" href="https://zh.cppreference.com/w/cpp/named_req/CopyConstructible"><em>可复制构造</em> <em>(CopyConstructible)</em> </a>的要求。</th>
+</tr>
+</thead>
+</table>
+<table>
+<thead>
+<tr>
+<th>Allocator</th>
+<th>用于获取&#x2F;释放内存及构造&#x2F;析构内存中元素的分配器。类型必须满足<a target="_blank" rel="noopener" href="https://zh.cppreference.com/w/cpp/named_req/Allocator"><em>分配器</em> <em>(Allocator)</em> </a>的要求。</th>
+</tr>
+</thead>
+</table>
+<table>
+<thead>
+<tr>
+<th>成员函数</th>
+<th></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><a target="_blank" rel="noopener" href="https://zh.cppreference.com/w/cpp/container/vector/vector">(构造函数)</a></td>
+<td>构造 <code>vector</code> (公开成员函数)</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://zh.cppreference.com/w/cpp/container/vector/~vector">(析构函数)</a></td>
+<td>析构 <code>vector</code> (公开成员函数)</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://zh.cppreference.com/w/cpp/container/vector/operator%3D">operator&#x3D;</a></td>
+<td>赋值给容器 (公开成员函数)</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://zh.cppreference.com/w/cpp/container/vector/assign">assign</a></td>
+<td>将值赋给容器 (公开成员函数)</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://zh.cppreference.com/w/cpp/container/vector/get_allocator">get_allocator</a></td>
+<td>返回相关的分配器 (公开成员函数)</td>
+</tr>
+<tr>
+<td>元素访问</td>
+<td></td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://zh.cppreference.com/w/cpp/container/vector/at">at</a></td>
+<td>访问指定的元素，同时进行越界检查 (公开成员函数)</td>
+</tr>
+<tr>
+<td>operator[]</td>
+<td>访问指定的元素 (公开成员函数)</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://zh.cppreference.com/w/cpp/container/vector/front">front</a></td>
+<td>访问第一个元素 (公开成员函数)</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://zh.cppreference.com/w/cpp/container/vector/back">back</a></td>
+<td>访问最后一个元素 (公开成员函数)</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://zh.cppreference.com/w/cpp/container/vector/data">data</a></td>
+<td>直接访问底层数组 (公开成员函数)</td>
+</tr>
+<tr>
+<td>迭代器</td>
+<td></td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://zh.cppreference.com/w/cpp/container/vector/begin">begincbegin</a>(C++11)</td>
+<td>返回指向起始的迭代器 (公开成员函数)</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://zh.cppreference.com/w/cpp/container/vector/end">endcend</a>(C++11)</td>
+<td>返回指向末尾的迭代器 (公开成员函数)</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://zh.cppreference.com/w/cpp/container/vector/rbegin">rbegincrbegin</a>(C++11)</td>
+<td>返回指向起始的逆向迭代器 (公开成员函数)</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://zh.cppreference.com/w/cpp/container/vector/rend">rendcrend</a>(C++11)</td>
+<td>返回指向末尾的逆向迭代器 (公开成员函数)</td>
+</tr>
+<tr>
+<td>容量</td>
+<td></td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://zh.cppreference.com/w/cpp/container/vector/empty">empty</a></td>
+<td>检查容器是否为空 (公开成员函数)</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://zh.cppreference.com/w/cpp/container/vector/size">size</a></td>
+<td>返回容纳的元素数 (公开成员函数)</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://zh.cppreference.com/w/cpp/container/vector/max_size">max_size</a></td>
+<td>返回可容纳的最大元素数 (公开成员函数)</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://zh.cppreference.com/w/cpp/container/vector/reserve">reserve</a></td>
+<td>预留存储空间 (公开成员函数)</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://zh.cppreference.com/w/cpp/container/vector/capacity">capacity</a></td>
+<td>返回当前存储空间能够容纳的元素数 (公开成员函数)</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://zh.cppreference.com/w/cpp/container/vector/shrink_to_fit">shrink_to_fit</a></td>
+<td>通过释放未使用的内存减少内存的使用 (公开成员函数)</td>
+</tr>
+<tr>
+<td>修改器</td>
+<td></td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://zh.cppreference.com/w/cpp/container/vector/clear">clear</a></td>
+<td>清除内容 (公开成员函数)</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://zh.cppreference.com/w/cpp/container/vector/insert">insert</a></td>
+<td>插入元素 (公开成员函数)</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://zh.cppreference.com/w/cpp/container/vector/emplace">emplace</a>(C++11)</td>
+<td>原位构造元素 (公开成员函数)</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://zh.cppreference.com/w/cpp/container/vector/erase">erase</a></td>
+<td>擦除元素 (公开成员函数)</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://zh.cppreference.com/w/cpp/container/vector/push_back">push_back</a></td>
+<td>将元素添加到容器末尾 (公开成员函数)</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://zh.cppreference.com/w/cpp/container/vector/emplace_back">emplace_back</a>(C++11)</td>
+<td>在容器末尾就地构造元素 (公开成员函数)</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://zh.cppreference.com/w/cpp/container/vector/pop_back">pop_back</a></td>
+<td>移除末元素 (公开成员函数)</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://zh.cppreference.com/w/cpp/container/vector/resize">resize</a></td>
+<td>改变容器中可存储元素的个数 (公开成员函数)</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://zh.cppreference.com/w/cpp/container/vector/swap">swap</a></td>
+<td>交换内容</td>
+</tr>
+</tbody></table>
+<h2 id="2-构造Vector"><a href="#2-构造Vector" class="headerlink" title="2.构造Vector"></a>2.构造Vector</h2><p>自己手写<code>vector</code>时，迭代器不是通用的<code>Allocator</code>类型，需要在<code>vector</code>内部实现一个自定义的迭代器</p>
+<p>代码仓库：<a target="_blank" rel="noopener" href="https://github.com/yanglianoo/My_STL">yanglianoo&#x2F;My_STL: 数据结构练习仓库 (github.com)</a></p>
+<p>vector模板类定义如下，需要维护三个私有的成员变量</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">vector</span></span><br><span class="line">&#123;</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    <span class="type">int</span> _size;    <span class="comment">//实际数组大小</span></span><br><span class="line">    <span class="type">int</span> _capacity;<span class="comment">//最大容量</span></span><br><span class="line">    T* _elem;     <span class="comment">//数据区指针  </span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-1构造函数"><a href="#2-1构造函数" class="headerlink" title="2.1构造函数"></a>2.1构造函数</h3><figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="built_in">vector</span>();   <span class="comment">//默认构造函数</span></span><br><span class="line"><span class="built_in">vector</span>(std::initiallizer_list&lt;T&gt; init) <span class="comment">// c++11 列表初始化</span></span><br><span class="line">    </span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="测试"><a href="#测试" class="headerlink" title="测试"></a>测试</h2></article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="https://yanglianoo.github.io">Timer</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://yanglianoo.github.io/2023/06/07/%E6%89%8B%E5%86%99STL-Vector/">https://yanglianoo.github.io/2023/06/07/手写STL-Vector/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://yanglianoo.github.io" target="_blank">TimerのBlog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/C/">C++</a><a class="post-meta__tags" href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/">数据结构</a></div><div class="post_share"><div class="social-share" data-image="/2023/06/07/%E6%89%8B%E5%86%99STL-Vector/image-20230608195534311.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-full"><a href="/2023/06/08/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-1.%E6%A6%82%E8%BF%B0/" title="1.概述"><img class="cover" src="/2023/06/08/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-1.%E6%A6%82%E8%BF%B0/08.1.2.001-16862005447604.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">1.概述</div></div></a></div></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/head.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">Timer</div><div class="author-info__description">没有一个健康的身体，如何支撑我龌龊的灵魂!</div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">4</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">3</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">2</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/yanglianoo"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content is-expand"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-Vector-%E6%A6%82%E8%BF%B0"><span class="toc-text">1.Vector 概述</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E6%9E%84%E9%80%A0Vector"><span class="toc-text">2.构造Vector</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1%E6%9E%84%E9%80%A0%E5%87%BD%E6%95%B0"><span class="toc-text">2.1构造函数</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B5%8B%E8%AF%95"><span class="toc-text">测试</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/06/08/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-3-%E5%AE%9E%E6%A8%A1%E5%BC%8F/" title="操作系统-3.实模式">操作系统-3.实模式</a><time datetime="2023-06-08T10:14:07.000Z" title="发表于 2023-06-08 18:14:07">2023-06-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/06/08/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-2.X86%E5%AF%84%E5%AD%98%E5%99%A8%E8%AF%A6%E8%A7%A3/" title="2.X86寄存器详解"><img src="/2023/06/08/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-2.X86%E5%AF%84%E5%AD%98%E5%99%A8%E8%AF%A6%E8%A7%A3/register.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="2.X86寄存器详解"/></a><div class="content"><a class="title" href="/2023/06/08/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-2.X86%E5%AF%84%E5%AD%98%E5%99%A8%E8%AF%A6%E8%A7%A3/" title="2.X86寄存器详解">2.X86寄存器详解</a><time datetime="2023-06-08T08:26:10.000Z" title="发表于 2023-06-08 16:26:10">2023-06-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/06/08/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-1.%E6%A6%82%E8%BF%B0/" title="1.概述"><img src="/2023/06/08/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-1.%E6%A6%82%E8%BF%B0/08.1.2.001-16862005447604.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="1.概述"/></a><div class="content"><a class="title" href="/2023/06/08/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-1.%E6%A6%82%E8%BF%B0/" title="1.概述">1.概述</a><time datetime="2023-06-08T05:01:20.418Z" title="发表于 2023-06-08 13:01:20">2023-06-08</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/06/07/%E6%89%8B%E5%86%99STL-Vector/" title="手写STL之Vector"><img src="/2023/06/07/%E6%89%8B%E5%86%99STL-Vector/image-20230608195534311.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="手写STL之Vector"/></a><div class="content"><a class="title" href="/2023/06/07/%E6%89%8B%E5%86%99STL-Vector/" title="手写STL之Vector">手写STL之Vector</a><time datetime="2023-06-07T12:36:53.000Z" title="发表于 2023-06-07 20:36:53">2023-06-07</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('/2023/06/07/%E6%89%8B%E5%86%99STL-Vector/background.png')"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2023 By Timer</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><div class="js-pjax"></div><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/fireworks.min.js"></script><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div class="no-result" id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js"></script></div></div></body></html>
