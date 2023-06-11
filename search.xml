@@ -4,6 +4,33 @@
   
     
     <entry>
+      <title>从源码构建Qemu</title>
+      <link href="/2023/06/11/%E4%BB%8E%E6%BA%90%E7%A0%81%E6%9E%84%E5%BB%BAQemu/"/>
+      <url>/2023/06/11/%E4%BB%8E%E6%BA%90%E7%A0%81%E6%9E%84%E5%BB%BAQemu/</url>
+      
+        <content type="html"><![CDATA[<h1 id="1-Qemu介绍"><a href="#1-Qemu介绍" class="headerlink" title="1.Qemu介绍"></a>1.Qemu介绍</h1><p>QEMU（Quick Emulator）是一个开源的虚拟化软件，它可以模拟多个硬件平台，包括处理器和外设，从而允许在一个平台上运行多个不同的操作系统。QEMU可以运行在多个主机平台上，包括Linux、Windows、macOS等。</p><p>QEMU的主要功能是模拟一个完整的计算机系统，包括处理器、内存、存储器、网络接口等，它可以将客户操作系统（例如Linux、Windows等）当作应用程序运行在主机操作系统之上，从而实现虚拟化。QEMU还支持通过二进制代码转换的方式实现虚拟化加速，例如使用KVM（Kernel-based Virtual Machine）模块加速虚拟机的运行。</p><p>QEMU可以用于多种用途，包括：</p><ol><li>系统仿真：可以模拟不同的处理器架构（如x86、ARM等）来运行和测试操作系统和应用程序，方便开发人员进行交叉平台开发和调试。</li><li>虚拟机：可以在一个物理机上运行多个虚拟机实例，每个虚拟机可以运行不同的操作系统，实现资源的隔离和共享，提供虚拟化环境。</li><li>可移植性：QEMU可以将一个操作系统或应用程序打包成一个虚拟机镜像，这个镜像可以在不同的平台上运行，提供了一种便携式的软件分发方式。</li></ol><blockquote><p>官方源码地址：<a href="https://github.com/qemu/qemu">Qemu的github源码</a></p><p>官网地址：<a href="https://www.qemu.org/">QEMU</a></p><p>qemu的文档地址：<a href="https://www.qemu.org/docs/master/">Welcome to QEMU’s documentation! — QEMU documentation</a></p></blockquote><h1 id="2-源码下载"><a href="#2-源码下载" class="headerlink" title="2.源码下载"></a>2.源码下载</h1><p>在笔者下载源码的时间，目前<code>qemu</code>的版本已经更新到了<code>8.0.2</code>，我的ubuntu环境为：<code>WSL2 ubuntu20.04.05</code></p><p><img src="/2023/06/11/%E4%BB%8E%E6%BA%90%E7%A0%81%E6%9E%84%E5%BB%BAQemu/image-20230611160604923.png" alt="image-20230611160604923"></p><p>安装所需编译环境：</p><figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">sudo apt install ninja-build pkg-config libglib2.0-dev libpixman-1-dev libgtk-3-dev libcap-ng-dev libattr1-dev libsdl2-dev device-tree-compiler bison flex gperf intltool mtd-utils libslirp-dev</span><br></pre></td></tr></table></figure><p>源码下载与编译：</p><figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">timer@DESKTOP-JI9EVEH:~$ <span class="built_in">mkdir</span> qemu</span><br><span class="line">timer@DESKTOP-JI9EVEH:~$ <span class="built_in">cd</span> qemu/</span><br><span class="line">timer@DESKTOP-JI9EVEH:~/qemu$ wget https://download.qemu.org/qemu-8.0.2.tar.xz</span><br><span class="line">timer@DESKTOP-JI9EVEH:~/qemu$ tar xvJf qemu-8.0.2.tar.xz</span><br><span class="line">timer@DESKTOP-JI9EVEH:~/qemu$ <span class="built_in">cd</span> qemu-8.0.2/</span><br><span class="line">timer@DESKTOP-JI9EVEH:~/qemu/qemu-8.0.2$ ./configure</span><br><span class="line">timer@DESKTOP-JI9EVEH:~/qemu/qemu-8.0.2$ make -j8</span><br></pre></td></tr></table></figure><p>编译完成后会生成一个<code>./build</code>目录：</p><figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">timer@DESKTOP-JI9EVEH:~/qemu/qemu-8.0.2$ <span class="built_in">cd</span> build/</span><br></pre></td></tr></table></figure><p>安装：</p><figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="comment">#由于我之前使用package的方式在本地安装了一个qemu，因此先将其卸载</span></span><br><span class="line">timer@DESKTOP-JI9EVEH:~$ sudo apt-get remove --auto-remove qemu-system-x86</span><br><span class="line">timer@DESKTOP-JI9EVEH:~$ sudo apt-get purge --auto-remove qemu-system-x86</span><br><span class="line"><span class="comment">#卸载完成后进入build目录执行安装命令，需要sudo不然会报错</span></span><br><span class="line">timer@DESKTOP-JI9EVEH:~/qemu/qemu-8.0.2/build$ sudo make install</span><br></pre></td></tr></table></figure><p>测试，查看<code>qemu</code>版本号，</p><figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">qemu-img -V</span><br></pre></td></tr></table></figure><p><img src="/2023/06/11/%E4%BB%8E%E6%BA%90%E7%A0%81%E6%9E%84%E5%BB%BAQemu/image-20230611164450596.png" alt="image-20230611164450596"></p><p>启动qemu，这里以riscv64为例：<code>qemu-system-riscv64</code></p><p><img src="/2023/06/11/%E4%BB%8E%E6%BA%90%E7%A0%81%E6%9E%84%E5%BB%BAQemu/image-20230611164621585.png" alt="image-20230611164621585"></p><p>大功告成！</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> Qemu&amp;虚拟化 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> qemu </tag>
+            
+            <tag> 虚拟化 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>操作系统-3.实模式</title>
       <link href="/2023/06/08/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-3-%E5%AE%9E%E6%A8%A1%E5%BC%8F/"/>
       <url>/2023/06/08/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-3-%E5%AE%9E%E6%A8%A1%E5%BC%8F/</url>

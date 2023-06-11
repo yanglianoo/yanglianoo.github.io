@@ -2,6 +2,24 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>https://yanglianoo.github.io/2023/06/11/%E4%BB%8E%E6%BA%90%E7%A0%81%E6%9E%84%E5%BB%BAQemu/</loc>
+    
+    <lastmod>2023-06-11</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://yanglianoo.github.io/categories/index.html</loc>
+    
+    <lastmod>2023-06-11</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
     <loc>https://yanglianoo.github.io/2023/06/08/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-1.%E6%A6%82%E8%BF%B0/</loc>
     
     <lastmod>2023-06-11</lastmod>
@@ -46,15 +64,6 @@
     <priority>0.6</priority>
   </url>
   
-  <url>
-    <loc>https://yanglianoo.github.io/categories/index.html</loc>
-    
-    <lastmod>2023-06-07</lastmod>
-    
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  
 
   <url>
     <loc>https://yanglianoo.github.io/</loc>
@@ -63,6 +72,20 @@
     <priority>1.0</priority>
   </url>
 
+  
+  <url>
+    <loc>https://yanglianoo.github.io/tags/qemu/</loc>
+    <lastmod>2023-06-11</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://yanglianoo.github.io/tags/%E8%99%9A%E6%8B%9F%E5%8C%96/</loc>
+    <lastmod>2023-06-11</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
   
   <url>
     <loc>https://yanglianoo.github.io/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/</loc>
@@ -86,6 +109,13 @@
   </url>
   
 
+  
+  <url>
+    <loc>https://yanglianoo.github.io/categories/Qemu-%E8%99%9A%E6%8B%9F%E5%8C%96/</loc>
+    <lastmod>2023-06-11</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
   
   <url>
     <loc>https://yanglianoo.github.io/categories/%E4%BB%8E%E9%9B%B6%E6%89%8B%E5%86%99%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-X86%E6%9E%B6%E6%9E%84/</loc>
