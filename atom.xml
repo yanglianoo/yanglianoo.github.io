@@ -6,7 +6,7 @@
   <link href="https://yanglianoo.github.io/atom.xml" rel="self"/>
   
   <link href="https://yanglianoo.github.io/"/>
-  <updated>2023-06-13T13:50:31.653Z</updated>
+  <updated>2023-06-13T15:53:39.594Z</updated>
   <id>https://yanglianoo.github.io/</id>
   
   <author>
@@ -21,7 +21,7 @@
     <link href="https://yanglianoo.github.io/2023/06/12/QEMU%E4%B8%AD%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%80%E5%8F%91%E6%9D%BF/"/>
     <id>https://yanglianoo.github.io/2023/06/12/QEMU%E4%B8%AD%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%80%E5%8F%91%E6%9D%BF/</id>
     <published>2023-06-12T11:48:46.000Z</published>
-    <updated>2023-06-13T13:50:31.653Z</updated>
+    <updated>2023-06-13T15:53:39.594Z</updated>
     
     
       
@@ -34,10 +34,14 @@
     
     
     
+    <category term="Qemu&amp;虚拟化" scheme="https://yanglianoo.github.io/categories/Qemu-%E8%99%9A%E6%8B%9F%E5%8C%96/"/>
+    
     
     <category term="qemu" scheme="https://yanglianoo.github.io/tags/qemu/"/>
     
     <category term="嵌入式" scheme="https://yanglianoo.github.io/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F/"/>
+    
+    <category term="虚拟化" scheme="https://yanglianoo.github.io/tags/%E8%99%9A%E6%8B%9F%E5%8C%96/"/>
     
   </entry>
   
