@@ -6,7 +6,7 @@
   <link href="https://yanglianoo.github.io/atom.xml" rel="self"/>
   
   <link href="https://yanglianoo.github.io/"/>
-  <updated>2023-06-12T08:40:29.322Z</updated>
+  <updated>2023-06-13T13:50:31.653Z</updated>
   <id>https://yanglianoo.github.io/</id>
   
   <author>
@@ -17,11 +17,36 @@
   <generator uri="https://hexo.io/">Hexo</generator>
   
   <entry>
+    <title>QEMU中自定义开发板</title>
+    <link href="https://yanglianoo.github.io/2023/06/12/QEMU%E4%B8%AD%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%80%E5%8F%91%E6%9D%BF/"/>
+    <id>https://yanglianoo.github.io/2023/06/12/QEMU%E4%B8%AD%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%80%E5%8F%91%E6%9D%BF/</id>
+    <published>2023-06-12T11:48:46.000Z</published>
+    <updated>2023-06-13T13:50:31.653Z</updated>
+    
+    
+      
+      
+        
+        
+    <summary type="html">&lt;h1 id=&quot;1-QEMU中新增虚拟开发板&quot;&gt;&lt;a href=&quot;#1-QEMU中新增虚拟开发板&quot; class=&quot;headerlink&quot; title=&quot;1. QEMU中新增虚拟开发板&quot;&gt;&lt;/a&gt;1.</summary>
+        
+      
+    
+    
+    
+    
+    <category term="qemu" scheme="https://yanglianoo.github.io/tags/qemu/"/>
+    
+    <category term="嵌入式" scheme="https://yanglianoo.github.io/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F/"/>
+    
+  </entry>
+  
+  <entry>
     <title>设备树详解</title>
     <link href="https://yanglianoo.github.io/2023/06/11/%E8%AE%BE%E5%A4%87%E6%A0%91%E8%AF%A6%E8%A7%A3/"/>
     <id>https://yanglianoo.github.io/2023/06/11/%E8%AE%BE%E5%A4%87%E6%A0%91%E8%AF%A6%E8%A7%A3/</id>
     <published>2023-06-11T14:04:19.000Z</published>
-    <updated>2023-06-12T08:40:29.322Z</updated>
+    <updated>2023-06-13T11:09:07.767Z</updated>
     
     
       
@@ -37,11 +62,11 @@
     <category term="嵌入式Linux" scheme="https://yanglianoo.github.io/categories/%E5%B5%8C%E5%85%A5%E5%BC%8FLinux/"/>
     
     
+    <category term="嵌入式" scheme="https://yanglianoo.github.io/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F/"/>
+    
     <category term="设备树" scheme="https://yanglianoo.github.io/tags/%E8%AE%BE%E5%A4%87%E6%A0%91/"/>
     
     <category term="Linux" scheme="https://yanglianoo.github.io/tags/Linux/"/>
-    
-    <category term="嵌入式" scheme="https://yanglianoo.github.io/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F/"/>
     
   </entry>
   
@@ -50,7 +75,7 @@
     <link href="https://yanglianoo.github.io/2023/06/11/%E4%BB%8E%E6%BA%90%E7%A0%81%E6%9E%84%E5%BB%BAQemu/"/>
     <id>https://yanglianoo.github.io/2023/06/11/%E4%BB%8E%E6%BA%90%E7%A0%81%E6%9E%84%E5%BB%BAQemu/</id>
     <published>2023-06-11T07:56:37.000Z</published>
-    <updated>2023-06-11T08:47:24.541Z</updated>
+    <updated>2023-06-13T11:09:02.297Z</updated>
     
     
       
