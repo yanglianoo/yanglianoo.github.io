@@ -1,0 +1,255 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>计算机系统基础-存储访问 | TimerのBlog</title><meta name="author" content="Timer"><meta name="copyright" content="Timer"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="1.存储器使用场景先来看如下这一张图，CPU运行程序的流程如下：  1：假设我现在在电脑上编译了一个hello.c的程序，编译完成后为hello.bin的一个二进制文件，此时这个程序还存储在我们电脑的硬盘上，这个硬盘可能是机械硬盘也可能是固态硬盘，这些都是外存储器。 2：将hello.bin装载进内存，这里的内存就是插在电脑上的内存条，hello.bin包含了cpu要执行的指令和运行所需要的数据。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="计算机系统基础-存储访问">
+<meta property="og:url" content="https://yanglianoo.github.io/2023/06/14/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E5%9F%BA%E7%A1%80-%E5%AD%98%E5%82%A8%E8%AE%BF%E9%97%AE/index.html">
+<meta property="og:site_name" content="TimerのBlog">
+<meta property="og:description" content="1.存储器使用场景先来看如下这一张图，CPU运行程序的流程如下：  1：假设我现在在电脑上编译了一个hello.c的程序，编译完成后为hello.bin的一个二进制文件，此时这个程序还存储在我们电脑的硬盘上，这个硬盘可能是机械硬盘也可能是固态硬盘，这些都是外存储器。 2：将hello.bin装载进内存，这里的内存就是插在电脑上的内存条，hello.bin包含了cpu要执行的指令和运行所需要的数据。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yanglianoo.github.io/2023/06/14/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E5%9F%BA%E7%A1%80-%E5%AD%98%E5%82%A8%E8%AE%BF%E9%97%AE/image-20230614140240489.png">
+<meta property="article:published_time" content="2023-06-14T05:26:41.000Z">
+<meta property="article:modified_time" content="2023-06-14T06:11:00.969Z">
+<meta property="article:author" content="Timer">
+<meta property="article:tag" content="存储器">
+<meta property="article:tag" content="计算机系统基础">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://yanglianoo.github.io/2023/06/14/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E5%9F%BA%E7%A1%80-%E5%AD%98%E5%82%A8%E8%AE%BF%E9%97%AE/image-20230614140240489.png"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://yanglianoo.github.io/2023/06/14/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E5%9F%BA%E7%A1%80-%E5%AD%98%E5%82%A8%E8%AE%BF%E9%97%AE/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"languages":{"hits_empty":"找不到您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":500},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: {"chs_to_cht":"你已切换为繁体","cht_to_chs":"你已切换为简体","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"bottom-left"},
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '计算机系统基础-存储访问',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2023-06-14 14:11:00'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+    win.getCSS = (url,id = false) => new Promise((resolve, reject) => {
+      const link = document.createElement('link')
+      link.rel = 'stylesheet'
+      link.href = url
+      if (id) link.id = id
+      link.onerror = reject
+      link.onload = link.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        link.onload = link.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(link)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/background.css"><meta name="generator" content="Hexo 6.3.0"><link rel="alternate" href="/atom.xml" title="TimerのBlog" type="application/atom+xml">
+</head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/head.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">8</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">10</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">5</div></a></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/2023/06/14/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E5%9F%BA%E7%A1%80-%E5%AD%98%E5%82%A8%E8%AE%BF%E9%97%AE/background.webp')"><nav id="nav"><span id="blog-info"><a href="/" title="TimerのBlog"><span class="site-name">TimerのBlog</span></a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search" href="javascript:void(0);"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">计算机系统基础-存储访问</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2023-06-14T05:26:41.000Z" title="发表于 2023-06-14 13:26:41">2023-06-14</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2023-06-14T06:11:00.969Z" title="更新于 2023-06-14 14:11:00">2023-06-14</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E5%9F%BA%E7%A1%80/">计算机系统基础</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="计算机系统基础-存储访问"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="1-存储器使用场景"><a href="#1-存储器使用场景" class="headerlink" title="1.存储器使用场景"></a>1.存储器使用场景</h1><p>先来看如下这一张图，CPU运行程序的流程如下：</p>
+<p><img src="/2023/06/14/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E5%9F%BA%E7%A1%80-%E5%AD%98%E5%82%A8%E8%AE%BF%E9%97%AE/image-20230614133226741.png" alt="image-20230614133226741"></p>
+<p>1：假设我现在在电脑上编译了一个<code>hello.c</code>的程序，编译完成后为<code>hello.bin</code>的一个二进制文件，此时这个程序还存储在我们电脑的硬盘上，这个硬盘可能是机械硬盘也可能是固态硬盘，这些都是外存储器。</p>
+<p>2：将<code>hello.bin</code>装载进内存，这里的内存就是插在电脑上的内存条，<code>hello.bin</code>包含了cpu要执行的指令和运行所需要的数据。</p>
+<p>3：CPU从内存中逐条读取指令及相关指令，然后依次执行完成对数据的处理。</p>
+<p>4：将处理结果送回内存保存，然后再将处理结果送到外存储器。</p>
+<p>所以其实在CPU运行的过程中主要是分为两类存储器：</p>
+<ul>
+<li><p>内存储器</p>
+<p>存取速度快 </p>
+<p>成本高、容量相对较小 </p>
+<p>直接与CPU连接，CPU对内存 中可直接进行读、写操作 </p>
+<p>属于易失性存储器(volatile)， 用于临时存放正在运行的程序和数据，掉电就没了数据。</p>
+</li>
+<li><p>外存储器（简称外存或辅存）</p>
+<p>– 存取速度慢 – 成本低、容量很大 </p>
+<p>– 不与CPU直接连接，先传送到内 存，然后才能被CPU使用。</p>
+<p> – 属于非易失性存储器，用于长久存放系统中几乎所有的信息</p>
+</li>
+</ul>
+<blockquote>
+<p>这里可能会有个疑问，CPU访问内存的方式是通过地址总线来访问的，CPU是如何访问外存的呢：</p>
+<p>CPU访问外部存储器（外存）的方式通常是通过输入输出（I&#x2F;O）指令和I&#x2F;O总线来实现的。外存通常指的是硬盘、固态硬盘（SSD）、光盘、磁带等非易失性存储介质。</p>
+<p>与内存访问不同，外存的访问速度相对较慢，因此CPU在执行指令时通常不直接与外存进行交互，而是通过操作系统和设备控制器等中间层来实现。以下是CPU访问外存的一般过程：</p>
+<ol>
+<li>CPU发送I&#x2F;O指令：当需要读取或写入外存中的数据时，CPU会发出相应的I&#x2F;O指令，这些指令通常包括读取（IN）和写入（OUT）操作。</li>
+<li>I&#x2F;O总线传输：CPU将I&#x2F;O指令发送到I&#x2F;O总线上。I&#x2F;O总线是一种特殊的总线，用于传输CPU和外部设备之间的数据和控制信号。</li>
+<li>设备控制器响应：I&#x2F;O总线上连接着各种外部设备控制器，如硬盘控制器或磁带控制器。当设备控制器接收到CPU发送的I&#x2F;O指令时，它会解析指令并准备执行相应的读取或写入操作。</li>
+<li>数据传输：设备控制器根据指令从外存读取数据或将数据写入外存。这个过程涉及到设备控制器与外存之间的数据传输，可能需要通过外存总线或其他特定接口进行。</li>
+<li>完成操作：设备控制器完成读取或写入操作后，将状态信息返回给CPU，指示操作是否成功或是否有错误发生。</li>
+</ol>
+</blockquote>
+<p>主存的结构如下：</p>
+<p><img src="/2023/06/14/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E5%9F%BA%E7%A1%80-%E5%AD%98%E5%82%A8%E8%AE%BF%E9%97%AE/image-20230614140500484.png" alt="image-20230614140500484"></p>
+<p>一个存储单元为一个bit，按字节编址的话一个地址对应的就是8个字节，数据总线读取一个地址的数据就一次性读取8个bit，这8个bit的地址都是一样的</p>
+<p>如果CPU的数据总线是64位，则一次性最大可以读取64bit的数据也就是8个字节。</p>
+<p>地址线为36位，则可以寻址的范围是0~2^36-1，即主存地址空间为64GB。</p>
+<h1 id="2-存储器分类"><a href="#2-存储器分类" class="headerlink" title="2.存储器分类"></a>2.存储器分类</h1><h2 id="2-1-RAM"><a href="#2-1-RAM" class="headerlink" title="2.1 RAM"></a>2.1 RAM</h2><p>内存（主存，RAM，Random Access Memory）：</p>
+<ol>
+<li>主存是CPU直接访问的存储器，用于存储当前执行的程序、数据和临时计算结果。</li>
+<li>分类：<ul>
+<li>随机访问存储器（RAM）：包括动态随机访问存储器（DRAM）和静态随机访问存储器（SRAM）。DRAM存储器成本较低，容量较大，但读写速度相对较慢；SRAM存储器读写速度快，但成本较高。</li>
+<li>缓存（Cache）：用于在CPU和主存之间提供快速数据访问，减少CPU等待数据的时间。根据接近CPU的级别不同，可以分为一级缓存（L1 Cache）、二级缓存（L2 Cache）等多级别缓存。</li>
+</ul>
+</li>
+<li>应用场景：<ul>
+<li>执行指令和存储数据：CPU从内存中读取指令和数据进行运算和处理。</li>
+<li>运行操作系统和应用程序：操作系统和应用程序加载到内存中运行，提供计算、存储和交互功能。</li>
+</ul>
+</li>
+</ol>
+<h2 id="2-2-ROM"><a href="#2-2-ROM" class="headerlink" title="2.2 ROM"></a>2.2 ROM</h2><p>ROM是只读存储器（Read-Only Memory）的缩写，它是一种用于存储固定数据的存储器类型。与可写的存储器（如RAM）不同，ROM中的数据在制造或编程之后就无法被修改。</p>
+<p>以下是一些关键特点和应用场景，以帮助更好理解ROM：</p>
+<p>特点：</p>
+<ol>
+<li>只读性质：ROM中的数据在制造或编程之后就无法被修改或擦除。</li>
+<li>非易失性：与RAM不同，ROM中的数据在断电或重新启动后仍然保持不变。</li>
+<li>持久存储：ROM用于存储固定的数据，如固件、引导程序、不经常更改的配置信息等。</li>
+</ol>
+<p>应用场景：</p>
+<ol>
+<li>固件：ROM常用于存储计算机系统或电子设备的固件，包括BIOS（基本输入&#x2F;输出系统）、固件程序和引导加载器等。</li>
+<li>引导程序：计算机启动时，ROM中的引导程序负责初始化硬件和加载操作系统。</li>
+<li>芯片固化数据：ROM用于存储芯片的校准数据、配置信息和厂商特定的数据，以便在设备制造后使用。</li>
+<li>只读存储媒体：一些光盘和芯片类型，如CD-ROM、DVD-ROM、Blu-ray Disc、EPROM（可擦除可编程只读存储器）等，被设计为只读存储介质。</li>
+</ol>
+<p>需要注意的是，不同类型的ROM可以具有不同的特性。例如，EPROM是一种可擦除可编程只读存储器，允许通过特殊操作将其中的数据擦除并重新编程，而普通的ROM则不具备这种功能。此外，还有一些衍生类型的ROM，如EEPROM（可擦除可编程只读存储器）、Flash存储器等，它们具有一定的可擦除和可重新编程的能力。</p>
+<h2 id="2-3-储存器功能分类"><a href="#2-3-储存器功能分类" class="headerlink" title="2.3 储存器功能分类"></a>2.3 储存器功能分类</h2><ul>
+<li>寄存器(Register) <ul>
+<li>封装在CPU内，用于存放当前正在执行的指令和使用的数据 </li>
+<li>用触发器实现，速度快，容量小（几~几十个）</li>
+</ul>
+</li>
+<li>高速缓存(Cache) </li>
+<li>位于CPU内部或附近，用来存放当前要执行的局部程序段和数据 </li>
+<li>-用SRAM实现，速度可与CPU匹配，容量小（几MB） </li>
+<li>内存储器MM（主存储器Main (Primary) Memory）<ul>
+<li>位于CPU之外，用来存放已被启动的程序及所用的数据 </li>
+<li>用DRAM实现，速度较快，容量较大（几GB）</li>
+</ul>
+</li>
+<li>外存储器AM (辅助存储器Auxiliary &#x2F; Secondary Storage) <ul>
+<li>位于主机之外，用来存放暂不运行的程序、数据或存档文件</li>
+<li>用磁盘、SSD等实现，容量大而速度慢</li>
+</ul>
+</li>
+</ul>
+<p><img src="/2023/06/14/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E5%9F%BA%E7%A1%80-%E5%AD%98%E5%82%A8%E8%AE%BF%E9%97%AE/image-20230614140240489.png" alt="image-20230614140240489"></p>
+<h1 id="3-嵌入式存储实例"><a href="#3-嵌入式存储实例" class="headerlink" title="3.嵌入式存储实例"></a>3.嵌入式存储实例</h1></article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="https://yanglianoo.github.io">Timer</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://yanglianoo.github.io/2023/06/14/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E5%9F%BA%E7%A1%80-%E5%AD%98%E5%82%A8%E8%AE%BF%E9%97%AE/">https://yanglianoo.github.io/2023/06/14/计算机系统基础-存储访问/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://yanglianoo.github.io" target="_blank">TimerのBlog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E5%AD%98%E5%82%A8%E5%99%A8/">存储器</a><a class="post-meta__tags" href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E5%9F%BA%E7%A1%80/">计算机系统基础</a></div><div class="post_share"><div class="social-share" data-image="/2023/06/14/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E5%9F%BA%E7%A1%80-%E5%AD%98%E5%82%A8%E8%AE%BF%E9%97%AE/image-20230614140240489.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/2023/06/12/QEMU%E4%B8%AD%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%80%E5%8F%91%E6%9D%BF/" title="QEMU中自定义开发板"><img class="cover" src="/2023/06/12/QEMU%E4%B8%AD%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%80%E5%8F%91%E6%9D%BF/image-20230613213926716.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">QEMU中自定义开发板</div></div></a></div></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/head.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">Timer</div><div class="author-info__description">没有一个健康的身体，如何支撑我龌龊的灵魂!</div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">8</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">10</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">5</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/yanglianoo"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content is-expand"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E5%AD%98%E5%82%A8%E5%99%A8%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-text">1.存储器使用场景</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-%E5%AD%98%E5%82%A8%E5%99%A8%E5%88%86%E7%B1%BB"><span class="toc-text">2.存储器分类</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#2-1-RAM"><span class="toc-text">2.1 RAM</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-2-ROM"><span class="toc-text">2.2 ROM</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-3-%E5%82%A8%E5%AD%98%E5%99%A8%E5%8A%9F%E8%83%BD%E5%88%86%E7%B1%BB"><span class="toc-text">2.3 储存器功能分类</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-%E5%B5%8C%E5%85%A5%E5%BC%8F%E5%AD%98%E5%82%A8%E5%AE%9E%E4%BE%8B"><span class="toc-text">3.嵌入式存储实例</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2023/06/14/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E5%9F%BA%E7%A1%80-%E5%AD%98%E5%82%A8%E8%AE%BF%E9%97%AE/" title="计算机系统基础-存储访问"><img src="/2023/06/14/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E5%9F%BA%E7%A1%80-%E5%AD%98%E5%82%A8%E8%AE%BF%E9%97%AE/image-20230614140240489.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="计算机系统基础-存储访问"/></a><div class="content"><a class="title" href="/2023/06/14/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E5%9F%BA%E7%A1%80-%E5%AD%98%E5%82%A8%E8%AE%BF%E9%97%AE/" title="计算机系统基础-存储访问">计算机系统基础-存储访问</a><time datetime="2023-06-14T05:26:41.000Z" title="发表于 2023-06-14 13:26:41">2023-06-14</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/06/12/QEMU%E4%B8%AD%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%80%E5%8F%91%E6%9D%BF/" title="QEMU中自定义开发板"><img src="/2023/06/12/QEMU%E4%B8%AD%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%80%E5%8F%91%E6%9D%BF/image-20230613213926716.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="QEMU中自定义开发板"/></a><div class="content"><a class="title" href="/2023/06/12/QEMU%E4%B8%AD%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%80%E5%8F%91%E6%9D%BF/" title="QEMU中自定义开发板">QEMU中自定义开发板</a><time datetime="2023-06-12T11:48:46.000Z" title="发表于 2023-06-12 19:48:46">2023-06-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/06/11/%E8%AE%BE%E5%A4%87%E6%A0%91%E8%AF%A6%E8%A7%A3/" title="设备树详解"><img src="/2023/06/11/%E8%AE%BE%E5%A4%87%E6%A0%91%E8%AF%A6%E8%A7%A3/1503563-20200915000144208-924995757.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="设备树详解"/></a><div class="content"><a class="title" href="/2023/06/11/%E8%AE%BE%E5%A4%87%E6%A0%91%E8%AF%A6%E8%A7%A3/" title="设备树详解">设备树详解</a><time datetime="2023-06-11T14:04:19.000Z" title="发表于 2023-06-11 22:04:19">2023-06-11</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/06/11/%E4%BB%8E%E6%BA%90%E7%A0%81%E6%9E%84%E5%BB%BAQemu/" title="从源码构建Qemu"><img src="/2023/06/11/%E4%BB%8E%E6%BA%90%E7%A0%81%E6%9E%84%E5%BB%BAQemu/qemu.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="从源码构建Qemu"/></a><div class="content"><a class="title" href="/2023/06/11/%E4%BB%8E%E6%BA%90%E7%A0%81%E6%9E%84%E5%BB%BAQemu/" title="从源码构建Qemu">从源码构建Qemu</a><time datetime="2023-06-11T07:56:37.000Z" title="发表于 2023-06-11 15:56:37">2023-06-11</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/06/08/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-3-%E5%AE%9E%E6%A8%A1%E5%BC%8F/" title="操作系统-3.实模式"><img src="/2023/06/08/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-3-%E5%AE%9E%E6%A8%A1%E5%BC%8F/watermark,type_ZHJvaWRzYW5zZmFsbGJhY2s,shadow_50,text_Q1NETiBAU3RyaXZlIGZvciB0aGUgYmVzdO-8gQ==,size_20,color_FFFFFF,t_70,g_se,x_16.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="操作系统-3.实模式"/></a><div class="content"><a class="title" href="/2023/06/08/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-3-%E5%AE%9E%E6%A8%A1%E5%BC%8F/" title="操作系统-3.实模式">操作系统-3.实模式</a><time datetime="2023-06-08T10:14:07.000Z" title="发表于 2023-06-08 18:14:07">2023-06-08</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('/2023/06/14/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E5%9F%BA%E7%A1%80-%E5%AD%98%E5%82%A8%E8%AE%BF%E9%97%AE/background.webp')"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2023 By Timer</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><div class="js-pjax"></div><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/fireworks.min.js"></script><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div class="no-result" id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js"></script></div></div></body></html>

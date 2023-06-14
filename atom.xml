@@ -6,7 +6,7 @@
   <link href="https://yanglianoo.github.io/atom.xml" rel="self"/>
   
   <link href="https://yanglianoo.github.io/"/>
-  <updated>2023-06-13T15:53:39.594Z</updated>
+  <updated>2023-06-14T06:11:00.969Z</updated>
   <id>https://yanglianoo.github.io/</id>
   
   <author>
@@ -15,6 +15,34 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>计算机系统基础-存储访问</title>
+    <link href="https://yanglianoo.github.io/2023/06/14/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E5%9F%BA%E7%A1%80-%E5%AD%98%E5%82%A8%E8%AE%BF%E9%97%AE/"/>
+    <id>https://yanglianoo.github.io/2023/06/14/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E5%9F%BA%E7%A1%80-%E5%AD%98%E5%82%A8%E8%AE%BF%E9%97%AE/</id>
+    <published>2023-06-14T05:26:41.000Z</published>
+    <updated>2023-06-14T06:11:00.969Z</updated>
+    
+    
+      
+      
+        
+        
+    <summary type="html">&lt;h1 id=&quot;1-存储器使用场景&quot;&gt;&lt;a href=&quot;#1-存储器使用场景&quot; class=&quot;headerlink&quot; title=&quot;1.存储器使用场景&quot;&gt;&lt;/a&gt;1.存储器使用场景&lt;/h1&gt;&lt;p&gt;先来看如下这一张图，CPU运行程序的流程如下：&lt;/p&gt;
+&lt;p&gt;&lt;img</summary>
+        
+      
+    
+    
+    
+    <category term="计算机系统基础" scheme="https://yanglianoo.github.io/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E5%9F%BA%E7%A1%80/"/>
+    
+    
+    <category term="存储器" scheme="https://yanglianoo.github.io/tags/%E5%AD%98%E5%82%A8%E5%99%A8/"/>
+    
+    <category term="计算机系统基础" scheme="https://yanglianoo.github.io/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E5%9F%BA%E7%A1%80/"/>
+    
+  </entry>
   
   <entry>
     <title>QEMU中自定义开发板</title>
@@ -156,7 +184,7 @@
     <link href="https://yanglianoo.github.io/2023/06/08/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-1.%E6%A6%82%E8%BF%B0/"/>
     <id>https://yanglianoo.github.io/2023/06/08/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-1.%E6%A6%82%E8%BF%B0/</id>
     <published>2023-06-08T05:01:20.418Z</published>
-    <updated>2023-06-11T05:30:30.360Z</updated>
+    <updated>2023-06-14T05:49:19.297Z</updated>
     
     
       
