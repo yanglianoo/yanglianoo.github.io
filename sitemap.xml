@@ -2,7 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>https://yanglianoo.github.io/2023/06/15/QEMU%E4%B8%AD%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%80%E5%8F%91%E6%9D%BF-3-%E4%B8%BAquard-star%E6%B7%BB%E5%8A%A0flash/</loc>
+    <loc>https://yanglianoo.github.io/2023/06/12/QEMU%E4%B8%AD%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%80%E5%8F%91%E6%9D%BF/</loc>
     
     <lastmod>2023-06-15</lastmod>
     
@@ -11,7 +11,7 @@
   </url>
   
   <url>
-    <loc>https://yanglianoo.github.io/2023/06/12/QEMU%E4%B8%AD%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%80%E5%8F%91%E6%9D%BF/</loc>
+    <loc>https://yanglianoo.github.io/2023/06/15/QEMU%E4%B8%AD%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%80%E5%8F%91%E6%9D%BF-3-%E4%B8%BAquard-star%E6%B7%BB%E5%8A%A0flash/</loc>
     
     <lastmod>2023-06-15</lastmod>
     
@@ -161,20 +161,6 @@
   </url>
   
   <url>
-    <loc>https://yanglianoo.github.io/tags/%E8%AE%BE%E5%A4%87%E6%A0%91/</loc>
-    <lastmod>2023-06-15</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://yanglianoo.github.io/tags/Linux/</loc>
-    <lastmod>2023-06-15</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
     <loc>https://yanglianoo.github.io/tags/%E5%AD%98%E5%82%A8%E5%99%A8/</loc>
     <lastmod>2023-06-15</lastmod>
     <changefreq>weekly</changefreq>
@@ -183,6 +169,20 @@
   
   <url>
     <loc>https://yanglianoo.github.io/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E5%9F%BA%E7%A1%80/</loc>
+    <lastmod>2023-06-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://yanglianoo.github.io/tags/%E8%AE%BE%E5%A4%87%E6%A0%91/</loc>
+    <lastmod>2023-06-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://yanglianoo.github.io/tags/Linux/</loc>
     <lastmod>2023-06-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
@@ -219,14 +219,14 @@
   </url>
   
   <url>
-    <loc>https://yanglianoo.github.io/categories/%E5%B5%8C%E5%85%A5%E5%BC%8FLinux/</loc>
+    <loc>https://yanglianoo.github.io/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E5%9F%BA%E7%A1%80/</loc>
     <lastmod>2023-06-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
-    <loc>https://yanglianoo.github.io/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E5%9F%BA%E7%A1%80/</loc>
+    <loc>https://yanglianoo.github.io/categories/%E5%B5%8C%E5%85%A5%E5%BC%8FLinux/</loc>
     <lastmod>2023-06-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
