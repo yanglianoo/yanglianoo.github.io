@@ -47,11 +47,11 @@
   </entry>
   
   <entry>
-    <title>QEMU中自定义开发板6-制作测试固件验证串口打印</title>
+    <title>6-制作测试固件验证串口打印</title>
     <link href="https://yanglianoo.github.io/2023/06/17/QEMU%E4%B8%AD%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%80%E5%8F%91%E6%9D%BF6-%E5%88%B6%E4%BD%9C%E6%B5%8B%E8%AF%95%E5%9B%BA%E4%BB%B6%E9%AA%8C%E8%AF%81%E4%B8%B2%E5%8F%A3%E6%89%93%E5%8D%B0/"/>
     <id>https://yanglianoo.github.io/2023/06/17/QEMU%E4%B8%AD%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%80%E5%8F%91%E6%9D%BF6-%E5%88%B6%E4%BD%9C%E6%B5%8B%E8%AF%95%E5%9B%BA%E4%BB%B6%E9%AA%8C%E8%AF%81%E4%B8%B2%E5%8F%A3%E6%89%93%E5%8D%B0/</id>
     <published>2023-06-17T07:46:34.000Z</published>
-    <updated>2023-06-17T08:17:54.260Z</updated>
+    <updated>2023-06-22T11:05:13.135Z</updated>
     
     
       
@@ -65,7 +65,7 @@
     
     
     
-    <category term="QEMU中自定义开发板" scheme="https://yanglianoo.github.io/categories/QEMU%E4%B8%AD%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%80%E5%8F%91%E6%9D%BF/"/>
+    <category term="基于qemu从零开始构建riscv64的嵌入式系统" scheme="https://yanglianoo.github.io/categories/%E5%9F%BA%E4%BA%8Eqemu%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E6%9E%84%E5%BB%BAriscv64%E7%9A%84%E5%B5%8C%E5%85%A5%E5%BC%8F%E7%B3%BB%E7%BB%9F/"/>
     
     
     <category term="qemu" scheme="https://yanglianoo.github.io/tags/qemu/"/>
@@ -83,7 +83,7 @@
     <link href="https://yanglianoo.github.io/2023/06/16/QEMU%E4%B8%AD%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%80%E5%8F%91%E6%9D%BF5-%E4%B8%BAquard-star%E6%B7%BB%E5%8A%A0RTC%E5%92%8CUART/"/>
     <id>https://yanglianoo.github.io/2023/06/16/QEMU%E4%B8%AD%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%80%E5%8F%91%E6%9D%BF5-%E4%B8%BAquard-star%E6%B7%BB%E5%8A%A0RTC%E5%92%8CUART/</id>
     <published>2023-06-16T10:10:26.000Z</published>
-    <updated>2023-06-17T07:43:49.130Z</updated>
+    <updated>2023-06-22T11:04:35.758Z</updated>
     
     
       
@@ -96,7 +96,7 @@
     
     
     
-    <category term="QEMU中自定义开发板" scheme="https://yanglianoo.github.io/categories/QEMU%E4%B8%AD%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%80%E5%8F%91%E6%9D%BF/"/>
+    <category term="基于qemu从零开始构建riscv64的嵌入式系统" scheme="https://yanglianoo.github.io/categories/%E5%9F%BA%E4%BA%8Eqemu%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E6%9E%84%E5%BB%BAriscv64%E7%9A%84%E5%B5%8C%E5%85%A5%E5%BC%8F%E7%B3%BB%E7%BB%9F/"/>
     
     
     <category term="qemu" scheme="https://yanglianoo.github.io/tags/qemu/"/>
@@ -112,7 +112,7 @@
     <link href="https://yanglianoo.github.io/2023/06/16/QEMU%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%80%E5%8F%91%E6%9D%BF4-%E4%B8%BAquard-star%E6%B7%BB%E5%8A%A0%E4%B8%AD%E6%96%AD%E6%8E%A7%E5%88%B6%E5%99%A8/"/>
     <id>https://yanglianoo.github.io/2023/06/16/QEMU%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%80%E5%8F%91%E6%9D%BF4-%E4%B8%BAquard-star%E6%B7%BB%E5%8A%A0%E4%B8%AD%E6%96%AD%E6%8E%A7%E5%88%B6%E5%99%A8/</id>
     <published>2023-06-16T05:40:07.000Z</published>
-    <updated>2023-06-17T07:43:38.577Z</updated>
+    <updated>2023-06-22T11:03:54.207Z</updated>
     
     
       
@@ -125,7 +125,7 @@
     
     
     
-    <category term="QEMU中自定义开发板" scheme="https://yanglianoo.github.io/categories/QEMU%E4%B8%AD%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%80%E5%8F%91%E6%9D%BF/"/>
+    <category term="基于qemu从零开始构建riscv64的嵌入式系统" scheme="https://yanglianoo.github.io/categories/%E5%9F%BA%E4%BA%8Eqemu%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E6%9E%84%E5%BB%BAriscv64%E7%9A%84%E5%B5%8C%E5%85%A5%E5%BC%8F%E7%B3%BB%E7%BB%9F/"/>
     
     
     <category term="qemu" scheme="https://yanglianoo.github.io/tags/qemu/"/>
@@ -141,7 +141,7 @@
     <link href="https://yanglianoo.github.io/2023/06/15/QEMU%E4%B8%AD%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%80%E5%8F%91%E6%9D%BF-3-%E4%B8%BAquard-star%E6%B7%BB%E5%8A%A0flash/"/>
     <id>https://yanglianoo.github.io/2023/06/15/QEMU%E4%B8%AD%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%80%E5%8F%91%E6%9D%BF-3-%E4%B8%BAquard-star%E6%B7%BB%E5%8A%A0flash/</id>
     <published>2023-06-15T08:43:16.000Z</published>
-    <updated>2023-06-17T07:43:29.465Z</updated>
+    <updated>2023-06-22T11:03:38.077Z</updated>
     
     
       
@@ -154,7 +154,7 @@
     
     
     
-    <category term="QEMU中自定义开发板" scheme="https://yanglianoo.github.io/categories/QEMU%E4%B8%AD%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%80%E5%8F%91%E6%9D%BF/"/>
+    <category term="基于qemu从零开始构建riscv64的嵌入式系统" scheme="https://yanglianoo.github.io/categories/%E5%9F%BA%E4%BA%8Eqemu%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E6%9E%84%E5%BB%BAriscv64%E7%9A%84%E5%B5%8C%E5%85%A5%E5%BC%8F%E7%B3%BB%E7%BB%9F/"/>
     
     
     <category term="qemu" scheme="https://yanglianoo.github.io/tags/qemu/"/>
@@ -170,7 +170,7 @@
     <link href="https://yanglianoo.github.io/2023/06/14/QEMU%E4%B8%AD%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%80%E5%8F%91%E6%9D%BF2-virt%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/"/>
     <id>https://yanglianoo.github.io/2023/06/14/QEMU%E4%B8%AD%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%80%E5%8F%91%E6%9D%BF2-virt%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/</id>
     <published>2023-06-14T08:31:06.000Z</published>
-    <updated>2023-06-16T05:55:44.622Z</updated>
+    <updated>2023-06-22T11:03:28.702Z</updated>
     
     
       
@@ -183,7 +183,7 @@
     
     
     
-    <category term="QEMU中自定义开发板" scheme="https://yanglianoo.github.io/categories/QEMU%E4%B8%AD%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%80%E5%8F%91%E6%9D%BF/"/>
+    <category term="基于qemu从零开始构建riscv64的嵌入式系统" scheme="https://yanglianoo.github.io/categories/%E5%9F%BA%E4%BA%8Eqemu%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E6%9E%84%E5%BB%BAriscv64%E7%9A%84%E5%B5%8C%E5%85%A5%E5%BC%8F%E7%B3%BB%E7%BB%9F/"/>
     
     
     <category term="qemu" scheme="https://yanglianoo.github.io/tags/qemu/"/>
@@ -227,7 +227,7 @@
     <link href="https://yanglianoo.github.io/2023/06/12/QEMU%E4%B8%AD%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%80%E5%8F%91%E6%9D%BF/"/>
     <id>https://yanglianoo.github.io/2023/06/12/QEMU%E4%B8%AD%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%80%E5%8F%91%E6%9D%BF/</id>
     <published>2023-06-12T11:48:46.000Z</published>
-    <updated>2023-06-17T07:42:49.863Z</updated>
+    <updated>2023-06-22T11:03:16.000Z</updated>
     
     
       
@@ -240,7 +240,7 @@
     
     
     
-    <category term="QEMU中自定义开发板" scheme="https://yanglianoo.github.io/categories/QEMU%E4%B8%AD%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%80%E5%8F%91%E6%9D%BF/"/>
+    <category term="基于qemu从零开始构建riscv64的嵌入式系统" scheme="https://yanglianoo.github.io/categories/%E5%9F%BA%E4%BA%8Eqemu%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E6%9E%84%E5%BB%BAriscv64%E7%9A%84%E5%B5%8C%E5%85%A5%E5%BC%8F%E7%B3%BB%E7%BB%9F/"/>
     
     
     <category term="qemu" scheme="https://yanglianoo.github.io/tags/qemu/"/>
