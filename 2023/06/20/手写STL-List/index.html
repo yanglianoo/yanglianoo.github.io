@@ -1,0 +1,366 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>手写STL之List | TimerのBlog</title><meta name="author" content="Timer"><meta name="copyright" content="Timer"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="代码仓库：yanglianoo&#x2F;My_STL at timer (github.com)  1.List概述C++标准模板库（STL）中的list是一个双向链表容器，提供了在链表中高效存储和访问数据的功能。它是一个模板类具有以下特性：  链表结构：list是由节点组成的链表，每个节点包含数据以及指向前一个节点和后一个节点的指针。这种结构使得在list中插入、删除和移动元素非常高效，因为">
+<meta property="og:type" content="article">
+<meta property="og:title" content="手写STL之List">
+<meta property="og:url" content="https://yanglianoo.github.io/2023/06/20/%E6%89%8B%E5%86%99STL-List/index.html">
+<meta property="og:site_name" content="TimerのBlog">
+<meta property="og:description" content="代码仓库：yanglianoo&#x2F;My_STL at timer (github.com)  1.List概述C++标准模板库（STL）中的list是一个双向链表容器，提供了在链表中高效存储和访问数据的功能。它是一个模板类具有以下特性：  链表结构：list是由节点组成的链表，每个节点包含数据以及指向前一个节点和后一个节点的指针。这种结构使得在list中插入、删除和移动元素非常高效，因为">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yanglianoo.github.io/2023/06/20/%E6%89%8B%E5%86%99STL-List/v2-49a18173657446a39c39f0d278ba8747_r.png">
+<meta property="article:published_time" content="2023-06-20T13:36:30.000Z">
+<meta property="article:modified_time" content="2023-06-22T10:46:32.285Z">
+<meta property="article:author" content="Timer">
+<meta property="article:tag" content="C++">
+<meta property="article:tag" content="数据结构">
+<meta property="article:tag" content="STL">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://yanglianoo.github.io/2023/06/20/%E6%89%8B%E5%86%99STL-List/v2-49a18173657446a39c39f0d278ba8747_r.png"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://yanglianoo.github.io/2023/06/20/%E6%89%8B%E5%86%99STL-List/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"languages":{"hits_empty":"找不到您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":500},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: {"chs_to_cht":"你已切换为繁体","cht_to_chs":"你已切换为简体","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"bottom-left"},
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '手写STL之List',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2023-06-22 18:46:32'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+    win.getCSS = (url,id = false) => new Promise((resolve, reject) => {
+      const link = document.createElement('link')
+      link.rel = 'stylesheet'
+      link.href = url
+      if (id) link.id = id
+      link.onerror = reject
+      link.onload = link.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        link.onload = link.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(link)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/background.css"><meta name="generator" content="Hexo 6.3.0"><link rel="alternate" href="/atom.xml" title="TimerのBlog" type="application/atom+xml">
+</head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/head.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">14</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">12</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/2023/06/20/%E6%89%8B%E5%86%99STL-List/background.png')"><nav id="nav"><span id="blog-info"><a href="/" title="TimerのBlog"><span class="site-name">TimerのBlog</span></a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search" href="javascript:void(0);"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">手写STL之List</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2023-06-20T13:36:30.000Z" title="发表于 2023-06-20 21:36:30">2023-06-20</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2023-06-22T10:46:32.285Z" title="更新于 2023-06-22 18:46:32">2023-06-22</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E6%89%8B%E5%86%99STL/">手写STL</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="手写STL之List"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><blockquote>
+<p>代码仓库：<a target="_blank" rel="noopener" href="https://github.com/yanglianoo/My_STL/tree/timer">yanglianoo&#x2F;My_STL at timer (github.com)</a></p>
+</blockquote>
+<h1 id="1-List概述"><a href="#1-List概述" class="headerlink" title="1.List概述"></a>1.List概述</h1><p>C++标准模板库（STL）中的<code>list</code>是一个双向链表容器，提供了在链表中高效存储和访问数据的功能。它是一个模板类具有以下特性：</p>
+<ol>
+<li>链表结构：<code>list</code>是由节点组成的链表，每个节点包含数据以及指向前一个节点和后一个节点的指针。这种结构使得在<code>list</code>中插入、删除和移动元素非常高效，因为不需要像动态数组那样进行内存的移动和重分配。</li>
+<li>双向访问：<code>list</code>支持双向访问，可以从链表的开头或末尾快速访问元素。你可以使用迭代器进行正向或反向遍历，也可以使用<code>front()</code>和<code>back()</code>函数访问第一个和最后一个元素。</li>
+<li>动态大小：<code>list</code>的大小可以动态增长或缩小，无需预先分配固定大小的内存。</li>
+<li>插入和删除：在<code>list</code>中插入和删除元素非常高效。通过使用迭代器，可以在常数时间内在任意位置插入或删除元素。</li>
+<li>不支持随机访问：<code>list</code>不支持通过索引进行随机访问，这意味着不能像数组那样使用索引来访问元素。如果需要随机访问，<code>vector</code>可能更适合。</li>
+<li>没有连续存储：由于<code>list</code>是一个链表，它的元素在内存中不是连续存储的，这可能会对缓存性能产生一些影响。</li>
+<li>不支持快速的随机访问、排序和二分查找：由于没有随机访问，对<code>list</code>进行排序和二分查找会比较低效。如果需要这些功能，你可以考虑使用<code>vector</code>或<code>deque</code>容器。</li>
+</ol>
+<p><code>STL</code>库中<code>list</code>的定义如下:</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">template</span>&lt;</span><br><span class="line">    <span class="keyword">class</span> <span class="title class_">T</span>,</span><br><span class="line">    <span class="keyword">class</span> <span class="title class_">Allocator</span> = std::allocator&lt;T&gt;</span><br><span class="line">&gt; <span class="keyword">class</span> list;</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>T</th>
+<th>元素的类型。<code>T</code> 必须满足<a target="_blank" rel="noopener" href="https://zh.cppreference.com/w/cpp/named_req/CopyAssignable"><em>可复制赋值</em> <em>(CopyAssignable)</em> </a>和<a target="_blank" rel="noopener" href="https://zh.cppreference.com/w/cpp/named_req/CopyConstructible"><em>可复制构造</em> <em>(CopyConstructible)</em> </a>的要求。</th>
+</tr>
+</thead>
+</table>
+<table>
+<thead>
+<tr>
+<th>Allocator</th>
+<th>用于获取&#x2F;释放内存及构造&#x2F;析构内存中元素的分配器。类型必须满足<a target="_blank" rel="noopener" href="https://zh.cppreference.com/w/cpp/named_req/Allocator"><em>分配器</em> <em>(Allocator)</em> </a>的要求。</th>
+</tr>
+</thead>
+</table>
+<table>
+<thead>
+<tr>
+<th>成员函数</th>
+<th></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><a target="_blank" rel="noopener" href="https://zh.cppreference.com/w/cpp/container/list/list">(构造函数)</a></td>
+<td>构造 <code>list</code> (公开成员函数)</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://zh.cppreference.com/w/cpp/container/list/~list">(析构函数)</a></td>
+<td>析构 <code>list</code> (公开成员函数)</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://zh.cppreference.com/w/cpp/container/list/operator%3D">operator&#x3D;</a></td>
+<td>赋值给容器 (公开成员函数)</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://zh.cppreference.com/w/cpp/container/list/assign">assign</a></td>
+<td>将值赋给容器 (公开成员函数)</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://zh.cppreference.com/w/cpp/container/list/get_allocator">get_allocator</a></td>
+<td>返回相关的分配器 (公开成员函数)</td>
+</tr>
+<tr>
+<td>元素访问</td>
+<td></td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://zh.cppreference.com/w/cpp/container/list/front">front</a></td>
+<td>访问第一个元素 (公开成员函数)</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://zh.cppreference.com/w/cpp/container/list/back">back</a></td>
+<td>访问最后一个元素 (公开成员函数)</td>
+</tr>
+<tr>
+<td>迭代器</td>
+<td></td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://zh.cppreference.com/w/cpp/container/list/begin">begincbegin</a>(C++11)</td>
+<td>返回指向起始的迭代器 (公开成员函数)</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://zh.cppreference.com/w/cpp/container/list/end">endcend</a>(C++11)</td>
+<td>返回指向末尾的迭代器 (公开成员函数)</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://zh.cppreference.com/w/cpp/container/list/rbegin">rbegincrbegin</a>(C++11)</td>
+<td>返回指向起始的逆向迭代器 (公开成员函数)</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://zh.cppreference.com/w/cpp/container/list/rend">rendcrend</a>(C++11)</td>
+<td>返回指向末尾的逆向迭代器 (公开成员函数)</td>
+</tr>
+<tr>
+<td>容量</td>
+<td></td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://zh.cppreference.com/w/cpp/container/list/empty">empty</a></td>
+<td>检查容器是否为空 (公开成员函数)</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://zh.cppreference.com/w/cpp/container/list/size">size</a></td>
+<td>返回容纳的元素数 (公开成员函数)</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://zh.cppreference.com/w/cpp/container/list/max_size">max_size</a></td>
+<td>返回可容纳的最大元素数 (公开成员函数)</td>
+</tr>
+<tr>
+<td>修改器</td>
+<td></td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://zh.cppreference.com/w/cpp/container/list/clear">clear</a></td>
+<td>清除内容 (公开成员函数)</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://zh.cppreference.com/w/cpp/container/list/insert">insert</a></td>
+<td>插入元素 (公开成员函数)</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://zh.cppreference.com/w/cpp/container/list/emplace">emplace</a>(C++11)</td>
+<td>原位构造元素 (公开成员函数)</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://zh.cppreference.com/w/cpp/container/list/erase">erase</a></td>
+<td>擦除元素 (公开成员函数)</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://zh.cppreference.com/w/cpp/container/list/push_back">push_back</a></td>
+<td>将元素添加到容器末尾 (公开成员函数)</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://zh.cppreference.com/w/cpp/container/list/emplace_back">emplace_back</a>(C++11)</td>
+<td>在容器末尾就地构造元素 (公开成员函数)</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://zh.cppreference.com/w/cpp/container/list/pop_back">pop_back</a></td>
+<td>移除末元素 (公开成员函数)</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://zh.cppreference.com/w/cpp/container/list/push_front">push_front</a></td>
+<td>插入元素到容器起始 (公开成员函数)</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://zh.cppreference.com/w/cpp/container/list/emplace_front">emplace_front</a>(C++11)</td>
+<td>在容器头部原位构造元素 (公开成员函数)</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://zh.cppreference.com/w/cpp/container/list/pop_front">pop_front</a></td>
+<td>移除首元素 (公开成员函数)</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://zh.cppreference.com/w/cpp/container/list/resize">resize</a></td>
+<td>改变容器中可存储元素的个数 (公开成员函数)</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://zh.cppreference.com/w/cpp/container/list/swap">swap</a></td>
+<td>交换内容 (公开成员函数)</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>参考链接：<a target="_blank" rel="noopener" href="https://zh.cppreference.com/w/cpp/container/list">std::list - cppreference.com</a></p>
+</blockquote>
+<h1 id="2-构造节点"><a href="#2-构造节点" class="headerlink" title="2. 构造节点"></a>2. 构造节点</h1><p>list的数据结构有两种，一种是双向链表，结构如下：</p>
+<p><img src="/2023/06/20/%E6%89%8B%E5%86%99STL-List/1632118785.jpg" alt="图解几种常见的线性表 - 命中水"></p>
+<p>在双向链表中，每一个节点为一个node，node包含一个指向上一个节点的prev指针和指向下一个节点的next指针，头节点的prev指针指向nullptr，尾节点的next指针指向nullptr。</p>
+<p>一种是双向循环链表，和双向链表不同的就是，双向循环链表头节点的prev指针指向了尾节点，尾节点的next指针指向了头节点，由此组成了一个循环。</p>
+<p><img src="/2023/06/20/%E6%89%8B%E5%86%99STL-List/3650507100.jpg" alt="图解几种常见的线性表 - 命中水"></p>
+<p>我们实现的list是基于双向链表的，list是一个C++的类，由很多个节点构成，因此先来定义一下节点的数据结构，node节点由两个指针和存储的数据组成，是一个模板类，定义如下：</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt; <span class="keyword">struct</span> <span class="title class_">list_node</span></span><br><span class="line">&#123;</span><br><span class="line">    T data;</span><br><span class="line">    list_node&lt;T&gt;* prev;</span><br><span class="line">    list_node&lt;T&gt;* next;</span><br><span class="line">    <span class="built_in">list_node</span>(<span class="type">const</span> T&amp; value)</span><br><span class="line">            :<span class="built_in">next</span>(<span class="literal">nullptr</span>)</span><br><span class="line">            ,<span class="built_in">prev</span>(<span class="literal">nullptr</span>)</span><br><span class="line">            ,<span class="built_in">data</span>(value)</span><br><span class="line">    &#123;&#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<h1 id="3-构造迭代器"><a href="#3-构造迭代器" class="headerlink" title="3.构造迭代器"></a>3.构造迭代器</h1><p>在list的使用种，用两种类型的迭代器，一种是普通的<code>iterator</code>，还有一种就是不可修改的<code>const_iterator</code>，这里的不可修改是指节点的数据不可修改，迭代器构造如下，和vector的迭代器类似，需要去重载不同的操作符。</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">class</span> <span class="title class_">T</span>, <span class="keyword">class</span> <span class="title class_">Ref</span>, <span class="keyword">class</span> <span class="title class_">ptr</span>&gt;</span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">list_iterator</span></span><br><span class="line">&#123;</span><br><span class="line">	<span class="keyword">typedef</span> list_iterator&lt;T, Ref, ptr&gt; self;</span><br><span class="line">	<span class="keyword">typedef</span> list_node&lt;T&gt; Node;</span><br><span class="line">	Node* _node;</span><br><span class="line">		 </span><br><span class="line">	<span class="built_in">list_iterator</span>(Node* node)</span><br><span class="line">		:_node(node)</span><br><span class="line">		&#123;&#125;</span><br><span class="line"> </span><br><span class="line">		<span class="comment">//拷贝构造、赋值重载，默认浅拷贝即可</span></span><br><span class="line">		<span class="comment">//析构函数，指针指向的节点不属于迭代器的，无需自己销毁</span></span><br><span class="line"> </span><br><span class="line">	<span class="comment">//解引用,*it = it.operator*()</span></span><br><span class="line">	Ref&amp; <span class="keyword">operator</span>* ()</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="keyword">return</span> _node-&gt;_data;</span><br><span class="line">	&#125;</span><br><span class="line">	ptr <span class="keyword">operator</span>-&gt; () <span class="comment">//本来调用为it-&gt;-&gt;_value,编译器通过处理省略了一个-&gt;</span></span><br><span class="line">	&#123;</span><br><span class="line">		<span class="keyword">return</span> &amp;(_node-&gt;_data);</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="comment">//前置++</span></span><br><span class="line">	self&amp; <span class="keyword">operator</span>++()</span><br><span class="line">	&#123;</span><br><span class="line">		_node = _node-&gt;_next;</span><br><span class="line">		<span class="keyword">return</span> *<span class="keyword">this</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="comment">//后置++</span></span><br><span class="line">	self <span class="keyword">operator</span>++(<span class="type">int</span>)</span><br><span class="line">	&#123;</span><br><span class="line">		self tmp = *<span class="keyword">this</span>;</span><br><span class="line">		_node = _node-&gt;_next;</span><br><span class="line">		<span class="keyword">return</span> tmp;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="comment">//前置--</span></span><br><span class="line">	self&amp; <span class="keyword">operator</span>--()</span><br><span class="line">	&#123;</span><br><span class="line">		_node = _node-&gt;_prev;</span><br><span class="line">		<span class="keyword">return</span> *<span class="keyword">this</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="comment">//后置--</span></span><br><span class="line">	self <span class="keyword">operator</span>--(<span class="type">int</span>)</span><br><span class="line">	&#123;</span><br><span class="line">		self tmp = *<span class="keyword">this</span>;</span><br><span class="line">		_node = _node-&gt;_prev;</span><br><span class="line">		<span class="keyword">return</span> *<span class="keyword">this</span>;</span><br><span class="line">	&#125;</span><br><span class="line"> </span><br><span class="line">	<span class="comment">//比较</span></span><br><span class="line">	<span class="type">bool</span> <span class="keyword">operator</span> != (<span class="type">const</span> self&amp; it) <span class="type">const</span></span><br><span class="line">	&#123;</span><br><span class="line">		<span class="keyword">return</span> _node != it._node;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="type">bool</span> <span class="keyword">operator</span> == (<span class="type">const</span> self&amp; it) <span class="type">const</span></span><br><span class="line">	&#123;</span><br><span class="line">		<span class="keyword">return</span> _node == it._node;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>在<code>list_iterator</code>内部维护了一个<code>list_node&lt;T&gt;*</code>类型的指针，用来指向<code>list</code>的每一个节点，这里解释一下为啥<code>list_iterator</code>模板类为啥有三个模板参数，那是为了方便通过typedef来定义<code>iterator</code>和<code>const_iterator</code>，在后面list类中可以如下定义：</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">typedef</span> list_iterator&lt;T, T&amp;, T*&gt; iterator;</span><br><span class="line"><span class="keyword">typedef</span> list_iterator&lt;T, <span class="type">const</span> T&amp;, <span class="type">const</span> T*&gt; const_iterator;</span><br></pre></td></tr></table></figure>
+
+<h1 id="4-构造list类"><a href="#4-构造list类" class="headerlink" title="4.构造list类"></a>4.构造list类</h1><p>首先list类中包含了如下的成员变量，除了一个node类型的指针还维护了一个_size，当对list容器进行操作时，需要对_size实现增减操作。由于采用循环链表实现，所以当初始化链表时只需要定义一个头节点，让<code>head</code>节点的<code>prev</code>和<code>next</code>指针都指向自己就可以了.</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt; <span class="keyword">class</span> <span class="title class_">list</span>&#123;</span><br><span class="line">    <span class="keyword">typedef</span> list_node&lt;T&gt; Node;</span><br><span class="line">	<span class="keyword">typedef</span> list_iterator&lt;T, T&amp;, T*&gt; iterator; <span class="comment">//普通迭代器</span></span><br><span class="line">	<span class="keyword">typedef</span> list_iterator&lt;T, <span class="type">const</span> T&amp;, <span class="type">const</span> T*&gt; const_iterator; <span class="comment">//const迭代器</span></span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    Node* _head;</span><br><span class="line">    <span class="type">size_t</span> _size;</span><br><span class="line">	<span class="function"><span class="type">void</span> <span class="title">empty_initialize</span><span class="params">()</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        _head = <span class="keyword">new</span> <span class="built_in">Node</span>(<span class="built_in">T</span>());</span><br><span class="line">        _head-&gt;_next = _head;</span><br><span class="line">        _head-&gt;_prev = _head;</span><br><span class="line"></span><br><span class="line">        _size = <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line"> <span class="keyword">public</span>:</span><br><span class="line">    <span class="comment">//定义默认构造函数</span></span><br><span class="line">   <span class="built_in">list</span>()&#123; <span class="built_in">empty_initialize</span>(); &#125;</span><br><span class="line">    <span class="comment">//定义析构函数</span></span><br><span class="line">   ~<span class="built_in">list</span>()</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">clear</span>();</span><br><span class="line">        <span class="keyword">delete</span>[] _head;</span><br><span class="line">        _head = <span class="literal">nullptr</span>;</span><br><span class="line">    &#125;</span><br><span class="line"> &#125;</span><br></pre></td></tr></table></figure>
+
+<p>然后我们来定义一些和迭代器有关的函数，首先是<code>begin()</code>和<code>end()</code>，用来返回头节点指针和尾节点指针，这里我们定义<code>_head-&gt;next</code>为<code>begin</code>，<code>end</code>为<code>_head</code>，然后有两个重载版本。</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function">const_iterator <span class="title">begin</span><span class="params">()</span> <span class="type">const</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">const_iterator</span>(_head-&gt;_next);</span><br><span class="line">&#125;</span><br><span class="line"><span class="function">iterator <span class="title">begin</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">iterator</span>(_head-&gt;_next);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function">iterator <span class="title">end</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">iterator</span>(_head);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function">const_iterator <span class="title">end</span><span class="params">()</span> <span class="type">const</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">const_iterator</span>(_head);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="2-1-容量"><a href="#2-1-容量" class="headerlink" title="2.1 容量"></a>2.1 容量</h2><p>和容量相关的接口比较简单，这里不赘述，代码如下：</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">size_t</span> <span class="title">size</span><span class="params">()</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> _size;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="type">bool</span> <span class="title">empty</span><span class="params">()</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">begin</span>() == <span class="built_in">end</span>();</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="2-2-修改器"><a href="#2-2-修改器" class="headerlink" title="2.2 修改器"></a>2.2 修改器</h2><p>在实现其他修改器之前，可先定义<code>insert</code>和<code>erase</code>函数,代码逻辑并不复杂，实现如下：</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"> <span class="comment">//往pos位置插入元素T</span></span><br><span class="line"><span class="function">iterator <span class="title">insert</span><span class="params">(iterator pos, <span class="type">const</span> T&amp; value )</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        Node* cur = pos._node;</span><br><span class="line">        Node* prev = cur-&gt;_prev;</span><br><span class="line"></span><br><span class="line">        Node* new_node = <span class="keyword">new</span> <span class="built_in">Node</span>(value);</span><br><span class="line">        new_node-&gt;_prev = prev;</span><br><span class="line">        new_node-&gt;_next = cur;</span><br><span class="line"></span><br><span class="line">        </span><br><span class="line">        prev-&gt;_next = new_node;</span><br><span class="line">        cur-&gt;_prev = new_node;</span><br><span class="line"></span><br><span class="line">        _size++;</span><br><span class="line">        <span class="comment">//隐式转换为iterator</span></span><br><span class="line">        <span class="keyword">return</span> new_node;</span><br><span class="line">    &#125;</span><br><span class="line"><span class="comment">//删除pos位置的节点</span></span><br><span class="line">    <span class="function">iterator <span class="title">erase</span><span class="params">(iterator pos)</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="built_in">assert</span>(pos != <span class="built_in">end</span>());</span><br><span class="line"></span><br><span class="line">        Node* cur = pos._node;</span><br><span class="line">        Node* prev = cur-&gt;_prev;</span><br><span class="line">        Node* next = cur-&gt;next;</span><br><span class="line"></span><br><span class="line">        prev-&gt;_next = next;</span><br><span class="line">        next-&gt;_prev = prev;</span><br><span class="line"></span><br><span class="line">        _size--;</span><br><span class="line">        <span class="keyword">delete</span> [] cur;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> next;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 移除范围为 [first, last) 的元素</span></span><br><span class="line"><span class="function">iterator <span class="title">erase</span><span class="params">( iterator first, iterator last )</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="keyword">if</span>(first == last) &#123; <span class="keyword">return</span> last;&#125;</span><br><span class="line"></span><br><span class="line">        Node* first_node = first._node;</span><br><span class="line">        Node* last_node = last._node;</span><br><span class="line"></span><br><span class="line">        Node* prev = first_node-&gt;_prev;</span><br><span class="line">        Node* next = last_node;</span><br><span class="line"></span><br><span class="line">        prev-&gt;_next = next;</span><br><span class="line">        next-&gt;_prev = prev;</span><br><span class="line"></span><br><span class="line">        <span class="type">size_t</span> count = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">while</span> (first_node != last_node)</span><br><span class="line">        &#123;</span><br><span class="line">            Node* cur = first_node;</span><br><span class="line">            first_node = first_node-&gt;_next;</span><br><span class="line">            <span class="keyword">delete</span> [] cur;</span><br><span class="line">            count++; </span><br><span class="line">        &#125;</span><br><span class="line">        _size-=count;</span><br><span class="line">        <span class="keyword">return</span> next;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>其他的修改器就可基于insert和erase函数来实现：</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">clear</span><span class="params">()</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="built_in">erase</span>(<span class="built_in">begin</span>(),<span class="built_in">end</span>());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">push_back</span><span class="params">(<span class="type">const</span> T&amp; value)</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="built_in">insert</span>(<span class="built_in">end</span>(),value);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">push_front</span><span class="params">(<span class="type">const</span> T&amp; value)</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="built_in">insert</span>(<span class="built_in">begin</span>(),value);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">pop_back</span><span class="params">()</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="built_in">erase</span>(--<span class="built_in">end</span>());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">pop_front</span><span class="params">()</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="built_in">erase</span>(<span class="built_in">begin</span>());</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="2-3-元素访问"><a href="#2-3-元素访问" class="headerlink" title="2.3 元素访问"></a>2.3 元素访问</h2><p>提供了访问头节点和尾节点数据的接口：</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span>:</span><br><span class="line"></span><br><span class="line">    <span class="function">T&amp; <span class="title">front</span><span class="params">()</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> *<span class="built_in">begin</span>();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function">T&amp; <span class="title">back</span><span class="params">()</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> *(--<span class="built_in">end</span>());</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="2-4-其他构造函数"><a href="#2-4-其他构造函数" class="headerlink" title="2.4 其他构造函数"></a>2.4 其他构造函数</h2><figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="built_in">list</span>(<span class="type">size_t</span> count, <span class="type">const</span> T&amp; value)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">size_t</span> i = <span class="number">0</span>; i &lt; count; ++i) &#123;</span><br><span class="line">            <span class="built_in">push_back</span>(value);</span><br><span class="line">            _size++;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">list</span>(<span class="type">size_t</span> count)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">size_t</span> i = <span class="number">0</span>; i &lt; count; ++i) &#123;</span><br><span class="line">            <span class="built_in">push_back</span>(<span class="built_in">T</span>());</span><br><span class="line">            _size++;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">template</span> &lt;<span class="keyword">typename</span> InputIt&gt;</span><br><span class="line">    <span class="built_in">list</span>(InputIt first, InputIt last) : <span class="built_in">list</span>() </span><br><span class="line">    &#123;</span><br><span class="line">		<span class="keyword">while</span> (first != last)</span><br><span class="line">		&#123;</span><br><span class="line">			<span class="built_in">push_back</span>(*first);</span><br><span class="line">			++first;</span><br><span class="line">            _size++;</span><br><span class="line">		&#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">list</span>(<span class="type">const</span> list&amp; other): <span class="built_in">list</span>() </span><br><span class="line">    &#123;</span><br><span class="line">		<span class="function">list&lt;T&gt; <span class="title">tmp</span><span class="params">(other.begin(), other.end())</span></span>;</span><br><span class="line">		<span class="built_in">swap</span>(_head, tmp._head);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">list</span>(std::initializer_list&lt;T&gt; init) : <span class="built_in">list</span>()</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">const</span> T&amp; value : init) &#123;</span><br><span class="line">            <span class="built_in">push_back</span>(value);</span><br><span class="line">            _size++;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    list&lt;T&gt;&amp; <span class="keyword">operator</span>=(<span class="type">const</span> list&lt;T&gt; &amp; other)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">this</span> == &amp;other) </span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">return</span> *<span class="keyword">this</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="built_in">clear</span>();</span><br><span class="line">        <span class="keyword">for</span>(<span class="type">const</span> T&amp; value : other)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="built_in">push_back</span>(value);</span><br><span class="line">            _size++;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> *<span class="keyword">this</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    list&lt;T&gt;&amp; <span class="keyword">operator</span>=( std::initializer_list&lt;T&gt; ilist )</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">clear</span>();</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">const</span> T&amp; value : ilist) </span><br><span class="line">        &#123;</span><br><span class="line">            <span class="built_in">push_back</span>(value);</span><br><span class="line">            _size++;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> *<span class="keyword">this</span>;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<h1 id="5-结语"><a href="#5-结语" class="headerlink" title="5. 结语"></a>5. 结语</h1><p>list已完成，未进行测试，list是比较简单的，当然我们还有一些机制没有实现，比如逆向迭代器，assign函数等，不过核心的接口都已经实现，后续可完善。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="https://yanglianoo.github.io">Timer</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://yanglianoo.github.io/2023/06/20/%E6%89%8B%E5%86%99STL-List/">https://yanglianoo.github.io/2023/06/20/手写STL-List/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://yanglianoo.github.io" target="_blank">TimerのBlog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/C/">C++</a><a class="post-meta__tags" href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/">数据结构</a><a class="post-meta__tags" href="/tags/STL/">STL</a></div><div class="post_share"><div class="social-share" data-image="/2023/06/20/%E6%89%8B%E5%86%99STL-List/v2-49a18173657446a39c39f0d278ba8747_r.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/2023/06/17/QEMU%E4%B8%AD%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%80%E5%8F%91%E6%9D%BF6-%E5%88%B6%E4%BD%9C%E6%B5%8B%E8%AF%95%E5%9B%BA%E4%BB%B6%E9%AA%8C%E8%AF%81%E4%B8%B2%E5%8F%A3%E6%89%93%E5%8D%B0/" title="QEMU中自定义开发板6-制作测试固件验证串口打印"><img class="cover" src="/2023/06/17/QEMU%E4%B8%AD%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%80%E5%8F%91%E6%9D%BF6-%E5%88%B6%E4%BD%9C%E6%B5%8B%E8%AF%95%E5%9B%BA%E4%BB%B6%E9%AA%8C%E8%AF%81%E4%B8%B2%E5%8F%A3%E6%89%93%E5%8D%B0/image-20230617160911655.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">QEMU中自定义开发板6-制作测试固件验证串口打印</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2023/06/07/%E6%89%8B%E5%86%99STL-Vector/" title="手写STL之Vector"><img class="cover" src="/2023/06/07/%E6%89%8B%E5%86%99STL-Vector/image-20230608195534311.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-06-07</div><div class="title">手写STL之Vector</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/head.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">Timer</div><div class="author-info__description">没有一个健康的身体，如何支撑我龌龊的灵魂!</div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">14</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">12</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/yanglianoo"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content is-expand"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1-List%E6%A6%82%E8%BF%B0"><span class="toc-text">1.List概述</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-%E6%9E%84%E9%80%A0%E8%8A%82%E7%82%B9"><span class="toc-text">2. 构造节点</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-%E6%9E%84%E9%80%A0%E8%BF%AD%E4%BB%A3%E5%99%A8"><span class="toc-text">3.构造迭代器</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-%E6%9E%84%E9%80%A0list%E7%B1%BB"><span class="toc-text">4.构造list类</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#2-1-%E5%AE%B9%E9%87%8F"><span class="toc-text">2.1 容量</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-2-%E4%BF%AE%E6%94%B9%E5%99%A8"><span class="toc-text">2.2 修改器</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-3-%E5%85%83%E7%B4%A0%E8%AE%BF%E9%97%AE"><span class="toc-text">2.3 元素访问</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-4-%E5%85%B6%E4%BB%96%E6%9E%84%E9%80%A0%E5%87%BD%E6%95%B0"><span class="toc-text">2.4 其他构造函数</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#5-%E7%BB%93%E8%AF%AD"><span class="toc-text">5. 结语</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2023/06/20/%E6%89%8B%E5%86%99STL-List/" title="手写STL之List"><img src="/2023/06/20/%E6%89%8B%E5%86%99STL-List/v2-49a18173657446a39c39f0d278ba8747_r.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="手写STL之List"/></a><div class="content"><a class="title" href="/2023/06/20/%E6%89%8B%E5%86%99STL-List/" title="手写STL之List">手写STL之List</a><time datetime="2023-06-20T13:36:30.000Z" title="发表于 2023-06-20 21:36:30">2023-06-20</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/06/17/QEMU%E4%B8%AD%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%80%E5%8F%91%E6%9D%BF6-%E5%88%B6%E4%BD%9C%E6%B5%8B%E8%AF%95%E5%9B%BA%E4%BB%B6%E9%AA%8C%E8%AF%81%E4%B8%B2%E5%8F%A3%E6%89%93%E5%8D%B0/" title="QEMU中自定义开发板6-制作测试固件验证串口打印"><img src="/2023/06/17/QEMU%E4%B8%AD%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%80%E5%8F%91%E6%9D%BF6-%E5%88%B6%E4%BD%9C%E6%B5%8B%E8%AF%95%E5%9B%BA%E4%BB%B6%E9%AA%8C%E8%AF%81%E4%B8%B2%E5%8F%A3%E6%89%93%E5%8D%B0/image-20230617160911655.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="QEMU中自定义开发板6-制作测试固件验证串口打印"/></a><div class="content"><a class="title" href="/2023/06/17/QEMU%E4%B8%AD%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%80%E5%8F%91%E6%9D%BF6-%E5%88%B6%E4%BD%9C%E6%B5%8B%E8%AF%95%E5%9B%BA%E4%BB%B6%E9%AA%8C%E8%AF%81%E4%B8%B2%E5%8F%A3%E6%89%93%E5%8D%B0/" title="QEMU中自定义开发板6-制作测试固件验证串口打印">QEMU中自定义开发板6-制作测试固件验证串口打印</a><time datetime="2023-06-17T07:46:34.000Z" title="发表于 2023-06-17 15:46:34">2023-06-17</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/06/16/QEMU%E4%B8%AD%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%80%E5%8F%91%E6%9D%BF5-%E4%B8%BAquard-star%E6%B7%BB%E5%8A%A0RTC%E5%92%8CUART/" title="5.为quard-star添加RTC和UART"><img src="/2023/06/16/QEMU%E4%B8%AD%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%80%E5%8F%91%E6%9D%BF5-%E4%B8%BAquard-star%E6%B7%BB%E5%8A%A0RTC%E5%92%8CUART/image-20230616182310228.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="5.为quard-star添加RTC和UART"/></a><div class="content"><a class="title" href="/2023/06/16/QEMU%E4%B8%AD%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%80%E5%8F%91%E6%9D%BF5-%E4%B8%BAquard-star%E6%B7%BB%E5%8A%A0RTC%E5%92%8CUART/" title="5.为quard-star添加RTC和UART">5.为quard-star添加RTC和UART</a><time datetime="2023-06-16T10:10:26.000Z" title="发表于 2023-06-16 18:10:26">2023-06-16</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/06/16/QEMU%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%80%E5%8F%91%E6%9D%BF4-%E4%B8%BAquard-star%E6%B7%BB%E5%8A%A0%E4%B8%AD%E6%96%AD%E6%8E%A7%E5%88%B6%E5%99%A8/" title="4.为quard-star添加中断控制器"><img src="/2023/06/16/QEMU%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%80%E5%8F%91%E6%9D%BF4-%E4%B8%BAquard-star%E6%B7%BB%E5%8A%A0%E4%B8%AD%E6%96%AD%E6%8E%A7%E5%88%B6%E5%99%A8/image-20230616140403678.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="4.为quard-star添加中断控制器"/></a><div class="content"><a class="title" href="/2023/06/16/QEMU%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%80%E5%8F%91%E6%9D%BF4-%E4%B8%BAquard-star%E6%B7%BB%E5%8A%A0%E4%B8%AD%E6%96%AD%E6%8E%A7%E5%88%B6%E5%99%A8/" title="4.为quard-star添加中断控制器">4.为quard-star添加中断控制器</a><time datetime="2023-06-16T05:40:07.000Z" title="发表于 2023-06-16 13:40:07">2023-06-16</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/06/15/QEMU%E4%B8%AD%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%80%E5%8F%91%E6%9D%BF-3-%E4%B8%BAquard-star%E6%B7%BB%E5%8A%A0flash/" title="3.为quard-star添加flash"><img src="/2023/06/15/QEMU%E4%B8%AD%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%80%E5%8F%91%E6%9D%BF-3-%E4%B8%BAquard-star%E6%B7%BB%E5%8A%A0flash/image-20230615180850693.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="3.为quard-star添加flash"/></a><div class="content"><a class="title" href="/2023/06/15/QEMU%E4%B8%AD%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%80%E5%8F%91%E6%9D%BF-3-%E4%B8%BAquard-star%E6%B7%BB%E5%8A%A0flash/" title="3.为quard-star添加flash">3.为quard-star添加flash</a><time datetime="2023-06-15T08:43:16.000Z" title="发表于 2023-06-15 16:43:16">2023-06-15</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('/2023/06/20/%E6%89%8B%E5%86%99STL-List/background.png')"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2023 By Timer</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><div class="js-pjax"></div><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/fireworks.min.js"></script><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div class="no-result" id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js"></script></div></div></body></html>
