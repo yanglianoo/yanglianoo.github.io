@@ -1,0 +1,446 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>基于Opensbi服务完成控制台输出 | TimerのBlog</title><meta name="author" content="Timer"><meta name="copyright" content="Timer"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="在上一篇文章中我们移植了Opensbi，大概了解了Opensbi是用来干嘛的，这一篇文章我们来详细介绍一下RISC-V Supervisor Binary Interface，即SBI。并且开启手写操作系统之路，首先利用Opensbi提供的服务来是实现串口打印。 1. RISC-V Supervisor Binary InterfaceSBI允许在所有RISC-V实现上，通过定义平台（或虚拟化管理">
+<meta property="og:type" content="article">
+<meta property="og:title" content="基于Opensbi服务完成控制台输出">
+<meta property="og:url" content="https://yanglianoo.github.io/2023/07/03/%E5%9F%BA%E4%BA%8EOpensbi%E6%9C%8D%E5%8A%A1%E5%AE%8C%E6%88%90%E6%8E%A7%E5%88%B6%E5%8F%B0%E8%BE%93%E5%87%BA/index.html">
+<meta property="og:site_name" content="TimerのBlog">
+<meta property="og:description" content="在上一篇文章中我们移植了Opensbi，大概了解了Opensbi是用来干嘛的，这一篇文章我们来详细介绍一下RISC-V Supervisor Binary Interface，即SBI。并且开启手写操作系统之路，首先利用Opensbi提供的服务来是实现串口打印。 1. RISC-V Supervisor Binary InterfaceSBI允许在所有RISC-V实现上，通过定义平台（或虚拟化管理">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yanglianoo.github.io/2023/07/03/%E5%9F%BA%E4%BA%8EOpensbi%E6%9C%8D%E5%8A%A1%E5%AE%8C%E6%88%90%E6%8E%A7%E5%88%B6%E5%8F%B0%E8%BE%93%E5%87%BA/image-20230710140718546.png">
+<meta property="article:published_time" content="2023-07-03T14:10:07.000Z">
+<meta property="article:modified_time" content="2023-07-10T06:09:31.193Z">
+<meta property="article:author" content="Timer">
+<meta property="article:tag" content="qemu">
+<meta property="article:tag" content="嵌入式">
+<meta property="article:tag" content="riscv">
+<meta property="article:tag" content="opensbi">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://yanglianoo.github.io/2023/07/03/%E5%9F%BA%E4%BA%8EOpensbi%E6%9C%8D%E5%8A%A1%E5%AE%8C%E6%88%90%E6%8E%A7%E5%88%B6%E5%8F%B0%E8%BE%93%E5%87%BA/image-20230710140718546.png"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://yanglianoo.github.io/2023/07/03/%E5%9F%BA%E4%BA%8EOpensbi%E6%9C%8D%E5%8A%A1%E5%AE%8C%E6%88%90%E6%8E%A7%E5%88%B6%E5%8F%B0%E8%BE%93%E5%87%BA/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"languages":{"hits_empty":"找不到您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":500},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: {"chs_to_cht":"你已切换为繁体","cht_to_chs":"你已切换为简体","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"bottom-left"},
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '基于Opensbi服务完成控制台输出',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2023-07-10 14:09:31'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+    win.getCSS = (url,id = false) => new Promise((resolve, reject) => {
+      const link = document.createElement('link')
+      link.rel = 'stylesheet'
+      link.href = url
+      if (id) link.id = id
+      link.onerror = reject
+      link.onload = link.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        link.onload = link.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(link)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/background.css"><meta name="generator" content="Hexo 6.3.0"><link rel="alternate" href="/atom.xml" title="TimerのBlog" type="application/atom+xml">
+</head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/head.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">17</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">13</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/2023/07/03/%E5%9F%BA%E4%BA%8EOpensbi%E6%9C%8D%E5%8A%A1%E5%AE%8C%E6%88%90%E6%8E%A7%E5%88%B6%E5%8F%B0%E8%BE%93%E5%87%BA/background.png')"><nav id="nav"><span id="blog-info"><a href="/" title="TimerのBlog"><span class="site-name">TimerのBlog</span></a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search" href="javascript:void(0);"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">基于Opensbi服务完成控制台输出</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2023-07-03T14:10:07.000Z" title="发表于 2023-07-03 22:10:07">2023-07-03</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2023-07-10T06:09:31.193Z" title="更新于 2023-07-10 14:09:31">2023-07-10</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%9F%BA%E4%BA%8Eqemu%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E6%9E%84%E5%BB%BAriscv64%E7%9A%84%E5%B5%8C%E5%85%A5%E5%BC%8F%E7%B3%BB%E7%BB%9F/">基于qemu从零开始构建riscv64的嵌入式系统</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="基于Opensbi服务完成控制台输出"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><p>在上一篇文章中我们移植了Opensbi，大概了解了Opensbi是用来干嘛的，这一篇文章我们来详细介绍一下RISC-V Supervisor Binary Interface，即SBI。并且开启手写操作系统之路，首先利用Opensbi提供的服务来是实现串口打印。</p>
+<h1 id="1-RISC-V-Supervisor-Binary-Interface"><a href="#1-RISC-V-Supervisor-Binary-Interface" class="headerlink" title="1. RISC-V Supervisor Binary Interface"></a>1. RISC-V Supervisor Binary Interface</h1><p>SBI允许在所有RISC-V实现上，通过定义平台（或虚拟化管理程序）特定功能的抽象，使监管者模式（S模式或VS模式）的软件具备可移植性。简单来说就是RISCV官方定义了一个规范接口，运行在S模式或VS模式的软件如os可以使用这些标准接口使得能够在不同的硬件平台上具有良好的移植性而不用去适配。SBI有两种架构，一种是CPU未启动虚拟化拓展，一种是启动了虚拟化功能的CPU。</p>
+<p><img src="/2023/07/03/%E5%9F%BA%E4%BA%8EOpensbi%E6%9C%8D%E5%8A%A1%E5%AE%8C%E6%88%90%E6%8E%A7%E5%88%B6%E5%8F%B0%E8%BE%93%E5%87%BA/image-20230710111828688.png" alt="image-20230710111828688"></p>
+<p><img src="/2023/07/03/%E5%9F%BA%E4%BA%8EOpensbi%E6%9C%8D%E5%8A%A1%E5%AE%8C%E6%88%90%E6%8E%A7%E5%88%B6%E5%8F%B0%E8%BE%93%E5%87%BA/image-20230710111842503.png" alt="image-20230710111842503"></p>
+<p>如上图，SBI就是M模式和S模式之间的桥梁，是一套接口规范，我们已未启动虚拟化即未支持H拓展的CPU为例子。Opensbi就是上图中的SEE，向上给OS提供了接口，这些接口可以认为是不同的SBI函数，通过ecall指令来进行调用。所有的SBI函数共享一种二进制编码方式。</p>
+<p>sbi规范到现在已经有两个大版本：v0.1 v0.2。为了保持兼容性，SBI扩展ID（EID）和SBI函数ID（FID）被编码为有符号的32位整数。新版本为0.2，在0.2版本中，函数调用的规定如下：</p>
+<ul>
+<li><p>在监管者和SEE之间，使用ECALL作为控制传输指令，监管者就是S模式的软件程序</p>
+</li>
+<li><p>a7编码SBI扩展ID（EID）</p>
+</li>
+<li><p>a6编码SBI函数ID（FID），对于任何在a7中编码的SBI扩展，其定义在SBI v0.2之后。</p>
+</li>
+<li><p>在SBI调用期间，除了a0和a1寄存器外，所有寄存器都必须由被调用方保留。</p>
+</li>
+<li><p>SBI函数必须在a0和a1中返回一对值，其中a0返回错误代码。类似于返回C结构体。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">sbiret</span></span></span><br><span class="line"><span class="class"> &#123;</span></span><br><span class="line"> <span class="type">long</span> error;</span><br><span class="line"> <span class="type">long</span> value;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>错误类型</th>
+<th>值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>SBI_SUCCESS 成功</td>
+<td>0</td>
+</tr>
+<tr>
+<td>SBI_ERR_FAILED 失败</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>SBI_ERR_NOT_SUPPORTED 不支持操作</td>
+<td>-2</td>
+</tr>
+<tr>
+<td>SBI_ERR_INVALID_PARAM 非法参数</td>
+<td>-3</td>
+</tr>
+<tr>
+<td>SBI_ERR_DENIED 拒绝</td>
+<td>-4</td>
+</tr>
+<tr>
+<td>SBI_ERR_INVALID_ADDRESS 非法地址</td>
+<td>-5</td>
+</tr>
+<tr>
+<td>SBI_ERR_ALREADY_AVAILABLE (资源)已可用</td>
+<td>-6</td>
+</tr>
+<tr>
+<td>SBI_ERR_ALREADY_STARTED (操作)已启动</td>
+<td>-7</td>
+</tr>
+<tr>
+<td>SBI_ERR_ALREADY_STOPPED (操作)已停止</td>
+<td>-8</td>
+</tr>
+</tbody></table>
+<p>EID和FID共同决定了调用的函数是什么，其中基本拓展函数如下：EID都为0x10</p>
+<table>
+<thead>
+<tr>
+<th>函数名</th>
+<th>SBI 版本</th>
+<th>FID</th>
+<th>EID</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>sbi_get_sbi_spec_version</td>
+<td>0.2</td>
+<td>0</td>
+<td>0x10</td>
+<td>获取SBI规范版本</td>
+</tr>
+<tr>
+<td>sbi_get_sbi_impl_id</td>
+<td>0.2</td>
+<td>1</td>
+<td>0x10</td>
+<td>获取SBI实现标识符</td>
+</tr>
+<tr>
+<td>sbi_get_sbi_impl_version</td>
+<td>0.2</td>
+<td>2</td>
+<td>0x10</td>
+<td>获取SBI实现版本</td>
+</tr>
+<tr>
+<td>sbi_probe_extension</td>
+<td>0.2</td>
+<td>3</td>
+<td>0x10</td>
+<td>探测SBI扩展功能</td>
+</tr>
+<tr>
+<td>sbi_get_mvendorid</td>
+<td>0.2</td>
+<td>4</td>
+<td>0x10</td>
+<td>获取机器供应商标识符</td>
+</tr>
+<tr>
+<td>sbi_get_marchid</td>
+<td>0.2</td>
+<td>5</td>
+<td>0x10</td>
+<td>获取机器体系结构标识符</td>
+</tr>
+<tr>
+<td>sbi_get_mimpid</td>
+<td>0.2</td>
+<td>6</td>
+<td>0x10</td>
+<td>获取机器实现标识符ID</td>
+</tr>
+</tbody></table>
+<p>传统的 SBI 扩展与 SBI v0.2（或更高版本）规范相比，遵循略微不同的调用约定，其中：</p>
+<ul>
+<li>a6 寄存器中的 SBI 函数ID 字段被忽略，因为这些被编码为多个 SBI 扩展 ID。</li>
+<li>a1寄存器中不返回任何值。</li>
+<li>在 SBI 调用期间，除 a0 寄存器外的所有寄存器都必须由被调用者保留。</li>
+<li>a0 寄存器中返回的值是特定于 SBI 传统扩展的。</li>
+<li>SBI 实现在监管者访问内存时发生的页面和访问故障会被重定向回监管者，并且 sepc 寄存器指向故障的 ECALL指令。</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>函数名</th>
+<th>SBI 版本</th>
+<th>FID</th>
+<th>EID</th>
+<th>替代 EID</th>
+<th>函数用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>sbi_set_timer</td>
+<td>0.1</td>
+<td>0</td>
+<td>0x00</td>
+<td>0x54494D45</td>
+<td>设置时钟</td>
+</tr>
+<tr>
+<td>sbi_console_putchar</td>
+<td>0.1</td>
+<td>0</td>
+<td>0x01</td>
+<td>N&#x2F;A</td>
+<td>控制台字符输出</td>
+</tr>
+<tr>
+<td>sbi_console_getchar</td>
+<td>0.1</td>
+<td>0</td>
+<td>0x02</td>
+<td>N&#x2F;A</td>
+<td>控制台字符输入</td>
+</tr>
+<tr>
+<td>sbi_clear_ipi</td>
+<td>0.1</td>
+<td>0</td>
+<td>0x03</td>
+<td>N&#x2F;A</td>
+<td>清除IPI</td>
+</tr>
+<tr>
+<td>sbi_send_ipi</td>
+<td>0.1</td>
+<td>0</td>
+<td>0x04</td>
+<td>0x735049</td>
+<td>发送IPI</td>
+</tr>
+<tr>
+<td>sbi_remote_fence_i</td>
+<td>0.1</td>
+<td>0</td>
+<td>0x05</td>
+<td>0x52464E43</td>
+<td>远程FENCE.I</td>
+</tr>
+<tr>
+<td>sbi_remote_sfence_vma</td>
+<td>0.1</td>
+<td>0</td>
+<td>0x06</td>
+<td>0x52464E43</td>
+<td>远程SFENCE.VMA</td>
+</tr>
+<tr>
+<td>sbi_remote_sfence_vma_asid</td>
+<td>0.1</td>
+<td>0</td>
+<td>0x07</td>
+<td>0x52464E43</td>
+<td>远程SFENCE.VMA（指定地址空间标识符）</td>
+</tr>
+<tr>
+<td>sbi_shutdown</td>
+<td>0.1</td>
+<td>0</td>
+<td>0x08</td>
+<td>0x53525354</td>
+<td>系统关闭</td>
+</tr>
+<tr>
+<td>保留</td>
+<td></td>
+<td></td>
+<td>0x09-0x0F</td>
+<td></td>
+<td></td>
+</tr>
+</tbody></table>
+<p>我们使用到的sbi的函数不多，初步了解这些就够了，sbi的所有的详细规范定义请参考如下文档：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/riscv-non-isa/riscv-sbi-doc">riscv-sbi-doc</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/634337322">RISC-V SBI-1.0.0版本 中文 - 知乎 (zhihu.com)</a></li>
+</ul>
+<h1 id="2-基于Opensbi完成控制台输出"><a href="#2-基于Opensbi完成控制台输出" class="headerlink" title="2. 基于Opensbi完成控制台输出"></a>2. 基于Opensbi完成控制台输出</h1><p>目标：在S模式下使用<code>ecall</code>指定调用<code>sbi_console_putchar</code>函数向控制台打印字符</p>
+<h2 id="2-1-untrusted-domain-起始地址修改"><a href="#2-1-untrusted-domain-起始地址修改" class="headerlink" title="2.1 untrusted-domain 起始地址修改"></a>2.1 untrusted-domain 起始地址修改</h2><p>在上一篇文章中，我们为<code>quard_star</code>划分了<code>domain</code>，<code>opensbi</code>是运行在<code>untrusted-domain</code>中的，在<code>quard_star</code>的设备树文件中指定了两个<code>domain</code>的地址参数：</p>
+<figure class="highlight dts"><table><tr><td class="code"><pre><span class="line">next-arg1 = <span class="params">&lt;<span class="number">0x0</span> <span class="number">0x82200000</span>&gt;</span><span class="punctuation">;</span></span><br><span class="line"><span class="attr">next-addr</span> <span class="operator">=</span> <span class="params">&lt;<span class="number">0x0</span> <span class="number">0x82000000</span>&gt;</span><span class="punctuation">;</span></span><br></pre></td></tr></table></figure>
+
+<p>这两个参数一个是下级程序的参数，一个是下级程序的起始地址，在前面提到我们的下级程序是uboot也可以直接是内核，为了使这个项目更有意义，我们来手写一个操作系统，就不使用uboot和linux系统了，关于如何移植uboot和linux内核请按照第一篇中参考博客中的方法继续走下去。在我的代码仓库中也移植成功了，可以参考一下移植uboot的commit。</p>
+<blockquote>
+<p>这里需要说明一下在移植uboot时，使用riscv64-unknown-elf-gcc这个编译器是不行的，编译uboot需要riscv64-unknown-linux-gnu-gcc，关于交叉编译工具链的编译配置这里我就不详解了，网上有许多教程。我的项目中使用的uboot版本为<code>uboot-2023.04</code></p>
+<p><img src="/2023/07/03/%E5%9F%BA%E4%BA%8EOpensbi%E6%9C%8D%E5%8A%A1%E5%AE%8C%E6%88%90%E6%8E%A7%E5%88%B6%E5%8F%B0%E8%BE%93%E5%87%BA/image-20230710135412615.png" alt="image-20230710135412615"></p>
+</blockquote>
+<p>因此下级程序即为我们编写的OS，这里修改一下下级程序的地址和参数，将下级程序的起始地址改成了<code>0x80200000</code>，下级程序的参数随便给，这里先留着不修改吧</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">next-arg1 = &lt;0x0 0x82000000&gt;; </span><br><span class="line">next-addr = &lt;0x0 0x80200000&gt;; </span><br></pre></td></tr></table></figure>
+
+<h2 id="2-2-创建OS"><a href="#2-2-创建OS" class="headerlink" title="2.2 创建OS"></a>2.2 创建OS</h2><p>在quard_star目录下新建os文件夹，在此文件夹中编写我们的操作系统程序，然后新建了这些文件：</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">timer@DESKTOP-JI9EVEH:~/quard-star/os$ <span class="built_in">ls</span></span><br><span class="line">Makefile   entry.S  main.c  os.ld  sbi.c  sbi.h</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-2-1-entry-S"><a href="#2-2-1-entry-S" class="headerlink" title="2.2.1 entry.S"></a>2.2.1 entry.S</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">     .section .text.entry</span><br><span class="line">     .globl _start</span><br><span class="line">_start:</span><br><span class="line">    la sp, boot_stack_top</span><br><span class="line">    call os_main</span><br><span class="line"></span><br><span class="line">    .section .bss.stack</span><br><span class="line">    .globl boot_stack_lower_bound</span><br><span class="line">boot_stack_lower_bound:</span><br><span class="line">    .space 4096 * 16</span><br><span class="line">    .globl boot_stack_top</span><br><span class="line">boot_stack_top:</span><br></pre></td></tr></table></figure>
+
+<p>这段代码主要就是定义了一个大小为 4096 * 16 字节 &#x3D; 64kb的连续内存空间，用作栈空间。将栈指针sp指向栈顶位置，然后调用os_main这个函数，os_main函数定义在main.c中</p>
+<h3 id="2-2-2-sbi-c-和-sbi-h"><a href="#2-2-2-sbi-c-和-sbi-h" class="headerlink" title="2.2.2 sbi.c 和 sbi.h"></a>2.2.2 sbi.c 和 sbi.h</h3><figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">/*sbi.h*/</span></span><br><span class="line"><span class="meta">#<span class="keyword">ifndef</span> __SBI_H__</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> __SBI_H__</span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">enum</span> <span class="title">sbi_ext_id</span> &#123;</span></span><br><span class="line">	SBI_EXT_0_1_SET_TIMER = <span class="number">0x0</span>,</span><br><span class="line">	SBI_EXT_0_1_CONSOLE_PUTCHAR = <span class="number">0x1</span>,</span><br><span class="line">	SBI_EXT_0_1_CONSOLE_GETCHAR = <span class="number">0x2</span>,</span><br><span class="line">	SBI_EXT_0_1_CLEAR_IPI = <span class="number">0x3</span>,</span><br><span class="line">	SBI_EXT_0_1_SEND_IPI = <span class="number">0x4</span>,</span><br><span class="line">	SBI_EXT_0_1_REMOTE_FENCE_I = <span class="number">0x5</span>,</span><br><span class="line">	SBI_EXT_0_1_REMOTE_SFENCE_VMA = <span class="number">0x6</span>,</span><br><span class="line">	SBI_EXT_0_1_REMOTE_SFENCE_VMA_ASID = <span class="number">0x7</span>,</span><br><span class="line">	SBI_EXT_0_1_SHUTDOWN = <span class="number">0x8</span>,</span><br><span class="line">	SBI_EXT_BASE = <span class="number">0x10</span>,</span><br><span class="line">	SBI_EXT_TIME = <span class="number">0x54494D45</span>,</span><br><span class="line">	SBI_EXT_IPI = <span class="number">0x735049</span>,</span><br><span class="line">	SBI_EXT_RFENCE = <span class="number">0x52464E43</span>,</span><br><span class="line">	SBI_EXT_HSM = <span class="number">0x48534D</span>,</span><br><span class="line">	SBI_EXT_SRST = <span class="number">0x53525354</span>,</span><br><span class="line">	SBI_EXT_PMU = <span class="number">0x504D55</span>,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* sbi 返回结构体*/</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">sbiret</span> &#123;</span></span><br><span class="line">	<span class="type">long</span> error;</span><br><span class="line">	<span class="type">long</span> value;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">endif</span>  </span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">/*sbi.c*/</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;sbi.h&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;stdint.h&quot;</span></span></span><br><span class="line"><span class="keyword">struct</span> sbiret <span class="title function_">sbi_ecall</span><span class="params">(<span class="type">int</span> ext, <span class="type">int</span> fid, <span class="type">unsigned</span> <span class="type">long</span> arg0,</span></span><br><span class="line"><span class="params">			<span class="type">unsigned</span> <span class="type">long</span> arg1, <span class="type">unsigned</span> <span class="type">long</span> arg2,</span></span><br><span class="line"><span class="params">			<span class="type">unsigned</span> <span class="type">long</span> arg3, <span class="type">unsigned</span> <span class="type">long</span> arg4,</span></span><br><span class="line"><span class="params">			<span class="type">unsigned</span> <span class="type">long</span> arg5)</span></span><br><span class="line">&#123;</span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">sbiret</span> <span class="title">ret</span>;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">//使用GCC的扩展语法，用于将一个值存储到RISC-V架构中的寄存器a0中。</span></span><br><span class="line">	<span class="keyword">register</span> <span class="type">uintptr_t</span> a0 <span class="title function_">asm</span> <span class="params">(<span class="string">&quot;a0&quot;</span>)</span> = (<span class="type">uintptr_t</span>)(arg0);</span><br><span class="line">	<span class="keyword">register</span> <span class="type">uintptr_t</span> a1 <span class="title function_">asm</span> <span class="params">(<span class="string">&quot;a1&quot;</span>)</span> = (<span class="type">uintptr_t</span>)(arg1);</span><br><span class="line">	<span class="keyword">register</span> <span class="type">uintptr_t</span> a2 <span class="title function_">asm</span> <span class="params">(<span class="string">&quot;a2&quot;</span>)</span> = (<span class="type">uintptr_t</span>)(arg2);</span><br><span class="line">	<span class="keyword">register</span> <span class="type">uintptr_t</span> a3 <span class="title function_">asm</span> <span class="params">(<span class="string">&quot;a3&quot;</span>)</span> = (<span class="type">uintptr_t</span>)(arg3);</span><br><span class="line">	<span class="keyword">register</span> <span class="type">uintptr_t</span> a4 <span class="title function_">asm</span> <span class="params">(<span class="string">&quot;a4&quot;</span>)</span> = (<span class="type">uintptr_t</span>)(arg4);</span><br><span class="line">	<span class="keyword">register</span> <span class="type">uintptr_t</span> a5 <span class="title function_">asm</span> <span class="params">(<span class="string">&quot;a5&quot;</span>)</span> = (<span class="type">uintptr_t</span>)(arg5);</span><br><span class="line">	<span class="keyword">register</span> <span class="type">uintptr_t</span> a6 <span class="title function_">asm</span> <span class="params">(<span class="string">&quot;a6&quot;</span>)</span> = (<span class="type">uintptr_t</span>)(fid);</span><br><span class="line">	<span class="keyword">register</span> <span class="type">uintptr_t</span> a7 <span class="title function_">asm</span> <span class="params">(<span class="string">&quot;a7&quot;</span>)</span> = (<span class="type">uintptr_t</span>)(ext);</span><br><span class="line">	<span class="keyword">asm</span> <span class="title function_">volatile</span> <span class="params">(<span class="string">&quot;ecall&quot;</span></span></span><br><span class="line"><span class="params">		      : <span class="string">&quot;+r&quot;</span> (a0), <span class="string">&quot;+r&quot;</span> (a1)</span></span><br><span class="line"><span class="params">		      : <span class="string">&quot;r&quot;</span> (a2), <span class="string">&quot;r&quot;</span> (a3), <span class="string">&quot;r&quot;</span> (a4), <span class="string">&quot;r&quot;</span> (a5), <span class="string">&quot;r&quot;</span> (a6), <span class="string">&quot;r&quot;</span> (a7)</span></span><br><span class="line"><span class="params">		      : <span class="string">&quot;memory&quot;</span>)</span>;</span><br><span class="line">	ret.error = a0;</span><br><span class="line">	ret.value = a1;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> ret;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * sbi_console_putchar() - Writes given character to the console device.</span></span><br><span class="line"><span class="comment"> * @ch: The data to be written to the console.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * Return: None</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="type">void</span> <span class="title function_">sbi_console_putchar</span><span class="params">(<span class="type">int</span> ch)</span></span><br><span class="line">&#123;</span><br><span class="line">	sbi_ecall(SBI_EXT_0_1_CONSOLE_PUTCHAR, <span class="number">0</span>, ch, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在sbi的头文件中定义了EID的枚举变量和sbi 的返回结构体，然后再sbi.c中定义了一个sbi_ecall的函数用于调用Opensbi提供的服务，最后定义了sbi_console_putchar函数传入想要输出的字符，然后传入EID和FID，去查上面的表EID&#x3D;0x01,FID&#x3D;0。</p>
+<blockquote>
+<p>这里的代码我是抄的uboot的，有兴趣的可以去看一下uboot的源码</p>
+</blockquote>
+<h3 id="2-2-3-main-c"><a href="#2-2-3-main-c" class="headerlink" title="2.2.3 main.c"></a>2.2.3 main.c</h3><figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="keyword">extern</span> <span class="title function_">sbi_console_putchar</span><span class="params">(<span class="type">int</span> ch)</span>;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">os_main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    sbi_console_putchar(<span class="string">&#x27;h&#x27;</span>);</span><br><span class="line">    sbi_console_putchar(<span class="string">&#x27;e&#x27;</span>);</span><br><span class="line">    sbi_console_putchar(<span class="string">&#x27;l&#x27;</span>);</span><br><span class="line">    sbi_console_putchar(<span class="string">&#x27;l&#x27;</span>);</span><br><span class="line">    sbi_console_putchar(<span class="string">&#x27;o&#x27;</span>);</span><br><span class="line">    sbi_console_putchar(<span class="string">&#x27;!&#x27;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>main.c定义了os_main()函数，在os_main()函数中依次打印字符输出“hello!”</p>
+<h3 id="2-2-4-os-ld"><a href="#2-2-4-os-ld" class="headerlink" title="2.2.4 os.ld"></a>2.2.4 os.ld</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">OUTPUT_ARCH(riscv)</span><br><span class="line">ENTRY(_start)</span><br><span class="line"></span><br><span class="line">MEMORY</span><br><span class="line">&#123; </span><br><span class="line">	ram (rxai!w) : ORIGIN = 0x80200000, LENGTH = 128M</span><br><span class="line">&#125;</span><br><span class="line">SECTIONS</span><br><span class="line">&#123;</span><br><span class="line">	.text : &#123;</span><br><span class="line">		*(.text .text.*)</span><br><span class="line">	&#125; &gt;ram</span><br><span class="line"></span><br><span class="line">	.rodata : &#123;</span><br><span class="line">		*(.rodata .rodata.*)</span><br><span class="line">	&#125; &gt;ram</span><br><span class="line"></span><br><span class="line">	.data : &#123;</span><br><span class="line">		. = ALIGN(4096);</span><br><span class="line">		*(.sdata .sdata.*)</span><br><span class="line">		*(.data .data.*)</span><br><span class="line">		PROVIDE(_data_end = .);</span><br><span class="line">	&#125; &gt;ram</span><br><span class="line"></span><br><span class="line">	.bss :&#123;</span><br><span class="line">		*(.sbss .sbss.*)</span><br><span class="line">		*(.bss .bss.*)</span><br><span class="line">		*(COMMON)</span><br><span class="line">	&#125; &gt;ram</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>链接脚本如上，其中os的可执行文件会被链接到0x80200000的位置</p>
+<h3 id="2-2-5-makefile"><a href="#2-2-5-makefile" class="headerlink" title="2.2.5 makefile"></a>2.2.5 makefile</h3><figure class="highlight makefile"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">CROSS_COMPILE = riscv64-unknown-elf-</span><br><span class="line">CFLAGS = -nostdlib -fno-builtin </span><br><span class="line"></span><br><span class="line"><span class="comment"># riscv64-unknown-elf-gcc 工具链可以同时编译汇编和 C 代码</span></span><br><span class="line">CC = $&#123;CROSS_COMPILE&#125;gcc</span><br><span class="line">OBJCOPY = $&#123;CROSS_COMPILE&#125;objcopy</span><br><span class="line">OBJDUMP = $&#123;CROSS_COMPILE&#125;objdump</span><br><span class="line"></span><br><span class="line">SRCS_ASM = \</span><br><span class="line">	entry.S</span><br><span class="line"></span><br><span class="line">SRCS_C = \</span><br><span class="line">	sbi.c \</span><br><span class="line">	main.c \</span><br><span class="line"></span><br><span class="line"><span class="comment"># 将源文件替换为 .o 文件</span></span><br><span class="line">OBJS = $(SRCS_ASM:.S=.o)</span><br><span class="line">OBJS += $(SRCS_C:.c=.o)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="section">os.elf: $&#123;OBJS&#125;</span></span><br><span class="line">	$&#123;CC&#125; $&#123;CFLAGS&#125; -T os.ld  -o os.elf <span class="variable">$^</span></span><br><span class="line">	$&#123;OBJCOPY&#125; -O binary os.elf os.bin</span><br><span class="line"></span><br><span class="line">%.o : %.c</span><br><span class="line">	$&#123;CC&#125; $&#123;CFLAGS&#125; -c -o <span class="variable">$@</span> <span class="variable">$&lt;</span></span><br><span class="line"></span><br><span class="line">%.o : %.S</span><br><span class="line">	$&#123;CC&#125; $&#123;CFLAGS&#125; -c -o <span class="variable">$@</span> <span class="variable">$&lt;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">.PHONY : clean</span><br><span class="line"><span class="section">clean:</span></span><br><span class="line">	rm -rf *.o *.bin *.elf</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>编译链接生成os.bin</p>
+<h1 id="3-测试"><a href="#3-测试" class="headerlink" title="3. 测试"></a>3. 测试</h1><p>首先修改一下build.sh，先编译os，新增如下内容：</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">编译os</span></span><br><span class="line">if [ ! -d &quot;$SHELL_FOLDER/output/os&quot; ]; then  </span><br><span class="line">mkdir $SHELL_FOLDER/output/os</span><br><span class="line">fi</span><br><span class="line">cd $SHELL_FOLDER/os</span><br><span class="line">make</span><br><span class="line">cp $SHELL_FOLDER/os/os.bin $SHELL_FOLDER/output/os/os.bin</span><br><span class="line">make clean</span><br></pre></td></tr></table></figure>
+
+<p>合成固件：</p>
+<p><img src="/2023/07/03/%E5%9F%BA%E4%BA%8EOpensbi%E6%9C%8D%E5%8A%A1%E5%AE%8C%E6%88%90%E6%8E%A7%E5%88%B6%E5%8F%B0%E8%BE%93%E5%87%BA/image-20230710133710167.png" alt="image-20230710133710167"></p>
+<p>然后将修改<code>boot/start.s</code>将<code>os.bin</code>加载到<em>0x80200000</em>的位置</p>
+<p><img src="/2023/07/03/%E5%9F%BA%E4%BA%8EOpensbi%E6%9C%8D%E5%8A%A1%E5%AE%8C%E6%88%90%E6%8E%A7%E5%88%B6%E5%8F%B0%E8%BE%93%E5%87%BA/image-20230710133940156.png" alt="image-20230710133940156"></p>
+<p>编译运行：</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">./build.sh</span><br><span class="line">./run.sh</span><br></pre></td></tr></table></figure>
+
+<p>运行结果如下，可以看见成功打印“hello！”</p>
+<p><img src="/2023/07/03/%E5%9F%BA%E4%BA%8EOpensbi%E6%9C%8D%E5%8A%A1%E5%AE%8C%E6%88%90%E6%8E%A7%E5%88%B6%E5%8F%B0%E8%BE%93%E5%87%BA/image-20230710134405374.png" alt="image-20230710134405374"></p>
+<p>现在的内存布局如下：</p>
+<p><img src="/2023/07/03/%E5%9F%BA%E4%BA%8EOpensbi%E6%9C%8D%E5%8A%A1%E5%AE%8C%E6%88%90%E6%8E%A7%E5%88%B6%E5%8F%B0%E8%BE%93%E5%87%BA/image-20230710140718546.png" alt="image-20230710140718546"></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="https://yanglianoo.github.io">Timer</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://yanglianoo.github.io/2023/07/03/%E5%9F%BA%E4%BA%8EOpensbi%E6%9C%8D%E5%8A%A1%E5%AE%8C%E6%88%90%E6%8E%A7%E5%88%B6%E5%8F%B0%E8%BE%93%E5%87%BA/">https://yanglianoo.github.io/2023/07/03/基于Opensbi服务完成控制台输出/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://yanglianoo.github.io" target="_blank">TimerのBlog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/qemu/">qemu</a><a class="post-meta__tags" href="/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F/">嵌入式</a><a class="post-meta__tags" href="/tags/riscv/">riscv</a><a class="post-meta__tags" href="/tags/opensbi/">opensbi</a></div><div class="post_share"><div class="social-share" data-image="/2023/07/03/%E5%9F%BA%E4%BA%8EOpensbi%E6%9C%8D%E5%8A%A1%E5%AE%8C%E6%88%90%E6%8E%A7%E5%88%B6%E5%8F%B0%E8%BE%93%E5%87%BA/image-20230710140718546.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/2023/06/24/%E5%9F%BA%E4%BA%8Eopensbi%E4%B8%BAquard-star%E5%88%9B%E5%BB%BAdomain/" title="基于opensbi为quard_star创建domain"><img class="cover" src="/2023/06/24/%E5%9F%BA%E4%BA%8Eopensbi%E4%B8%BAquard-star%E5%88%9B%E5%BB%BAdomain/memory.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">基于opensbi为quard_star创建domain</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2023/06/22/%E4%B8%BAquard-star%E7%A7%BB%E6%A4%8Dopensbi-1-2/" title="为quard-star移植opensbi-1.2"><img class="cover" src="/2023/06/22/%E4%B8%BAquard-star%E7%A7%BB%E6%A4%8Dopensbi-1-2/memory.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-06-22</div><div class="title">为quard-star移植opensbi-1.2</div></div></a></div><div><a href="/2023/06/24/%E5%9F%BA%E4%BA%8Eopensbi%E4%B8%BAquard-star%E5%88%9B%E5%BB%BAdomain/" title="基于opensbi为quard_star创建domain"><img class="cover" src="/2023/06/24/%E5%9F%BA%E4%BA%8Eopensbi%E4%B8%BAquard-star%E5%88%9B%E5%BB%BAdomain/memory.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-06-24</div><div class="title">基于opensbi为quard_star创建domain</div></div></a></div><div><a href="/2023/06/17/QEMU%E4%B8%AD%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%80%E5%8F%91%E6%9D%BF6-%E5%88%B6%E4%BD%9C%E6%B5%8B%E8%AF%95%E5%9B%BA%E4%BB%B6%E9%AA%8C%E8%AF%81%E4%B8%B2%E5%8F%A3%E6%89%93%E5%8D%B0/" title="6-制作测试固件验证串口打印"><img class="cover" src="/2023/06/17/QEMU%E4%B8%AD%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%80%E5%8F%91%E6%9D%BF6-%E5%88%B6%E4%BD%9C%E6%B5%8B%E8%AF%95%E5%9B%BA%E4%BB%B6%E9%AA%8C%E8%AF%81%E4%B8%B2%E5%8F%A3%E6%89%93%E5%8D%B0/image-20230617160911655.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-06-17</div><div class="title">6-制作测试固件验证串口打印</div></div></a></div><div><a href="/2023/06/16/QEMU%E4%B8%AD%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%80%E5%8F%91%E6%9D%BF5-%E4%B8%BAquard-star%E6%B7%BB%E5%8A%A0RTC%E5%92%8CUART/" title="5.为quard-star添加RTC和UART"><img class="cover" src="/2023/06/16/QEMU%E4%B8%AD%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%80%E5%8F%91%E6%9D%BF5-%E4%B8%BAquard-star%E6%B7%BB%E5%8A%A0RTC%E5%92%8CUART/image-20230616182310228.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-06-16</div><div class="title">5.为quard-star添加RTC和UART</div></div></a></div><div><a href="/2023/06/15/QEMU%E4%B8%AD%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%80%E5%8F%91%E6%9D%BF-3-%E4%B8%BAquard-star%E6%B7%BB%E5%8A%A0flash/" title="3.为quard-star添加flash"><img class="cover" src="/2023/06/15/QEMU%E4%B8%AD%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%80%E5%8F%91%E6%9D%BF-3-%E4%B8%BAquard-star%E6%B7%BB%E5%8A%A0flash/image-20230615180850693.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-06-15</div><div class="title">3.为quard-star添加flash</div></div></a></div><div><a href="/2023/06/12/QEMU%E4%B8%AD%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%80%E5%8F%91%E6%9D%BF/" title="1.新建quard-star开发板"><img class="cover" src="/2023/06/12/QEMU%E4%B8%AD%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%80%E5%8F%91%E6%9D%BF/image-20230613213926716.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-06-12</div><div class="title">1.新建quard-star开发板</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/head.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">Timer</div><div class="author-info__description">没有一个健康的身体，如何支撑我龌龊的灵魂!</div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">17</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">13</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/yanglianoo"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content is-expand"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1-RISC-V-Supervisor-Binary-Interface"><span class="toc-text">1. RISC-V Supervisor Binary Interface</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-%E5%9F%BA%E4%BA%8EOpensbi%E5%AE%8C%E6%88%90%E6%8E%A7%E5%88%B6%E5%8F%B0%E8%BE%93%E5%87%BA"><span class="toc-text">2. 基于Opensbi完成控制台输出</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#2-1-untrusted-domain-%E8%B5%B7%E5%A7%8B%E5%9C%B0%E5%9D%80%E4%BF%AE%E6%94%B9"><span class="toc-text">2.1 untrusted-domain 起始地址修改</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-2-%E5%88%9B%E5%BB%BAOS"><span class="toc-text">2.2 创建OS</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-1-entry-S"><span class="toc-text">2.2.1 entry.S</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-2-sbi-c-%E5%92%8C-sbi-h"><span class="toc-text">2.2.2 sbi.c 和 sbi.h</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-3-main-c"><span class="toc-text">2.2.3 main.c</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-4-os-ld"><span class="toc-text">2.2.4 os.ld</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-5-makefile"><span class="toc-text">2.2.5 makefile</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-%E6%B5%8B%E8%AF%95"><span class="toc-text">3. 测试</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2023/07/03/%E5%9F%BA%E4%BA%8EOpensbi%E6%9C%8D%E5%8A%A1%E5%AE%8C%E6%88%90%E6%8E%A7%E5%88%B6%E5%8F%B0%E8%BE%93%E5%87%BA/" title="基于Opensbi服务完成控制台输出"><img src="/2023/07/03/%E5%9F%BA%E4%BA%8EOpensbi%E6%9C%8D%E5%8A%A1%E5%AE%8C%E6%88%90%E6%8E%A7%E5%88%B6%E5%8F%B0%E8%BE%93%E5%87%BA/image-20230710140718546.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="基于Opensbi服务完成控制台输出"/></a><div class="content"><a class="title" href="/2023/07/03/%E5%9F%BA%E4%BA%8EOpensbi%E6%9C%8D%E5%8A%A1%E5%AE%8C%E6%88%90%E6%8E%A7%E5%88%B6%E5%8F%B0%E8%BE%93%E5%87%BA/" title="基于Opensbi服务完成控制台输出">基于Opensbi服务完成控制台输出</a><time datetime="2023-07-03T14:10:07.000Z" title="发表于 2023-07-03 22:10:07">2023-07-03</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/06/24/%E5%9F%BA%E4%BA%8Eopensbi%E4%B8%BAquard-star%E5%88%9B%E5%BB%BAdomain/" title="基于opensbi为quard_star创建domain"><img src="/2023/06/24/%E5%9F%BA%E4%BA%8Eopensbi%E4%B8%BAquard-star%E5%88%9B%E5%BB%BAdomain/memory.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="基于opensbi为quard_star创建domain"/></a><div class="content"><a class="title" href="/2023/06/24/%E5%9F%BA%E4%BA%8Eopensbi%E4%B8%BAquard-star%E5%88%9B%E5%BB%BAdomain/" title="基于opensbi为quard_star创建domain">基于opensbi为quard_star创建domain</a><time datetime="2023-06-24T07:19:49.000Z" title="发表于 2023-06-24 15:19:49">2023-06-24</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/06/22/%E4%B8%BAquard-star%E7%A7%BB%E6%A4%8Dopensbi-1-2/" title="为quard-star移植opensbi-1.2"><img src="/2023/06/22/%E4%B8%BAquard-star%E7%A7%BB%E6%A4%8Dopensbi-1-2/memory.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="为quard-star移植opensbi-1.2"/></a><div class="content"><a class="title" href="/2023/06/22/%E4%B8%BAquard-star%E7%A7%BB%E6%A4%8Dopensbi-1-2/" title="为quard-star移植opensbi-1.2">为quard-star移植opensbi-1.2</a><time datetime="2023-06-22T11:10:00.000Z" title="发表于 2023-06-22 19:10:00">2023-06-22</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/06/20/%E6%89%8B%E5%86%99STL-List/" title="手写STL之List"><img src="/2023/06/20/%E6%89%8B%E5%86%99STL-List/v2-49a18173657446a39c39f0d278ba8747_r.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="手写STL之List"/></a><div class="content"><a class="title" href="/2023/06/20/%E6%89%8B%E5%86%99STL-List/" title="手写STL之List">手写STL之List</a><time datetime="2023-06-20T13:36:30.000Z" title="发表于 2023-06-20 21:36:30">2023-06-20</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/06/17/QEMU%E4%B8%AD%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%80%E5%8F%91%E6%9D%BF6-%E5%88%B6%E4%BD%9C%E6%B5%8B%E8%AF%95%E5%9B%BA%E4%BB%B6%E9%AA%8C%E8%AF%81%E4%B8%B2%E5%8F%A3%E6%89%93%E5%8D%B0/" title="6-制作测试固件验证串口打印"><img src="/2023/06/17/QEMU%E4%B8%AD%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%80%E5%8F%91%E6%9D%BF6-%E5%88%B6%E4%BD%9C%E6%B5%8B%E8%AF%95%E5%9B%BA%E4%BB%B6%E9%AA%8C%E8%AF%81%E4%B8%B2%E5%8F%A3%E6%89%93%E5%8D%B0/image-20230617160911655.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="6-制作测试固件验证串口打印"/></a><div class="content"><a class="title" href="/2023/06/17/QEMU%E4%B8%AD%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%80%E5%8F%91%E6%9D%BF6-%E5%88%B6%E4%BD%9C%E6%B5%8B%E8%AF%95%E5%9B%BA%E4%BB%B6%E9%AA%8C%E8%AF%81%E4%B8%B2%E5%8F%A3%E6%89%93%E5%8D%B0/" title="6-制作测试固件验证串口打印">6-制作测试固件验证串口打印</a><time datetime="2023-06-17T07:46:34.000Z" title="发表于 2023-06-17 15:46:34">2023-06-17</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('/2023/07/03/%E5%9F%BA%E4%BA%8EOpensbi%E6%9C%8D%E5%8A%A1%E5%AE%8C%E6%88%90%E6%8E%A7%E5%88%B6%E5%8F%B0%E8%BE%93%E5%87%BA/background.png')"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2023 By Timer</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><div class="js-pjax"></div><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/fireworks.min.js"></script><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div class="no-result" id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js"></script></div></div></body></html>
