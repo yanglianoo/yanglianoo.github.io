@@ -6,7 +6,7 @@
   <link href="https://yanglianoo.github.io/atom.xml" rel="self"/>
   
   <link href="https://yanglianoo.github.io/"/>
-  <updated>2023-07-14T07:47:13.512Z</updated>
+  <updated>2023-07-16T06:51:47.910Z</updated>
   <id>https://yanglianoo.github.io/</id>
   
   <author>
@@ -17,11 +17,36 @@
   <generator uri="https://hexo.io/">Hexo</generator>
   
   <entry>
+    <title>riscv编译工具链构建说明</title>
+    <link href="https://yanglianoo.github.io/2023/07/16/riscv%E7%BC%96%E8%AF%91%E5%B7%A5%E5%85%B7%E9%93%BE%E6%9E%84%E5%BB%BA/"/>
+    <id>https://yanglianoo.github.io/2023/07/16/riscv%E7%BC%96%E8%AF%91%E5%B7%A5%E5%85%B7%E9%93%BE%E6%9E%84%E5%BB%BA/</id>
+    <published>2023-07-16T05:52:19.000Z</published>
+    <updated>2023-07-16T06:51:47.910Z</updated>
+    
+    
+      
+      
+        
+        
+    <summary type="html">&lt;h2 id=&quot;riscv编译工具链构建说明&quot;&gt;&lt;a href=&quot;#riscv编译工具链构建说明&quot; class=&quot;headerlink&quot;</summary>
+        
+      
+    
+    
+    
+    <category term="riscv" scheme="https://yanglianoo.github.io/categories/riscv/"/>
+    
+    
+    <category term="riscv" scheme="https://yanglianoo.github.io/tags/riscv/"/>
+    
+  </entry>
+  
+  <entry>
     <title>封装printf函数</title>
     <link href="https://yanglianoo.github.io/2023/07/11/%E5%B0%81%E8%A3%85printf%E5%87%BD%E6%95%B0/"/>
     <id>https://yanglianoo.github.io/2023/07/11/%E5%B0%81%E8%A3%85printf%E5%87%BD%E6%95%B0/</id>
     <published>2023-07-11T15:53:50.000Z</published>
-    <updated>2023-07-14T07:47:13.512Z</updated>
+    <updated>2023-07-16T06:54:14.406Z</updated>
     
     
       
