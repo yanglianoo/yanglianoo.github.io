@@ -6,7 +6,7 @@
   <link href="https://yanglianoo.github.io/atom.xml" rel="self"/>
   
   <link href="https://yanglianoo.github.io/"/>
-  <updated>2023-08-06T06:51:12.700Z</updated>
+  <updated>2023-08-11T08:07:54.459Z</updated>
   <id>https://yanglianoo.github.io/</id>
   
   <author>
@@ -15,6 +15,37 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>协作式多任务调度</title>
+    <link href="https://yanglianoo.github.io/2023/08/10/%E5%8D%8F%E4%BD%9C%E5%BC%8F%E5%A4%9A%E4%BB%BB%E5%8A%A1%E8%B0%83%E5%BA%A6/"/>
+    <id>https://yanglianoo.github.io/2023/08/10/%E5%8D%8F%E4%BD%9C%E5%BC%8F%E5%A4%9A%E4%BB%BB%E5%8A%A1%E8%B0%83%E5%BA%A6/</id>
+    <published>2023-08-10T09:36:00.000Z</published>
+    <updated>2023-08-11T08:07:54.459Z</updated>
+    
+    
+      
+      
+        
+        
+    <summary type="html">&lt;h1 id=&quot;1-代码的一些修改&quot;&gt;&lt;a href=&quot;#1-代码的一些修改&quot; class=&quot;headerlink&quot; title=&quot;1. 代码的一些修改&quot;&gt;&lt;/a&gt;1. 代码的一些修改&lt;/h1&gt;&lt;h2 id=&quot;1-1-trap的bug修改&quot;&gt;&lt;a</summary>
+        
+      
+    
+    
+    
+    <category term="基于qemu从零开始构建riscv64的嵌入式系统" scheme="https://yanglianoo.github.io/categories/%E5%9F%BA%E4%BA%8Eqemu%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E6%9E%84%E5%BB%BAriscv64%E7%9A%84%E5%B5%8C%E5%85%A5%E5%BC%8F%E7%B3%BB%E7%BB%9F/"/>
+    
+    
+    <category term="qemu" scheme="https://yanglianoo.github.io/tags/qemu/"/>
+    
+    <category term="嵌入式" scheme="https://yanglianoo.github.io/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F/"/>
+    
+    <category term="riscv" scheme="https://yanglianoo.github.io/tags/riscv/"/>
+    
+    <category term="操作系统" scheme="https://yanglianoo.github.io/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/"/>
+    
+  </entry>
   
   <entry>
     <title>实现U模式的trap机制</title>
@@ -563,36 +594,6 @@
     
     
     <category term="操作系统" scheme="https://yanglianoo.github.io/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>手写STL之Vector</title>
-    <link href="https://yanglianoo.github.io/2023/06/07/%E6%89%8B%E5%86%99STL-Vector/"/>
-    <id>https://yanglianoo.github.io/2023/06/07/%E6%89%8B%E5%86%99STL-Vector/</id>
-    <published>2023-06-07T12:36:53.000Z</published>
-    <updated>2023-06-20T13:37:36.716Z</updated>
-    
-    
-      
-      
-        
-        
-    <summary type="html">&lt;blockquote&gt;
-&lt;p&gt;代码仓库：&lt;a href=&quot;https://github.com/yanglianoo/My_STL/tree/timer&quot;&gt;yanglianoo&amp;#x2F;My_STL at timer</summary>
-        
-      
-    
-    
-    
-    <category term="手写STL" scheme="https://yanglianoo.github.io/categories/%E6%89%8B%E5%86%99STL/"/>
-    
-    
-    <category term="C++" scheme="https://yanglianoo.github.io/tags/C/"/>
-    
-    <category term="数据结构" scheme="https://yanglianoo.github.io/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/"/>
-    
-    <category term="STL" scheme="https://yanglianoo.github.io/tags/STL/"/>
     
   </entry>
   
