@@ -1,0 +1,271 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>分时多任务系统与抢占式调度 | TimerのBlog</title><meta name="author" content="Timer"><meta name="copyright" content="Timer"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="分时多任务系统在上一章中我们实现了一个协作式的调度方案，用户程序通过调用sys_yield的系统调用来主动放弃cpu的使用权，然后内核使用轮转调度的方式切换至下一个任务。何为分时多任务系统呢，任务的切换不是通过用户程序来自行放弃cpu的使用权作为前提的，而是内核自己来决定何时切换任务，这个切换的原则就是每个任务一次只能运行一段时间，时间一到就会被操作系统强制切换到下一个任务执行，这就需要内核有一个">
+<meta property="og:type" content="article">
+<meta property="og:title" content="分时多任务系统与抢占式调度">
+<meta property="og:url" content="https://yanglianoo.github.io/2023/08/20/%E5%88%86%E6%97%B6%E5%A4%9A%E4%BB%BB%E5%8A%A1%E7%B3%BB%E7%BB%9F%E4%B8%8E%E6%8A%A2%E5%8D%A0%E5%BC%8F%E8%B0%83%E5%BA%A6/index.html">
+<meta property="og:site_name" content="TimerのBlog">
+<meta property="og:description" content="分时多任务系统在上一章中我们实现了一个协作式的调度方案，用户程序通过调用sys_yield的系统调用来主动放弃cpu的使用权，然后内核使用轮转调度的方式切换至下一个任务。何为分时多任务系统呢，任务的切换不是通过用户程序来自行放弃cpu的使用权作为前提的，而是内核自己来决定何时切换任务，这个切换的原则就是每个任务一次只能运行一段时间，时间一到就会被操作系统强制切换到下一个任务执行，这就需要内核有一个">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yanglianoo.github.io/2023/08/20/%E5%88%86%E6%97%B6%E5%A4%9A%E4%BB%BB%E5%8A%A1%E7%B3%BB%E7%BB%9F%E4%B8%8E%E6%8A%A2%E5%8D%A0%E5%BC%8F%E8%B0%83%E5%BA%A6/image-20230820143746426.png">
+<meta property="article:published_time" content="2023-08-20T03:09:20.000Z">
+<meta property="article:modified_time" content="2023-08-20T06:38:04.483Z">
+<meta property="article:author" content="Timer">
+<meta property="article:tag" content="qemu">
+<meta property="article:tag" content="嵌入式">
+<meta property="article:tag" content="riscv">
+<meta property="article:tag" content="操作系统">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://yanglianoo.github.io/2023/08/20/%E5%88%86%E6%97%B6%E5%A4%9A%E4%BB%BB%E5%8A%A1%E7%B3%BB%E7%BB%9F%E4%B8%8E%E6%8A%A2%E5%8D%A0%E5%BC%8F%E8%B0%83%E5%BA%A6/image-20230820143746426.png"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://yanglianoo.github.io/2023/08/20/%E5%88%86%E6%97%B6%E5%A4%9A%E4%BB%BB%E5%8A%A1%E7%B3%BB%E7%BB%9F%E4%B8%8E%E6%8A%A2%E5%8D%A0%E5%BC%8F%E8%B0%83%E5%BA%A6/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"languages":{"hits_empty":"找不到您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":500},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: {"chs_to_cht":"你已切换为繁体","cht_to_chs":"你已切换为简体","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"bottom-left"},
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '分时多任务系统与抢占式调度',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2023-08-20 14:38:04'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+    win.getCSS = (url,id = false) => new Promise((resolve, reject) => {
+      const link = document.createElement('link')
+      link.rel = 'stylesheet'
+      link.href = url
+      if (id) link.id = id
+      link.onerror = reject
+      link.onload = link.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        link.onload = link.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(link)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/background.css"><meta name="generator" content="Hexo 6.3.0"><link rel="alternate" href="/atom.xml" title="TimerのBlog" type="application/atom+xml">
+</head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/head.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">22</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">13</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">7</div></a></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/2023/08/20/%E5%88%86%E6%97%B6%E5%A4%9A%E4%BB%BB%E5%8A%A1%E7%B3%BB%E7%BB%9F%E4%B8%8E%E6%8A%A2%E5%8D%A0%E5%BC%8F%E8%B0%83%E5%BA%A6/background.png')"><nav id="nav"><span id="blog-info"><a href="/" title="TimerのBlog"><span class="site-name">TimerのBlog</span></a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search" href="javascript:void(0);"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">分时多任务系统与抢占式调度</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2023-08-20T03:09:20.000Z" title="发表于 2023-08-20 11:09:20">2023-08-20</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2023-08-20T06:38:04.483Z" title="更新于 2023-08-20 14:38:04">2023-08-20</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%9F%BA%E4%BA%8Eqemu%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E6%9E%84%E5%BB%BAriscv64%E7%9A%84%E5%B5%8C%E5%85%A5%E5%BC%8F%E7%B3%BB%E7%BB%9F/">基于qemu从零开始构建riscv64的嵌入式系统</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="分时多任务系统与抢占式调度"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="分时多任务系统"><a href="#分时多任务系统" class="headerlink" title="分时多任务系统"></a>分时多任务系统</h1><p>在上一章中我们实现了一个协作式的调度方案，用户程序通过调用<code>sys_yield</code>的系统调用来主动放弃cpu的使用权，然后内核使用轮转调度的方式切换至下一个任务。何为分时多任务系统呢，任务的切换不是通过用户程序来自行放弃cpu的使用权作为前提的，而是内核自己来决定何时切换任务，这个切换的原则就是每个任务一次只能运行一段时间，时间一到就会被操作系统强制切换到下一个任务执行，这就需要内核有一个定时器的东西，这个定时器是通过硬件提供的时钟中断来实现的。</p>
+<h2 id="riscv的时钟中断"><a href="#riscv的时钟中断" class="headerlink" title="riscv的时钟中断"></a>riscv的时钟中断</h2><p>RISC-V 的中断可以分成三类：</p>
+<ul>
+<li><strong>软件中断</strong> (Software Interrupt)：由软件控制发出的中断</li>
+<li><strong>时钟中断</strong> (Timer Interrupt)：由时钟电路发出的中断</li>
+<li><strong>外部中断</strong> (External Interrupt)：由外设发出的中断</li>
+</ul>
+<p>在介绍trap机制时我们用到了<code>scause</code>寄存器，<code>scause</code>最高位为1时代表此次触发的异常为中断类型：</p>
+<table>
+<thead>
+<tr>
+<th>Interrupt</th>
+<th>Exception Code</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>1</td>
+<td>Supervisor software interrupt</td>
+</tr>
+<tr>
+<td>1</td>
+<td>3</td>
+<td>Machine software interrupt</td>
+</tr>
+<tr>
+<td>1</td>
+<td>5</td>
+<td>Supervisor timer interrupt</td>
+</tr>
+<tr>
+<td>1</td>
+<td>7</td>
+<td>Machine timer interrupt</td>
+</tr>
+<tr>
+<td>1</td>
+<td>9</td>
+<td>Supervisor external interrupt</td>
+</tr>
+<tr>
+<td>1</td>
+<td>11</td>
+<td>Machine external interrupt</td>
+</tr>
+</tbody></table>
+<p>可以看到这三种中断每一个都有 M&#x2F;S 特权级两个版本。中断的特权级可以决定该中断是否会被屏蔽，以及需要 Trap 到 CPU 的哪个特权级进行处理。我们的目标是在S态使用时钟中断，这涉及到两个个在S态控制中断的寄存器<code>sstatus</code>,<code>sie</code></p>
+<p><code>sstatus</code>的<code>bit[2]</code>用来使能S态模式下的所有中断</p>
+<p><img src="/2023/08/20/%E5%88%86%E6%97%B6%E5%A4%9A%E4%BB%BB%E5%8A%A1%E7%B3%BB%E7%BB%9F%E4%B8%8E%E6%8A%A2%E5%8D%A0%E5%BC%8F%E8%B0%83%E5%BA%A6/image-20230820114526155.png" alt="image-20230820114526155"></p>
+<p><code>sie</code>的<code>bit[5]</code>用来专门使能S态的时钟中断</p>
+<p><img src="/2023/08/20/%E5%88%86%E6%97%B6%E5%A4%9A%E4%BB%BB%E5%8A%A1%E7%B3%BB%E7%BB%9F%E4%B8%8E%E6%8A%A2%E5%8D%A0%E5%BC%8F%E8%B0%83%E5%BA%A6/image-20230820113357943.png" alt="image-20230820113357943"></p>
+<p>当设置<code>STIE</code>位为1时代表启动S态的时钟中断。</p>
+<p><code>sstatus</code> 的 <code>sie</code> 为 S 特权级的中断使能，能够同时控制三种中断，如果将其清零则会将它们全部屏蔽。即使 <code>sstatus.sie</code> 置 1 ，还要看 <code>sie</code> 这个 CSR，它的三个字段 <code>ssie/stie/seie</code> 分别控制 S 特权级的软件中断、时钟中断和外部中断的中断使能。比如对于 S 态时钟中断来说，如果 CPU 不高于 S 特权级，需要 <code>sstatus.sie</code> 和 <code>sie.stie</code> 均为 1 该中断才不会被屏蔽；如果 CPU 当前特权级高于 S 特权级，则该中断一定会被屏蔽。</p>
+<p>由于软件（特别是操作系统）需要一种计时机制，RISC-V 架构要求处理器要有一个内置时钟，其频率一般低于 CPU 主频。此外，还有一个计数器用来统计处理器自上电以来经过了多少个内置时钟的时钟周期。在 RISC-V 64 架构上，该计数器保存在一个 64 位的 CSR <code>mtime</code> 中，我们无需担心它的溢出问题，在内核运行全程可以认为它是一直递增的。这个计数器一般我们叫做RTC。另外一个 64 位的 CSR <code>mtimecmp</code> 的作用是：一旦计数器 <code>mtime</code> 的值超过了 <code>mtimecmp</code>，就会触发一次时钟中断。</p>
+<p>所以我们现在来设置时钟中断，在os目录下新建一个<code>timer.c</code></p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;os.h&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> CLOCK_FREQ 10000000 </span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> TICKS_PER_SEC 1000</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* 设置下次时钟中断的cnt值 */</span></span><br><span class="line"><span class="type">void</span> <span class="title function_">set_next_trigger</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    sbi_set_timer(r_mtime() + CLOCK_FREQ / TICKS_PER_SEC);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 开启S模式下的时钟中断 */</span></span><br><span class="line"><span class="type">void</span> <span class="title function_">timer_init</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">   <span class="type">reg_t</span> sstatus =r_sstatus();</span><br><span class="line">   sstatus |= (<span class="number">1L</span> &lt;&lt; <span class="number">1</span>) ;</span><br><span class="line">   w_sstatus(sstatus);</span><br><span class="line">   <span class="type">reg_t</span> sie = r_sie();</span><br><span class="line">   sie |= SIE_STIE;</span><br><span class="line">   w_sie(sie);</span><br><span class="line">   set_next_trigger();</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">/* 以us为单位返回时间 */</span></span><br><span class="line"><span class="comment">/* 以us为单位返回时间 */</span></span><br><span class="line"><span class="type">uint64_t</span> <span class="title function_">get_time_us</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">reg_t</span> time =  r_mtime() / (CLOCK_FREQ / TICKS_PER_SEC);</span><br><span class="line">    <span class="keyword">return</span> time;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在<code>timer_init()</code>函数中，分别将<code>sstatus.sie</code> 置 1 和<code>sie.stie</code> ，操作<code>sie</code>寄存器的代码放在<code>riscv.h</code>中：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Supervisor Interrupt Enable</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> SIE_SEIE (1L &lt;&lt; 9) <span class="comment">// external</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> SIE_STIE (1L &lt;&lt; 5) <span class="comment">// timer</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> SIE_SSIE (1L &lt;&lt; 1) <span class="comment">// software</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="keyword">inline</span> <span class="type">reg_t</span> <span class="title function_">r_sie</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">reg_t</span> x;</span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;csrr %0, sie&quot;</span> : <span class="string">&quot;=r&quot;</span> (x) )</span>;</span><br><span class="line">  <span class="keyword">return</span> x;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="keyword">inline</span> <span class="type">void</span> <span class="title function_">w_sie</span><span class="params">(<span class="type">reg_t</span> x)</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;csrw sie, %0&quot;</span> : : <span class="string">&quot;r&quot;</span> (x))</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>为了设置时钟中断的频率我们需要先读到<code>mtime</code>的值，然后设置<code>mtimecmp</code>，这两个寄存器都是m模式下的，在S模式下不能直接访问，可惜的是在<code>opensbi</code>中只提供了设置<code>mtimecmp</code>的接口，因此需要想办法在S态下获取<code>mtime</code>的值，经过查找，有两种方式可以去得到<code>mtime</code>的值：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">static</span> <span class="keyword">inline</span> <span class="type">reg_t</span> <span class="title function_">r_mtime</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">reg_t</span> x;</span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;rdtime %0&quot;</span> : <span class="string">&quot;=r&quot;</span>(x))</span>;</span><br><span class="line">  <span class="comment">// asm volatime(&quot;csrr %0, 0x0C01&quot; : &quot;=r&quot; (x) )</span></span><br><span class="line">  <span class="keyword">return</span> x;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>第一种是使用<code>rdtime</code>这个伪指令，这里是在哪里找的呢，在<code>opensbi</code>的源码中，在<code>lib/sbi/sbi_timer.c</code>有这么一个函数：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">u64 <span class="title function_">sbi_timer_value</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">	<span class="keyword">if</span> (get_time_val)</span><br><span class="line">		<span class="keyword">return</span> get_time_val();</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>opensbi</code>用此函数来获取时间，<code>opensbi</code>在进行时钟初始化时，在<code>sbi_timer_init</code>函数中，对<code>sbi_timer_value</code>进行了赋值，所以在<code>opensbi</code>中实际是通过<code>get_ticks</code>函数来获取时间的</p>
+<p><img src="/2023/08/20/%E5%88%86%E6%97%B6%E5%A4%9A%E4%BB%BB%E5%8A%A1%E7%B3%BB%E7%BB%9F%E4%B8%8E%E6%8A%A2%E5%8D%A0%E5%BC%8F%E8%B0%83%E5%BA%A6/image-20230820120641356.png" alt="image-20230820120641356"></p>
+<p><code>get_ticks</code>定义如下:</p>
+<p><img src="/2023/08/20/%E5%88%86%E6%97%B6%E5%A4%9A%E4%BB%BB%E5%8A%A1%E7%B3%BB%E7%BB%9F%E4%B8%8E%E6%8A%A2%E5%8D%A0%E5%BC%8F%E8%B0%83%E5%BA%A6/image-20230820120859926.png" alt="image-20230820120859926"></p>
+<p>第二种方式是<code>asm volatime(&quot;csrr %0, 0x0C01&quot; : &quot;=r&quot; (x) )</code>来读取，<code>mtime</code>这个寄存器通过<code>MMIO</code>映射到了一个确定的地址，这个地址和平台有关，在<code>opensbi</code>源码的<code>sbi_emulate_csr.c</code>中，<code>opensbi</code>将<code>mtime</code>的值映射到了<code>0xc01</code>的地方，这是<code>opensbi</code>做了二次映射，用于S态的程序来读取，实际<code>mtime</code>的映射地址应该由<code>qemu</code>来做的，具体的映射方式我也不太清楚……，看下面代码实际上<code>opensbi</code>也是通过<code>rdtime</code>去读取的该值：</p>
+<p><img src="/2023/08/20/%E5%88%86%E6%97%B6%E5%A4%9A%E4%BB%BB%E5%8A%A1%E7%B3%BB%E7%BB%9F%E4%B8%8E%E6%8A%A2%E5%8D%A0%E5%BC%8F%E8%B0%83%E5%BA%A6/image-20230820122507968.png" alt="image-20230820122507968"></p>
+<p>所以我也不知道<code>rdtime</code>如何与<code>rtc</code>关联上的，疑惑…….</p>
+<p>总之得到了<code>mtime</code>的值。<code>mtimecmp</code>的值可以通过<code>opensbi</code>提供的接口来设置：在<code>sbi.c</code>中定义如下</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * sbi_set_timer() - Program the timer for next timer event.</span></span><br><span class="line"><span class="comment"> * @stime_value: The value after which next timer event should fire.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * Return: None</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="type">void</span> <span class="title function_">sbi_set_timer</span><span class="params">(<span class="type">uint64_t</span> stime_value)</span></span><br><span class="line">&#123;</span><br><span class="line">	sbi_ecall(SBI_EXT_TIME, SBI_FID_SET_TIMER, stime_value,</span><br><span class="line">		  <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2023/08/20/%E5%88%86%E6%97%B6%E5%A4%9A%E4%BB%BB%E5%8A%A1%E7%B3%BB%E7%BB%9F%E4%B8%8E%E6%8A%A2%E5%8D%A0%E5%BC%8F%E8%B0%83%E5%BA%A6/image-20230820123213958.png" alt="image-20230820123213958"></p>
+<p>调用号为<code>0x54494D45</code>，定义在<code>sbi.h</code>中。</p>
+<p>在<code>qemu</code>中<code>rtc</code>的频率为<code>10mhz</code>，即10^7，在上面的代码中，我将1s分成了1000个时间片，即每隔1us触发一次时钟中断，因此每次触发时钟中断设置的<code>mtimecmp</code>值为：<code>r_mtime() + CLOCK_FREQ / TICKS_PER_SEC</code>。这个频率应该是和设备树中的保持一致的</p>
+<p><img src="/2023/08/20/%E5%88%86%E6%97%B6%E5%A4%9A%E4%BB%BB%E5%8A%A1%E7%B3%BB%E7%BB%9F%E4%B8%8E%E6%8A%A2%E5%8D%A0%E5%BC%8F%E8%B0%83%E5%BA%A6/image-20230820142830588.png" alt="image-20230820142830588"></p>
+<p><code>0x986980</code>换算成10进制就是<code>10mhz</code></p>
+<h2 id="分时多任务"><a href="#分时多任务" class="headerlink" title="分时多任务"></a>分时多任务</h2><p>有了时钟中断后，切换任务就简单许多了，只需要在时钟中断到来时，设置下一次时钟中断的<code>mtimecmp</code>的值，并切换一次任务。因此对<code>trap.c</code>修改如下：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">TrapContext* <span class="title function_">trap_handler</span><span class="params">(TrapContext* cx)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">reg_t</span> scause = r_scause();</span><br><span class="line">	<span class="type">reg_t</span> cause_code = scause &amp; <span class="number">0xfff</span>;</span><br><span class="line">	<span class="keyword">if</span>(scause &amp; <span class="number">0x8000000000000000</span>)  <span class="comment">// 1 &lt;&lt; 63 = 0x8000000000000000</span></span><br><span class="line">	&#123;</span><br><span class="line">		<span class="keyword">switch</span> (cause_code)</span><br><span class="line">		&#123;</span><br><span class="line">		<span class="comment">/* rtc 中断*/</span></span><br><span class="line">		<span class="keyword">case</span> <span class="number">5</span>:</span><br><span class="line">			set_next_trigger();</span><br><span class="line">			schedule();</span><br><span class="line">			<span class="keyword">break</span>;</span><br><span class="line">		<span class="keyword">default</span>:</span><br><span class="line">			<span class="built_in">printf</span>(<span class="string">&quot;undfined interrrupt scause:%x\n&quot;</span>,scause);</span><br><span class="line">			<span class="keyword">break</span>;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">else</span></span><br><span class="line">	&#123;</span><br><span class="line">		<span class="keyword">switch</span> (cause_code)</span><br><span class="line">		&#123;</span><br><span class="line">		<span class="comment">/* U模式下的syscall */</span></span><br><span class="line">		<span class="keyword">case</span> <span class="number">8</span>:</span><br><span class="line">			cx-&gt;a0 = __SYSCALL(cx-&gt;a7,cx-&gt;a0,cx-&gt;a1,cx-&gt;a2);</span><br><span class="line">			cx-&gt;sepc += <span class="number">8</span>;</span><br><span class="line">			<span class="keyword">break</span>;</span><br><span class="line">		<span class="keyword">default</span>:</span><br><span class="line">			<span class="built_in">printf</span>(<span class="string">&quot;undfined exception scause:%x\n&quot;</span>,scause);</span><br><span class="line">			<span class="keyword">break</span>;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> cx;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>scause</code>最高位为1时代表为中断则进入中断的判断分支，否则进入异常的处理分支。</p>
+<h2 id="测试"><a href="#测试" class="headerlink" title="测试"></a>测试</h2><p><code>app.c</code>修改:</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">void</span> <span class="title function_">task1</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">const</span> <span class="type">char</span> *message = <span class="string">&quot;task1 is running!\n&quot;</span>;</span><br><span class="line">    <span class="type">int</span> len = <span class="built_in">strlen</span>(message);</span><br><span class="line">    <span class="keyword">while</span> (<span class="number">1</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        sys_wirte(<span class="number">1</span>,message, len);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="type">void</span> <span class="title function_">task2</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">const</span> <span class="type">char</span> *message = <span class="string">&quot;task2 is running!\n&quot;</span>;</span><br><span class="line">    <span class="type">int</span> len = <span class="built_in">strlen</span>(message);</span><br><span class="line">    <span class="keyword">while</span> (<span class="number">1</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        sys_wirte(<span class="number">1</span>,message, len);</span><br><span class="line">        </span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="type">void</span> <span class="title function_">task3</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">const</span> <span class="type">char</span> *message = <span class="string">&quot;task3 is running!\n&quot;</span>;</span><br><span class="line">    <span class="type">int</span> len = <span class="built_in">strlen</span>(message);</span><br><span class="line">    <span class="keyword">while</span> (sys_gettime() &lt; <span class="number">1</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        sys_wirte(<span class="number">1</span>,message, len);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在三个任务中注释掉了<code>sys_yield()</code>，我们让内核自主来进行任务切换，</p>
+<p>编译测试：<code>./build.sh , ./run.sh</code>，测试的时候发现<code>#define TICKS_PER_SEC 1000</code>这里切换频率太高会触发一个异常，暂时不知道如何引起的，因此降低一下频率为500，测试成功。</p>
+<p><img src="/2023/08/20/%E5%88%86%E6%97%B6%E5%A4%9A%E4%BB%BB%E5%8A%A1%E7%B3%BB%E7%BB%9F%E4%B8%8E%E6%8A%A2%E5%8D%A0%E5%BC%8F%E8%B0%83%E5%BA%A6/GIF-fre.gif" alt="GIF-fre"></p>
+<h1 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h1><ul>
+<li><p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/456568228">操作系统lab2时钟中断处理 - 知乎 (zhihu.com)</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="http://rcore-os.cn/rCore-Tutorial-Book-v3/chapter3/4time-sharing-system.html">分时多任务系统与抢占式调度 - rCore-Tutorial-Book-v3 3.6.0-alpha.1 文档 (rcore-os.cn)</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://github.com/LiuJiLan/RVOS_On_VisionFive2">LiuJiLan&#x2F;RVOS_On_VisionFive2: RVOS在VisionFive2开发板上的移植。 (github.com)</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://five-embeddev.com/baremetal/timer/">Timer | Five EmbedDev (five-embeddev.com)</a></p>
+</li>
+</ul>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="https://yanglianoo.github.io">Timer</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://yanglianoo.github.io/2023/08/20/%E5%88%86%E6%97%B6%E5%A4%9A%E4%BB%BB%E5%8A%A1%E7%B3%BB%E7%BB%9F%E4%B8%8E%E6%8A%A2%E5%8D%A0%E5%BC%8F%E8%B0%83%E5%BA%A6/">https://yanglianoo.github.io/2023/08/20/分时多任务系统与抢占式调度/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://yanglianoo.github.io" target="_blank">TimerのBlog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/qemu/">qemu</a><a class="post-meta__tags" href="/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F/">嵌入式</a><a class="post-meta__tags" href="/tags/riscv/">riscv</a><a class="post-meta__tags" href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">操作系统</a></div><div class="post_share"><div class="social-share" data-image="/2023/08/20/%E5%88%86%E6%97%B6%E5%A4%9A%E4%BB%BB%E5%8A%A1%E7%B3%BB%E7%BB%9F%E4%B8%8E%E6%8A%A2%E5%8D%A0%E5%BC%8F%E8%B0%83%E5%BA%A6/image-20230820143746426.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/2023/08/10/%E5%8D%8F%E4%BD%9C%E5%BC%8F%E5%A4%9A%E4%BB%BB%E5%8A%A1%E8%B0%83%E5%BA%A6/" title="协作式多任务调度"><img class="cover" src="/2023/08/10/%E5%8D%8F%E4%BD%9C%E5%BC%8F%E5%A4%9A%E4%BB%BB%E5%8A%A1%E8%B0%83%E5%BA%A6/image-20230811150744675.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">协作式多任务调度</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2023/08/10/%E5%8D%8F%E4%BD%9C%E5%BC%8F%E5%A4%9A%E4%BB%BB%E5%8A%A1%E8%B0%83%E5%BA%A6/" title="协作式多任务调度"><img class="cover" src="/2023/08/10/%E5%8D%8F%E4%BD%9C%E5%BC%8F%E5%A4%9A%E4%BB%BB%E5%8A%A1%E8%B0%83%E5%BA%A6/image-20230811150744675.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-08-10</div><div class="title">协作式多任务调度</div></div></a></div><div><a href="/2023/06/17/QEMU%E4%B8%AD%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%80%E5%8F%91%E6%9D%BF6-%E5%88%B6%E4%BD%9C%E6%B5%8B%E8%AF%95%E5%9B%BA%E4%BB%B6%E9%AA%8C%E8%AF%81%E4%B8%B2%E5%8F%A3%E6%89%93%E5%8D%B0/" title="6-制作测试固件验证串口打印"><img class="cover" src="/2023/06/17/QEMU%E4%B8%AD%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%80%E5%8F%91%E6%9D%BF6-%E5%88%B6%E4%BD%9C%E6%B5%8B%E8%AF%95%E5%9B%BA%E4%BB%B6%E9%AA%8C%E8%AF%81%E4%B8%B2%E5%8F%A3%E6%89%93%E5%8D%B0/image-20230617160911655.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-06-17</div><div class="title">6-制作测试固件验证串口打印</div></div></a></div><div><a href="/2023/06/22/%E4%B8%BAquard-star%E7%A7%BB%E6%A4%8Dopensbi-1-2/" title="为quard-star移植opensbi-1.2"><img class="cover" src="/2023/06/22/%E4%B8%BAquard-star%E7%A7%BB%E6%A4%8Dopensbi-1-2/memory.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-06-22</div><div class="title">为quard-star移植opensbi-1.2</div></div></a></div><div><a href="/2023/07/03/%E5%9F%BA%E4%BA%8EOpensbi%E6%9C%8D%E5%8A%A1%E5%AE%8C%E6%88%90%E6%8E%A7%E5%88%B6%E5%8F%B0%E8%BE%93%E5%87%BA/" title="基于Opensbi服务完成控制台输出"><img class="cover" src="/2023/07/03/%E5%9F%BA%E4%BA%8EOpensbi%E6%9C%8D%E5%8A%A1%E5%AE%8C%E6%88%90%E6%8E%A7%E5%88%B6%E5%8F%B0%E8%BE%93%E5%87%BA/image-20230710140718546.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-07-03</div><div class="title">基于Opensbi服务完成控制台输出</div></div></a></div><div><a href="/2023/06/24/%E5%9F%BA%E4%BA%8Eopensbi%E4%B8%BAquard-star%E5%88%9B%E5%BB%BAdomain/" title="基于opensbi为quard_star创建domain"><img class="cover" src="/2023/06/24/%E5%9F%BA%E4%BA%8Eopensbi%E4%B8%BAquard-star%E5%88%9B%E5%BB%BAdomain/memory.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-06-24</div><div class="title">基于opensbi为quard_star创建domain</div></div></a></div><div><a href="/2023/07/11/%E5%B0%81%E8%A3%85printf%E5%87%BD%E6%95%B0/" title="封装printf函数"><img class="cover" src="/2023/07/11/%E5%B0%81%E8%A3%85printf%E5%87%BD%E6%95%B0/image-20230714154140591.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-07-11</div><div class="title">封装printf函数</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/head.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">Timer</div><div class="author-info__description">没有一个健康的身体，如何支撑我龌龊的灵魂!</div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">22</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">13</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">7</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/yanglianoo"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content is-expand"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%88%86%E6%97%B6%E5%A4%9A%E4%BB%BB%E5%8A%A1%E7%B3%BB%E7%BB%9F"><span class="toc-text">分时多任务系统</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#riscv%E7%9A%84%E6%97%B6%E9%92%9F%E4%B8%AD%E6%96%AD"><span class="toc-text">riscv的时钟中断</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%86%E6%97%B6%E5%A4%9A%E4%BB%BB%E5%8A%A1"><span class="toc-text">分时多任务</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B5%8B%E8%AF%95"><span class="toc-text">测试</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E9%93%BE%E6%8E%A5"><span class="toc-text">参考链接</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2023/08/20/%E5%88%86%E6%97%B6%E5%A4%9A%E4%BB%BB%E5%8A%A1%E7%B3%BB%E7%BB%9F%E4%B8%8E%E6%8A%A2%E5%8D%A0%E5%BC%8F%E8%B0%83%E5%BA%A6/" title="分时多任务系统与抢占式调度"><img src="/2023/08/20/%E5%88%86%E6%97%B6%E5%A4%9A%E4%BB%BB%E5%8A%A1%E7%B3%BB%E7%BB%9F%E4%B8%8E%E6%8A%A2%E5%8D%A0%E5%BC%8F%E8%B0%83%E5%BA%A6/image-20230820143746426.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="分时多任务系统与抢占式调度"/></a><div class="content"><a class="title" href="/2023/08/20/%E5%88%86%E6%97%B6%E5%A4%9A%E4%BB%BB%E5%8A%A1%E7%B3%BB%E7%BB%9F%E4%B8%8E%E6%8A%A2%E5%8D%A0%E5%BC%8F%E8%B0%83%E5%BA%A6/" title="分时多任务系统与抢占式调度">分时多任务系统与抢占式调度</a><time datetime="2023-08-20T03:09:20.000Z" title="发表于 2023-08-20 11:09:20">2023-08-20</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/08/10/%E5%8D%8F%E4%BD%9C%E5%BC%8F%E5%A4%9A%E4%BB%BB%E5%8A%A1%E8%B0%83%E5%BA%A6/" title="协作式多任务调度"><img src="/2023/08/10/%E5%8D%8F%E4%BD%9C%E5%BC%8F%E5%A4%9A%E4%BB%BB%E5%8A%A1%E8%B0%83%E5%BA%A6/image-20230811150744675.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="协作式多任务调度"/></a><div class="content"><a class="title" href="/2023/08/10/%E5%8D%8F%E4%BD%9C%E5%BC%8F%E5%A4%9A%E4%BB%BB%E5%8A%A1%E8%B0%83%E5%BA%A6/" title="协作式多任务调度">协作式多任务调度</a><time datetime="2023-08-10T09:36:00.000Z" title="发表于 2023-08-10 17:36:00">2023-08-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/08/04/%E5%AE%9E%E7%8E%B0U%E6%A8%A1%E5%BC%8F%E7%9A%84trap%E6%9C%BA%E5%88%B6/" title="实现U模式的trap机制"><img src="/2023/08/04/%E5%AE%9E%E7%8E%B0U%E6%A8%A1%E5%BC%8F%E7%9A%84trap%E6%9C%BA%E5%88%B6/image-20230804215429736.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="实现U模式的trap机制"/></a><div class="content"><a class="title" href="/2023/08/04/%E5%AE%9E%E7%8E%B0U%E6%A8%A1%E5%BC%8F%E7%9A%84trap%E6%9C%BA%E5%88%B6/" title="实现U模式的trap机制">实现U模式的trap机制</a><time datetime="2023-08-04T03:02:27.000Z" title="发表于 2023-08-04 11:02:27">2023-08-04</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/07/16/riscv%E7%BC%96%E8%AF%91%E5%B7%A5%E5%85%B7%E9%93%BE%E6%9E%84%E5%BB%BA/" title="riscv编译工具链构建说明"><img src="/2023/07/16/riscv%E7%BC%96%E8%AF%91%E5%B7%A5%E5%85%B7%E9%93%BE%E6%9E%84%E5%BB%BA/image-20230716140122180.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="riscv编译工具链构建说明"/></a><div class="content"><a class="title" href="/2023/07/16/riscv%E7%BC%96%E8%AF%91%E5%B7%A5%E5%85%B7%E9%93%BE%E6%9E%84%E5%BB%BA/" title="riscv编译工具链构建说明">riscv编译工具链构建说明</a><time datetime="2023-07-16T05:52:19.000Z" title="发表于 2023-07-16 13:52:19">2023-07-16</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/07/11/%E5%B0%81%E8%A3%85printf%E5%87%BD%E6%95%B0/" title="封装printf函数"><img src="/2023/07/11/%E5%B0%81%E8%A3%85printf%E5%87%BD%E6%95%B0/image-20230714154140591.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="封装printf函数"/></a><div class="content"><a class="title" href="/2023/07/11/%E5%B0%81%E8%A3%85printf%E5%87%BD%E6%95%B0/" title="封装printf函数">封装printf函数</a><time datetime="2023-07-11T15:53:50.000Z" title="发表于 2023-07-11 23:53:50">2023-07-11</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('/2023/08/20/%E5%88%86%E6%97%B6%E5%A4%9A%E4%BB%BB%E5%8A%A1%E7%B3%BB%E7%BB%9F%E4%B8%8E%E6%8A%A2%E5%8D%A0%E5%BC%8F%E8%B0%83%E5%BA%A6/background.png')"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2023 By Timer</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><div class="js-pjax"></div><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/fireworks.min.js"></script><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div class="no-result" id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js"></script></div></div></body></html>
