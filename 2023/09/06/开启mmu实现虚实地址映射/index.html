@@ -1,0 +1,217 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>开启mmu实现虚实地址映射 | TimerのBlog</title><meta name="author" content="Timer"><meta name="copyright" content="Timer"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="1. 内存映射代码修改在实现timeros的内存映射机制 | TimerのBlog (yanglianoo.github.io)这篇博客中我们已经实现了虚拟地址到物理地址映射的函数，但是我在实际调试中发现了一些bug，这里做一些修改。 在find_pte_create函数中：有两处修改   首先是size_t idx[3]，这里idx应该定义成数组，之前定义的是一个指针是错误的，这是我的小失误">
+<meta property="og:type" content="article">
+<meta property="og:title" content="开启mmu实现虚实地址映射">
+<meta property="og:url" content="https://yanglianoo.github.io/2023/09/06/%E5%BC%80%E5%90%AFmmu%E5%AE%9E%E7%8E%B0%E8%99%9A%E5%AE%9E%E5%9C%B0%E5%9D%80%E6%98%A0%E5%B0%84/index.html">
+<meta property="og:site_name" content="TimerのBlog">
+<meta property="og:description" content="1. 内存映射代码修改在实现timeros的内存映射机制 | TimerのBlog (yanglianoo.github.io)这篇博客中我们已经实现了虚拟地址到物理地址映射的函数，但是我在实际调试中发现了一些bug，这里做一些修改。 在find_pte_create函数中：有两处修改   首先是size_t idx[3]，这里idx应该定义成数组，之前定义的是一个指针是错误的，这是我的小失误">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yanglianoo.github.io/2023/09/06/%E5%BC%80%E5%90%AFmmu%E5%AE%9E%E7%8E%B0%E8%99%9A%E5%AE%9E%E5%9C%B0%E5%9D%80%E6%98%A0%E5%B0%84/memory.png">
+<meta property="article:published_time" content="2023-09-06T03:13:41.000Z">
+<meta property="article:modified_time" content="2023-09-06T05:14:49.761Z">
+<meta property="article:author" content="Timer">
+<meta property="article:tag" content="qemu">
+<meta property="article:tag" content="嵌入式">
+<meta property="article:tag" content="riscv">
+<meta property="article:tag" content="操作系统">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://yanglianoo.github.io/2023/09/06/%E5%BC%80%E5%90%AFmmu%E5%AE%9E%E7%8E%B0%E8%99%9A%E5%AE%9E%E5%9C%B0%E5%9D%80%E6%98%A0%E5%B0%84/memory.png"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://yanglianoo.github.io/2023/09/06/%E5%BC%80%E5%90%AFmmu%E5%AE%9E%E7%8E%B0%E8%99%9A%E5%AE%9E%E5%9C%B0%E5%9D%80%E6%98%A0%E5%B0%84/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"languages":{"hits_empty":"找不到您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":500},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: {"chs_to_cht":"你已切换为繁体","cht_to_chs":"你已切换为简体","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"bottom-left"},
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '开启mmu实现虚实地址映射',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2023-09-06 13:14:49'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+    win.getCSS = (url,id = false) => new Promise((resolve, reject) => {
+      const link = document.createElement('link')
+      link.rel = 'stylesheet'
+      link.href = url
+      if (id) link.id = id
+      link.onerror = reject
+      link.onload = link.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        link.onload = link.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(link)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/background.css"><meta name="generator" content="Hexo 6.3.0"><link rel="alternate" href="/atom.xml" title="TimerのBlog" type="application/atom+xml">
+</head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/head.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">26</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">13</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">7</div></a></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/2023/09/06/%E5%BC%80%E5%90%AFmmu%E5%AE%9E%E7%8E%B0%E8%99%9A%E5%AE%9E%E5%9C%B0%E5%9D%80%E6%98%A0%E5%B0%84/background.png')"><nav id="nav"><span id="blog-info"><a href="/" title="TimerのBlog"><span class="site-name">TimerのBlog</span></a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search" href="javascript:void(0);"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">开启mmu实现虚实地址映射</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2023-09-06T03:13:41.000Z" title="发表于 2023-09-06 11:13:41">2023-09-06</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2023-09-06T05:14:49.761Z" title="更新于 2023-09-06 13:14:49">2023-09-06</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%9F%BA%E4%BA%8Eqemu%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E6%9E%84%E5%BB%BAriscv64%E7%9A%84%E5%B5%8C%E5%85%A5%E5%BC%8F%E7%B3%BB%E7%BB%9F/">基于qemu从零开始构建riscv64的嵌入式系统</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="开启mmu实现虚实地址映射"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h2 id="1-内存映射代码修改"><a href="#1-内存映射代码修改" class="headerlink" title="1. 内存映射代码修改"></a>1. 内存映射代码修改</h2><p>在<a href="https://yanglianoo.github.io/2023/08/31/%E5%AE%9E%E7%8E%B0timeros%E7%9A%84%E5%86%85%E5%AD%98%E6%98%A0%E5%B0%84%E6%9C%BA%E5%88%B6/">实现timeros的内存映射机制 | TimerのBlog (yanglianoo.github.io)</a>这篇博客中我们已经实现了虚拟地址到物理地址映射的函数，但是我在实际调试中发现了一些bug，这里做一些修改。</p>
+<p>在<code>find_pte_create</code>函数中：有两处修改</p>
+<p><img src="/2023/09/06/%E5%BC%80%E5%90%AFmmu%E5%AE%9E%E7%8E%B0%E8%99%9A%E5%AE%9E%E5%9C%B0%E5%9D%80%E6%98%A0%E5%B0%84/image-20230906112031781.png" alt="image-20230906112031781"></p>
+<ul>
+<li><p>首先是<code>size_t idx[3]</code>，这里<code>idx</code>应该定义成数组，之前定义的是一个指针是错误的，这是我的小失误</p>
+</li>
+<li><p>然后是不需要对<code>frame</code>的压栈操作，修改了<code>pte</code>的结构定义，不要栈来保存<code>frame</code></p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">/* 定义页表项 */</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span>  </span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    <span class="type">uint64_t</span> bits;</span><br><span class="line">&#125;PageTableEntry;</span><br></pre></td></tr></table></figure></li>
+</ul>
+<p>然后是<code>PageTable_map</code>函数的修改：新增了一个参数用于传递需要映射的内存长度，将从<code>va</code>开始的<code>size</code>大小的内存全部映射了，这里参考了<code>xv6-riscv</code>的映射实现。先计算需要映射多少页的内存，然后一页一页映射。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">void</span> <span class="title function_">PageTable_map</span><span class="params">(PageTable* pt,VirtAddr va, PhysAddr pa, u64 size ,<span class="type">uint8_t</span> pteflgs)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">if</span>(size == <span class="number">0</span>)</span><br><span class="line">        panic(<span class="string">&quot;mappages: size&quot;</span>);</span><br><span class="line">    </span><br><span class="line">    PhysPageNum ppn = floor_phys(pa);</span><br><span class="line">    VirtPageNum vpn = floor_virts(va);</span><br><span class="line">    u64 last = (va.value + size - <span class="number">1</span>) / PAGE_SIZE;</span><br><span class="line">    <span class="keyword">for</span>(;;)</span><br><span class="line">    &#123;</span><br><span class="line">        PageTableEntry* pte = find_pte_create(pt,vpn);</span><br><span class="line">        assert(!PageTableEntry_is_valid(pte));</span><br><span class="line">        *pte = PageTableEntry_new(ppn,PTE_V | pteflgs);</span><br><span class="line">         </span><br><span class="line">        <span class="keyword">if</span>( vpn.value == last )</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 一页一页映射</span></span><br><span class="line">        vpn.value+=<span class="number">1</span>;</span><br><span class="line">        ppn.value+=<span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="2-内存初始化"><a href="#2-内存初始化" class="headerlink" title="2. 内存初始化"></a>2. 内存初始化</h2><p>在开启虚拟地址之前，我们先来看一下现在内核的地址结构：</p>
+<p><img src="/2023/09/06/%E5%BC%80%E5%90%AFmmu%E5%AE%9E%E7%8E%B0%E8%99%9A%E5%AE%9E%E5%9C%B0%E5%9D%80%E6%98%A0%E5%B0%84/%E6%9C%AA%E5%91%BD%E5%90%8D%E6%96%87%E4%BB%B6%20(1).png" alt="未命名文件 (1)"></p>
+<p>内核的起始地址是<code>KERNBASE</code>，内核的代码被编译器编译后是由代码段和数据段组成的，可以在<code>os.map</code>中看见各段的地址空间，代码段结束的地址设定为<code>etext</code>，数据段结束的地址设定为<code>kernelend</code>。然后指定从内核结束后向上128M的空间为空闲内存，可以给应用使用的。至于为什么<code>etext</code>和<code>kernelend</code>是上图那两个地址，我们来看一下<code>os.ld</code>文件，我做了一些修改：</p>
+<p><img src="/2023/09/06/%E5%BC%80%E5%90%AFmmu%E5%AE%9E%E7%8E%B0%E8%99%9A%E5%AE%9E%E5%9C%B0%E5%9D%80%E6%98%A0%E5%B0%84/image-20230906121349431.png" alt="image-20230906121349431"></p>
+<p>在链接脚本中，指定了代码段结束地址按页对齐，这是为了后续映射操作的方便性，因为我们映射的时候是按页进行映射的。</p>
+<p>然后定义了两个符号：<code>PROVIDE(etext = .);</code>，<code>PROVIDE(kernelend = .);</code>，<code>etext</code>就代表了内核代码段结束的地址，<code>kernelend</code>就代表了内核结束的地址。这两个地址可以在<code>os.map</code>中找到，定义好符号后就可以用c语言去拿到值了</p>
+<p><img src="/2023/09/06/%E5%BC%80%E5%90%AFmmu%E5%AE%9E%E7%8E%B0%E8%99%9A%E5%AE%9E%E5%9C%B0%E5%9D%80%E6%98%A0%E5%B0%84/image-20230906121710788.png" alt="image-20230906121710788"></p>
+<p><img src="/2023/09/06/%E5%BC%80%E5%90%AFmmu%E5%AE%9E%E7%8E%B0%E8%99%9A%E5%AE%9E%E5%9C%B0%E5%9D%80%E6%98%A0%E5%B0%84/image-20230906121735482.png" alt="image-20230906121735482"></p>
+<p>在了解完毕内存分布之后，我们就可以来初始化内存了，我们可用的内存是从<code>kernelend</code>开始到<code>PHYSTOP</code>结束之间的大小，内核占据的代码段和数据段是不允许的，在<code>address.c</code>中来初始化可用内存：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">StackFrameAllocator FrameAllocatorImpl;</span><br><span class="line"><span class="keyword">extern</span> <span class="type">char</span> kernelend[];</span><br><span class="line"><span class="type">void</span> <span class="title function_">frame_alloctor_init</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// 初始化时 kernelend 需向上取整</span></span><br><span class="line">    StackFrameAllocator_new(&amp;FrameAllocatorImpl);</span><br><span class="line">    StackFrameAllocator_init(&amp;FrameAllocatorImpl, \</span><br><span class="line">            ceil_phys(<span class="type">phys_addr_from_size_t</span>(kernelend)), \</span><br><span class="line">            ceil_phys(<span class="type">phys_addr_from_size_t</span>(PHYSTOP)));</span><br><span class="line">    printk(<span class="string">&quot;Memoery start:%p\n&quot;</span>,kernelend);</span><br><span class="line">    printk(<span class="string">&quot;Memoery end:%p\n&quot;</span>,PHYSTOP);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>需要注意的是<code>kernelend</code>需要向上取整来对齐到<code>0x80250000</code></p>
+<h2 id="3-内存映射"><a href="#3-内存映射" class="headerlink" title="3. 内存映射"></a>3. 内存映射</h2><p>我们采用的内存映射方式为恒等映射，就是虚拟地址映射后的物理地址是相同的，这样在启用<code>mmu</code>后，原先的代码执行逻辑不变。在<code>address</code>中来进行恒等内存映射：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="keyword">extern</span> <span class="type">char</span> etext[];</span><br><span class="line">PageTable <span class="title function_">kvmmake</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    PageTable pt;</span><br><span class="line">    PhysPageNum root_ppn =  StackFrameAllocator_alloc(&amp;FrameAllocatorImpl);</span><br><span class="line">    pt.root_ppn = root_ppn;</span><br><span class="line">    printk(<span class="string">&quot;root_ppn:%p\n&quot;</span>,phys_addr_from_phys_page_num(root_ppn));</span><br><span class="line"></span><br><span class="line">    printk(<span class="string">&quot;etext:%p\n&quot;</span>,(u64)etext);</span><br><span class="line">    <span class="comment">// map kernel text executable and read-only.</span></span><br><span class="line">    PageTable_map(&amp;pt,<span class="type">virt_addr_from_size_t</span>(KERNBASE),<span class="type">phys_addr_from_size_t</span>(KERNBASE), \</span><br><span class="line">                    (u64)etext-KERNBASE , PTE_R | PTE_X ) ;</span><br><span class="line">    printk(<span class="string">&quot;finish kernel text map!\n&quot;</span>);</span><br><span class="line">    <span class="comment">// map kernel data and the physical RAM we&#x27;ll make use of. </span></span><br><span class="line">    PageTable_map(&amp;pt,<span class="type">virt_addr_from_size_t</span>((u64)etext),<span class="type">phys_addr_from_size_t</span>((u64)etext ), \</span><br><span class="line">                    PHYSTOP - (u64)etext , PTE_R | PTE_W ) ;</span><br><span class="line">    printk(<span class="string">&quot;finish kernel data and physical RAM map!\n&quot;</span>);</span><br><span class="line">    <span class="keyword">return</span> pt;</span><br><span class="line">&#125;</span><br><span class="line">PageTable kernel_pagetable;</span><br><span class="line"><span class="type">void</span> <span class="title function_">kvminit</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">  kernel_pagetable = kvmmake();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>首先建立一个根页表，从空闲内存中拿出一页，然后映射内核代码段，再映射数据段，代码段的属性是可执行可读的，数据段的属性是可读可写的，且U模式不可访问。由于我们现在是将U模式的应用和内核代码一起打包了，所以肯定U模式下的代码肯定是执行不了的，需要后面实现一个读取应用的模块来加载app。</p>
+<p>映射完成后的内存长这样子：</p>
+<p><img src="/2023/09/06/%E5%BC%80%E5%90%AFmmu%E5%AE%9E%E7%8E%B0%E8%99%9A%E5%AE%9E%E5%9C%B0%E5%9D%80%E6%98%A0%E5%B0%84/%E6%9C%AA%E5%91%BD%E5%90%8D%E6%96%87%E4%BB%B6%20(2).png" alt="未命名文件 (2)"></p>
+<p>然后是内核的映射表建立：内核的代码段只占两页内存： <code>0x80200000</code>,<code>0x80201000</code>，内核根页表放在<code>0x8025000</code>即空闲内存开始的第一页。虚拟地址<code>0x80200000</code>的三级页号的索引为 2 1 0，<code>0x80201000</code>的三级页号的索引为 2 1 1,通过下图的三次查表就对应上了具体的物理内存，要想彻底理解，还是自己手推一下映射关系。</p>
+<p><img src="/2023/09/06/%E5%BC%80%E5%90%AFmmu%E5%AE%9E%E7%8E%B0%E8%99%9A%E5%AE%9E%E5%9C%B0%E5%9D%80%E6%98%A0%E5%B0%84/%E6%9C%AA%E5%91%BD%E5%90%8D%E6%96%87%E4%BB%B6%20(3).png" alt="未命名文件 (3)"></p>
+<h2 id="4-开启Sv39分页模式"><a href="#4-开启Sv39分页模式" class="headerlink" title="4. 开启Sv39分页模式"></a>4. 开启Sv39分页模式</h2><p>要开启Sv39的分页模式，只需要去写<code>satp</code>的值就行了：设置为<code>Sv39</code>分页模式，然后将<code>root_ppn</code>的值写入。这里有一个刷新TLB的操作。</p>
+<p><strong>快表</strong> (TLB, Translation Lookaside Buffer) ， 它维护了部分虚拟页号到页表项的键值对。当 MMU 进行地址转换的时候，首先会到快表中看看是否匹配，如果匹配的话直接取出页表项完成地址转换而无需访存；否则再去查页表并将键值对保存在快表中。一旦我们修改 satp 就会切换地址空间，快表中的键值对就会失效（因为快表保存着老地址空间的映射关系，切换到新地址空间后，老的映射关系就没用了）。为了确保 MMU 的地址转换能够及时与 satp 的修改同步，我们需要立即使用 <code>sfence.vma</code> 指令将快表清空，这样 MMU 就不会看到快表中已经过期的键值对了。</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> SATP_SV39 (8L &lt;&lt; 60)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> MAKE_SATP(pagetable) (SATP_SV39 | (((u64)pagetable)))</span></span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">kvminithart</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="comment">// wait for any previous writes to the page table memory to finish.</span></span><br><span class="line">  sfence_vma();</span><br><span class="line">  w_satp(MAKE_SATP(kernel_pagetable.root_ppn.value));</span><br><span class="line">  <span class="comment">// flush stale entries from the TLB.</span></span><br><span class="line">  sfence_vma();</span><br><span class="line">  <span class="type">reg_t</span> satp = r_satp();</span><br><span class="line">  printk(<span class="string">&quot;satp:%lx\n&quot;</span>,satp);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>sfence_vma</code>和<code>w_satp</code>这两个函数定义在<code>riscv.h</code>中：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">// supervisor address translation and protection;</span></span><br><span class="line"><span class="comment">// holds the address of the page table.</span></span><br><span class="line"><span class="type">static</span> <span class="keyword">inline</span> <span class="type">void</span> <span class="title function_">w_satp</span><span class="params">(<span class="type">reg_t</span> x)</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;csrw satp, %0&quot;</span> : : <span class="string">&quot;r&quot;</span> (x))</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="keyword">inline</span> <span class="type">reg_t</span> <span class="title function_">r_satp</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">reg_t</span> x;</span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;csrr %0, satp&quot;</span> : <span class="string">&quot;=r&quot;</span> (x) )</span>;</span><br><span class="line">  <span class="keyword">return</span> x;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 刷新 TLB.</span></span><br><span class="line"><span class="type">static</span> <span class="keyword">inline</span> <span class="type">void</span> <span class="title function_">sfence_vma</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="comment">// the zero, zero means flush all TLB entries.</span></span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;sfence.vma zero, zero&quot;</span>)</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果内存正确映射的话，我们就可以看见打印<code>satp</code>寄存器的值了。</p>
+<h2 id="5-测试"><a href="#5-测试" class="headerlink" title="5. 测试"></a>5. 测试</h2><p><code>main.c</code></p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="keyword">extern</span> <span class="type">void</span> <span class="title function_">frame_alloctor_init</span><span class="params">()</span>;</span><br><span class="line"><span class="keyword">extern</span> <span class="type">void</span> <span class="title function_">kvminit</span><span class="params">()</span>;</span><br><span class="line"><span class="keyword">extern</span> <span class="type">void</span> <span class="title function_">kvminithart</span><span class="params">()</span>;</span><br><span class="line"><span class="type">void</span> <span class="title function_">os_main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">   printk(<span class="string">&quot;hello timer os!\n&quot;</span>);</span><br><span class="line"></span><br><span class="line">   <span class="comment">// 内存分配器初始化</span></span><br><span class="line">   frame_alloctor_init();</span><br><span class="line">   </span><br><span class="line">   <span class="comment">//初始化内存</span></span><br><span class="line">   kvminit();</span><br><span class="line"></span><br><span class="line">   <span class="comment">//映射内核</span></span><br><span class="line">   kvminithart();</span><br><span class="line"></span><br><span class="line">   <span class="comment">//trap初始化</span></span><br><span class="line">   trap_init();</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">   <span class="keyword">while</span> (<span class="number">1</span>)</span><br><span class="line">   &#123;</span><br><span class="line">      <span class="comment">/* code */</span></span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="comment">// task_init();</span></span><br><span class="line"></span><br><span class="line">   <span class="comment">// timer_init();</span></span><br><span class="line"></span><br><span class="line">   </span><br><span class="line">   <span class="comment">// run_first_task();</span></span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>运行脚本测试：</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">./build.sh</span><br><span class="line">./run.sh</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2023/09/06/%E5%BC%80%E5%90%AFmmu%E5%AE%9E%E7%8E%B0%E8%99%9A%E5%AE%9E%E5%9C%B0%E5%9D%80%E6%98%A0%E5%B0%84/image-20230906131256055.png" alt="image-20230906131256055"></p>
+<p>可以看见成功开启分页模式！！！！！</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="https://yanglianoo.github.io">Timer</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://yanglianoo.github.io/2023/09/06/%E5%BC%80%E5%90%AFmmu%E5%AE%9E%E7%8E%B0%E8%99%9A%E5%AE%9E%E5%9C%B0%E5%9D%80%E6%98%A0%E5%B0%84/">https://yanglianoo.github.io/2023/09/06/开启mmu实现虚实地址映射/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://yanglianoo.github.io" target="_blank">TimerのBlog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/qemu/">qemu</a><a class="post-meta__tags" href="/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F/">嵌入式</a><a class="post-meta__tags" href="/tags/riscv/">riscv</a><a class="post-meta__tags" href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">操作系统</a></div><div class="post_share"><div class="social-share" data-image="/2023/09/06/%E5%BC%80%E5%90%AFmmu%E5%AE%9E%E7%8E%B0%E8%99%9A%E5%AE%9E%E5%9C%B0%E5%9D%80%E6%98%A0%E5%B0%84/memory.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/2023/09/04/%E5%BC%80%E5%90%AF%E8%B0%83%E8%AF%95%E5%8A%9F%E8%83%BD/" title="开启调试功能"><img class="cover" src="/2023/09/04/%E5%BC%80%E5%90%AF%E8%B0%83%E8%AF%95%E5%8A%9F%E8%83%BD/image-20230904200407996.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">开启调试功能</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2023/08/20/%E5%88%86%E6%97%B6%E5%A4%9A%E4%BB%BB%E5%8A%A1%E7%B3%BB%E7%BB%9F%E4%B8%8E%E6%8A%A2%E5%8D%A0%E5%BC%8F%E8%B0%83%E5%BA%A6/" title="分时多任务系统与抢占式调度"><img class="cover" src="/2023/08/20/%E5%88%86%E6%97%B6%E5%A4%9A%E4%BB%BB%E5%8A%A1%E7%B3%BB%E7%BB%9F%E4%B8%8E%E6%8A%A2%E5%8D%A0%E5%BC%8F%E8%B0%83%E5%BA%A6/image-20230820143746426.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-08-20</div><div class="title">分时多任务系统与抢占式调度</div></div></a></div><div><a href="/2023/08/10/%E5%8D%8F%E4%BD%9C%E5%BC%8F%E5%A4%9A%E4%BB%BB%E5%8A%A1%E8%B0%83%E5%BA%A6/" title="协作式多任务调度"><img class="cover" src="/2023/08/10/%E5%8D%8F%E4%BD%9C%E5%BC%8F%E5%A4%9A%E4%BB%BB%E5%8A%A1%E8%B0%83%E5%BA%A6/image-20230811150744675.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-08-10</div><div class="title">协作式多任务调度</div></div></a></div><div><a href="/2023/08/31/%E5%AE%9E%E7%8E%B0timeros%E7%9A%84%E5%86%85%E5%AD%98%E6%98%A0%E5%B0%84%E6%9C%BA%E5%88%B6/" title="实现timeros的内存映射机制"><img class="cover" src="/2023/08/31/%E5%AE%9E%E7%8E%B0timeros%E7%9A%84%E5%86%85%E5%AD%98%E6%98%A0%E5%B0%84%E6%9C%BA%E5%88%B6/v2-9c287c7d7384525eae9a37022322fd78_720w.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-08-31</div><div class="title">实现timeros的内存映射机制</div></div></a></div><div><a href="/2023/09/04/%E5%BC%80%E5%90%AF%E8%B0%83%E8%AF%95%E5%8A%9F%E8%83%BD/" title="开启调试功能"><img class="cover" src="/2023/09/04/%E5%BC%80%E5%90%AF%E8%B0%83%E8%AF%95%E5%8A%9F%E8%83%BD/image-20230904200407996.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-09-04</div><div class="title">开启调试功能</div></div></a></div><div><a href="/2023/08/30/%E7%94%A8%E6%88%B7%E6%80%81printf%E4%BB%A5%E5%8F%8A%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" title="用户态printf以及物理内存管理"><img class="cover" src="/2023/08/30/%E7%94%A8%E6%88%B7%E6%80%81printf%E4%BB%A5%E5%8F%8A%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/Sv39.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-08-30</div><div class="title">用户态printf以及物理内存管理</div></div></a></div><div><a href="/2023/06/17/QEMU%E4%B8%AD%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%80%E5%8F%91%E6%9D%BF6-%E5%88%B6%E4%BD%9C%E6%B5%8B%E8%AF%95%E5%9B%BA%E4%BB%B6%E9%AA%8C%E8%AF%81%E4%B8%B2%E5%8F%A3%E6%89%93%E5%8D%B0/" title="6-制作测试固件验证串口打印"><img class="cover" src="/2023/06/17/QEMU%E4%B8%AD%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%80%E5%8F%91%E6%9D%BF6-%E5%88%B6%E4%BD%9C%E6%B5%8B%E8%AF%95%E5%9B%BA%E4%BB%B6%E9%AA%8C%E8%AF%81%E4%B8%B2%E5%8F%A3%E6%89%93%E5%8D%B0/image-20230617160911655.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-06-17</div><div class="title">6-制作测试固件验证串口打印</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/head.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">Timer</div><div class="author-info__description">没有一个健康的身体，如何支撑我龌龊的灵魂!</div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">26</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">13</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">7</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/yanglianoo"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content is-expand"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%86%85%E5%AD%98%E6%98%A0%E5%B0%84%E4%BB%A3%E7%A0%81%E4%BF%AE%E6%94%B9"><span class="toc-text">1. 内存映射代码修改</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E5%86%85%E5%AD%98%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="toc-text">2. 内存初始化</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%86%85%E5%AD%98%E6%98%A0%E5%B0%84"><span class="toc-text">3. 内存映射</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E5%BC%80%E5%90%AFSv39%E5%88%86%E9%A1%B5%E6%A8%A1%E5%BC%8F"><span class="toc-text">4. 开启Sv39分页模式</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E6%B5%8B%E8%AF%95"><span class="toc-text">5. 测试</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2023/09/06/%E5%BC%80%E5%90%AFmmu%E5%AE%9E%E7%8E%B0%E8%99%9A%E5%AE%9E%E5%9C%B0%E5%9D%80%E6%98%A0%E5%B0%84/" title="开启mmu实现虚实地址映射"><img src="/2023/09/06/%E5%BC%80%E5%90%AFmmu%E5%AE%9E%E7%8E%B0%E8%99%9A%E5%AE%9E%E5%9C%B0%E5%9D%80%E6%98%A0%E5%B0%84/memory.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="开启mmu实现虚实地址映射"/></a><div class="content"><a class="title" href="/2023/09/06/%E5%BC%80%E5%90%AFmmu%E5%AE%9E%E7%8E%B0%E8%99%9A%E5%AE%9E%E5%9C%B0%E5%9D%80%E6%98%A0%E5%B0%84/" title="开启mmu实现虚实地址映射">开启mmu实现虚实地址映射</a><time datetime="2023-09-06T03:13:41.000Z" title="发表于 2023-09-06 11:13:41">2023-09-06</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/09/04/%E5%BC%80%E5%90%AF%E8%B0%83%E8%AF%95%E5%8A%9F%E8%83%BD/" title="开启调试功能"><img src="/2023/09/04/%E5%BC%80%E5%90%AF%E8%B0%83%E8%AF%95%E5%8A%9F%E8%83%BD/image-20230904200407996.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="开启调试功能"/></a><div class="content"><a class="title" href="/2023/09/04/%E5%BC%80%E5%90%AF%E8%B0%83%E8%AF%95%E5%8A%9F%E8%83%BD/" title="开启调试功能">开启调试功能</a><time datetime="2023-09-04T07:21:41.000Z" title="发表于 2023-09-04 15:21:41">2023-09-04</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/08/31/%E5%AE%9E%E7%8E%B0timeros%E7%9A%84%E5%86%85%E5%AD%98%E6%98%A0%E5%B0%84%E6%9C%BA%E5%88%B6/" title="实现timeros的内存映射机制"><img src="/2023/08/31/%E5%AE%9E%E7%8E%B0timeros%E7%9A%84%E5%86%85%E5%AD%98%E6%98%A0%E5%B0%84%E6%9C%BA%E5%88%B6/v2-9c287c7d7384525eae9a37022322fd78_720w.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="实现timeros的内存映射机制"/></a><div class="content"><a class="title" href="/2023/08/31/%E5%AE%9E%E7%8E%B0timeros%E7%9A%84%E5%86%85%E5%AD%98%E6%98%A0%E5%B0%84%E6%9C%BA%E5%88%B6/" title="实现timeros的内存映射机制">实现timeros的内存映射机制</a><time datetime="2023-08-31T11:35:14.000Z" title="发表于 2023-08-31 19:35:14">2023-08-31</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/08/30/%E7%94%A8%E6%88%B7%E6%80%81printf%E4%BB%A5%E5%8F%8A%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" title="用户态printf以及物理内存管理"><img src="/2023/08/30/%E7%94%A8%E6%88%B7%E6%80%81printf%E4%BB%A5%E5%8F%8A%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/Sv39.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="用户态printf以及物理内存管理"/></a><div class="content"><a class="title" href="/2023/08/30/%E7%94%A8%E6%88%B7%E6%80%81printf%E4%BB%A5%E5%8F%8A%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" title="用户态printf以及物理内存管理">用户态printf以及物理内存管理</a><time datetime="2023-08-30T12:46:18.000Z" title="发表于 2023-08-30 20:46:18">2023-08-30</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/08/20/%E5%88%86%E6%97%B6%E5%A4%9A%E4%BB%BB%E5%8A%A1%E7%B3%BB%E7%BB%9F%E4%B8%8E%E6%8A%A2%E5%8D%A0%E5%BC%8F%E8%B0%83%E5%BA%A6/" title="分时多任务系统与抢占式调度"><img src="/2023/08/20/%E5%88%86%E6%97%B6%E5%A4%9A%E4%BB%BB%E5%8A%A1%E7%B3%BB%E7%BB%9F%E4%B8%8E%E6%8A%A2%E5%8D%A0%E5%BC%8F%E8%B0%83%E5%BA%A6/image-20230820143746426.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="分时多任务系统与抢占式调度"/></a><div class="content"><a class="title" href="/2023/08/20/%E5%88%86%E6%97%B6%E5%A4%9A%E4%BB%BB%E5%8A%A1%E7%B3%BB%E7%BB%9F%E4%B8%8E%E6%8A%A2%E5%8D%A0%E5%BC%8F%E8%B0%83%E5%BA%A6/" title="分时多任务系统与抢占式调度">分时多任务系统与抢占式调度</a><time datetime="2023-08-20T03:09:20.000Z" title="发表于 2023-08-20 11:09:20">2023-08-20</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('/2023/09/06/%E5%BC%80%E5%90%AFmmu%E5%AE%9E%E7%8E%B0%E8%99%9A%E5%AE%9E%E5%9C%B0%E5%9D%80%E6%98%A0%E5%B0%84/background.png')"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2023 By Timer</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><div class="js-pjax"></div><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/fireworks.min.js"></script><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div class="no-result" id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js"></script></div></div></body></html>
