@@ -2,6 +2,15 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>https://yanglianoo.github.io/2023/09/10/%E5%BA%94%E7%94%A8%E7%A8%8B%E5%BA%8F%E7%9A%84%E8%A3%85%E8%BD%BD/</loc>
+    
+    <lastmod>2023-09-11</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
     <loc>https://yanglianoo.github.io/2023/09/06/%E5%BC%80%E5%90%AFmmu%E5%AE%9E%E7%8E%B0%E8%99%9A%E5%AE%9E%E5%9C%B0%E5%9D%80%E6%98%A0%E5%B0%84/</loc>
     
     <lastmod>2023-09-06</lastmod>
@@ -256,7 +265,7 @@
 
   <url>
     <loc>https://yanglianoo.github.io/</loc>
-    <lastmod>2023-09-06</lastmod>
+    <lastmod>2023-09-11</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
@@ -264,91 +273,91 @@
   
   <url>
     <loc>https://yanglianoo.github.io/tags/qemu/</loc>
-    <lastmod>2023-09-06</lastmod>
+    <lastmod>2023-09-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://yanglianoo.github.io/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F/</loc>
-    <lastmod>2023-09-06</lastmod>
+    <lastmod>2023-09-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://yanglianoo.github.io/tags/%E8%99%9A%E6%8B%9F%E5%8C%96/</loc>
-    <lastmod>2023-09-06</lastmod>
+    <lastmod>2023-09-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://yanglianoo.github.io/tags/riscv/</loc>
-    <lastmod>2023-09-06</lastmod>
+    <lastmod>2023-09-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://yanglianoo.github.io/tags/opensbi/</loc>
-    <lastmod>2023-09-06</lastmod>
+    <lastmod>2023-09-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://yanglianoo.github.io/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/</loc>
-    <lastmod>2023-09-06</lastmod>
+    <lastmod>2023-09-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://yanglianoo.github.io/tags/C/</loc>
-    <lastmod>2023-09-06</lastmod>
+    <lastmod>2023-09-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://yanglianoo.github.io/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/</loc>
-    <lastmod>2023-09-06</lastmod>
+    <lastmod>2023-09-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://yanglianoo.github.io/tags/STL/</loc>
-    <lastmod>2023-09-06</lastmod>
+    <lastmod>2023-09-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://yanglianoo.github.io/tags/%E5%AD%98%E5%82%A8%E5%99%A8/</loc>
-    <lastmod>2023-09-06</lastmod>
+    <lastmod>2023-09-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://yanglianoo.github.io/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E5%9F%BA%E7%A1%80/</loc>
-    <lastmod>2023-09-06</lastmod>
+    <lastmod>2023-09-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://yanglianoo.github.io/tags/%E8%AE%BE%E5%A4%87%E6%A0%91/</loc>
-    <lastmod>2023-09-06</lastmod>
+    <lastmod>2023-09-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://yanglianoo.github.io/tags/Linux/</loc>
-    <lastmod>2023-09-06</lastmod>
+    <lastmod>2023-09-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
@@ -357,49 +366,49 @@
   
   <url>
     <loc>https://yanglianoo.github.io/categories/%E5%9F%BA%E4%BA%8Eqemu%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E6%9E%84%E5%BB%BAriscv64%E7%9A%84%E5%B5%8C%E5%85%A5%E5%BC%8F%E7%B3%BB%E7%BB%9F/</loc>
-    <lastmod>2023-09-06</lastmod>
+    <lastmod>2023-09-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://yanglianoo.github.io/categories/riscv/</loc>
-    <lastmod>2023-09-06</lastmod>
+    <lastmod>2023-09-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://yanglianoo.github.io/categories/Qemu-%E8%99%9A%E6%8B%9F%E5%8C%96/</loc>
-    <lastmod>2023-09-06</lastmod>
+    <lastmod>2023-09-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://yanglianoo.github.io/categories/%E6%89%8B%E5%86%99STL/</loc>
-    <lastmod>2023-09-06</lastmod>
+    <lastmod>2023-09-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://yanglianoo.github.io/categories/%E4%BB%8E%E9%9B%B6%E6%89%8B%E5%86%99%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F-X86%E6%9E%B6%E6%9E%84/</loc>
-    <lastmod>2023-09-06</lastmod>
+    <lastmod>2023-09-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://yanglianoo.github.io/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E5%9F%BA%E7%A1%80/</loc>
-    <lastmod>2023-09-06</lastmod>
+    <lastmod>2023-09-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://yanglianoo.github.io/categories/%E5%B5%8C%E5%85%A5%E5%BC%8FLinux/</loc>
-    <lastmod>2023-09-06</lastmod>
+    <lastmod>2023-09-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
