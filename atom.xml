@@ -6,7 +6,7 @@
   <link href="https://yanglianoo.github.io/atom.xml" rel="self"/>
   
   <link href="https://yanglianoo.github.io/"/>
-  <updated>2023-09-11T03:09:00.912Z</updated>
+  <updated>2023-09-11T13:12:46.988Z</updated>
   <id>https://yanglianoo.github.io/</id>
   
   <author>
@@ -17,11 +17,40 @@
   <generator uri="https://hexo.io/">Hexo</generator>
   
   <entry>
+    <title>elf文件解析</title>
+    <link href="https://yanglianoo.github.io/2023/09/11/elf%E6%96%87%E4%BB%B6%E8%A7%A3%E6%9E%90/"/>
+    <id>https://yanglianoo.github.io/2023/09/11/elf%E6%96%87%E4%BB%B6%E8%A7%A3%E6%9E%90/</id>
+    <published>2023-09-11T04:03:10.000Z</published>
+    <updated>2023-09-11T13:12:46.988Z</updated>
+    
+    
+      
+      
+        
+        
+    <summary type="html">&lt;h1 id=&quot;ELF文件解析&quot;&gt;&lt;a href=&quot;#ELF文件解析&quot; class=&quot;headerlink&quot; title=&quot;ELF文件解析&quot;&gt;&lt;/a&gt;ELF文件解析&lt;/h1&gt;&lt;h2 id=&quot;1-ELF文件概述&quot;&gt;&lt;a href=&quot;#1-ELF文件概述&quot;</summary>
+        
+      
+    
+    
+    
+    <category term="计算机系统基础" scheme="https://yanglianoo.github.io/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E5%9F%BA%E7%A1%80/"/>
+    
+    
+    <category term="riscv" scheme="https://yanglianoo.github.io/tags/riscv/"/>
+    
+    <category term="ELF" scheme="https://yanglianoo.github.io/tags/ELF/"/>
+    
+    <category term="操作系统" scheme="https://yanglianoo.github.io/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/"/>
+    
+  </entry>
+  
+  <entry>
     <title>应用程序的装载</title>
     <link href="https://yanglianoo.github.io/2023/09/10/%E5%BA%94%E7%94%A8%E7%A8%8B%E5%BA%8F%E7%9A%84%E8%A3%85%E8%BD%BD/"/>
     <id>https://yanglianoo.github.io/2023/09/10/%E5%BA%94%E7%94%A8%E7%A8%8B%E5%BA%8F%E7%9A%84%E8%A3%85%E8%BD%BD/</id>
     <published>2023-09-10T04:05:54.000Z</published>
-    <updated>2023-09-11T03:09:00.912Z</updated>
+    <updated>2023-09-11T11:09:54.016Z</updated>
     
     
       
@@ -589,34 +618,6 @@
     <category term="嵌入式" scheme="https://yanglianoo.github.io/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F/"/>
     
     <category term="虚拟化" scheme="https://yanglianoo.github.io/tags/%E8%99%9A%E6%8B%9F%E5%8C%96/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>计算机系统基础-存储访问</title>
-    <link href="https://yanglianoo.github.io/2023/06/14/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E5%9F%BA%E7%A1%80-%E5%AD%98%E5%82%A8%E8%AE%BF%E9%97%AE/"/>
-    <id>https://yanglianoo.github.io/2023/06/14/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E5%9F%BA%E7%A1%80-%E5%AD%98%E5%82%A8%E8%AE%BF%E9%97%AE/</id>
-    <published>2023-06-14T05:26:41.000Z</published>
-    <updated>2023-06-14T06:11:00.969Z</updated>
-    
-    
-      
-      
-        
-        
-    <summary type="html">&lt;h1 id=&quot;1-存储器使用场景&quot;&gt;&lt;a href=&quot;#1-存储器使用场景&quot; class=&quot;headerlink&quot; title=&quot;1.存储器使用场景&quot;&gt;&lt;/a&gt;1.存储器使用场景&lt;/h1&gt;&lt;p&gt;先来看如下这一张图，CPU运行程序的流程如下：&lt;/p&gt;
-&lt;p&gt;&lt;img</summary>
-        
-      
-    
-    
-    
-    <category term="计算机系统基础" scheme="https://yanglianoo.github.io/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E5%9F%BA%E7%A1%80/"/>
-    
-    
-    <category term="存储器" scheme="https://yanglianoo.github.io/tags/%E5%AD%98%E5%82%A8%E5%99%A8/"/>
-    
-    <category term="计算机系统基础" scheme="https://yanglianoo.github.io/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E5%9F%BA%E7%A1%80/"/>
     
   </entry>
   
