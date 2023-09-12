@@ -1,0 +1,240 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>内核和用户程序的映射逻辑 | TimerのBlog</title><meta name="author" content="Timer"><meta name="copyright" content="Timer"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="1. 内核映射补充在说应用程序的内核栈映射之前先说我之前陷入的一个误区，我之前想当然的认为在进行内核映射时我们不是把从etext ~ PHYSTOP所在的内存都映射了吗，每一页内存的映射需要根据虚拟地址三级映射去查表，如果根据页表项的索引发现页表项为空则去分配一页内存，我就以为这后面所有的内存都被使用了，我岂不是没有空闲的物理内存页可用了，但实际不是。一页内存可以存放512个页表项，以内核的两页为">
+<meta property="og:type" content="article">
+<meta property="og:title" content="内核和用户程序的映射逻辑">
+<meta property="og:url" content="https://yanglianoo.github.io/2023/09/12/%E5%86%85%E6%A0%B8%E5%92%8C%E7%94%A8%E6%88%B7%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%98%A0%E5%B0%84%E9%80%BB%E8%BE%91/index.html">
+<meta property="og:site_name" content="TimerのBlog">
+<meta property="og:description" content="1. 内核映射补充在说应用程序的内核栈映射之前先说我之前陷入的一个误区，我之前想当然的认为在进行内核映射时我们不是把从etext ~ PHYSTOP所在的内存都映射了吗，每一页内存的映射需要根据虚拟地址三级映射去查表，如果根据页表项的索引发现页表项为空则去分配一页内存，我就以为这后面所有的内存都被使用了，我岂不是没有空闲的物理内存页可用了，但实际不是。一页内存可以存放512个页表项，以内核的两页为">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yanglianoo.github.io/2023/09/12/%E5%86%85%E6%A0%B8%E5%92%8C%E7%94%A8%E6%88%B7%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%98%A0%E5%B0%84%E9%80%BB%E8%BE%91/v2-9c287c7d7384525eae9a37022322fd78_720w.png">
+<meta property="article:published_time" content="2023-09-12T04:23:27.000Z">
+<meta property="article:modified_time" content="2023-09-12T11:59:35.827Z">
+<meta property="article:author" content="Timer">
+<meta property="article:tag" content="qemu">
+<meta property="article:tag" content="嵌入式">
+<meta property="article:tag" content="riscv">
+<meta property="article:tag" content="操作系统">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://yanglianoo.github.io/2023/09/12/%E5%86%85%E6%A0%B8%E5%92%8C%E7%94%A8%E6%88%B7%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%98%A0%E5%B0%84%E9%80%BB%E8%BE%91/v2-9c287c7d7384525eae9a37022322fd78_720w.png"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://yanglianoo.github.io/2023/09/12/%E5%86%85%E6%A0%B8%E5%92%8C%E7%94%A8%E6%88%B7%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%98%A0%E5%B0%84%E9%80%BB%E8%BE%91/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"languages":{"hits_empty":"找不到您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":500},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: {"chs_to_cht":"你已切换为繁体","cht_to_chs":"你已切换为简体","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"bottom-left"},
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '内核和用户程序的映射逻辑',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2023-09-12 19:59:35'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+    win.getCSS = (url,id = false) => new Promise((resolve, reject) => {
+      const link = document.createElement('link')
+      link.rel = 'stylesheet'
+      link.href = url
+      if (id) link.id = id
+      link.onerror = reject
+      link.onload = link.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        link.onload = link.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(link)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/background.css"><meta name="generator" content="Hexo 6.3.0"><link rel="alternate" href="/atom.xml" title="TimerのBlog" type="application/atom+xml">
+</head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/head.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">29</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">14</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">7</div></a></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/2023/09/12/%E5%86%85%E6%A0%B8%E5%92%8C%E7%94%A8%E6%88%B7%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%98%A0%E5%B0%84%E9%80%BB%E8%BE%91/background.png')"><nav id="nav"><span id="blog-info"><a href="/" title="TimerのBlog"><span class="site-name">TimerのBlog</span></a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search" href="javascript:void(0);"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">内核和用户程序的映射逻辑</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2023-09-12T04:23:27.000Z" title="发表于 2023-09-12 12:23:27">2023-09-12</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2023-09-12T11:59:35.827Z" title="更新于 2023-09-12 19:59:35">2023-09-12</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%9F%BA%E4%BA%8Eqemu%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E6%9E%84%E5%BB%BAriscv64%E7%9A%84%E5%B5%8C%E5%85%A5%E5%BC%8F%E7%B3%BB%E7%BB%9F/">基于qemu从零开始构建riscv64的嵌入式系统</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="内核和用户程序的映射逻辑"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h2 id="1-内核映射补充"><a href="#1-内核映射补充" class="headerlink" title="1. 内核映射补充"></a>1. 内核映射补充</h2><p>在说应用程序的内核栈映射之前先说我之前陷入的一个误区，我之前想当然的认为在进行内核映射时我们不是把从<code>etext ~ PHYSTOP</code>所在的内存都映射了吗，每一页内存的映射需要根据虚拟地址三级映射去查表，如果根据页表项的索引发现页表项为空则去分配一页内存，我就以为这后面所有的内存都被使用了，我岂不是没有空闲的物理内存页可用了，但实际不是。一页内存可以存放512个页表项，以内核的两页为例子，我们的页表使用了三页内存，虚拟地址的前两个索引都是一样的，所以在二级页表中一次往下排，依次类推<code>0x80202000</code>会放在二级页表的三号框内，<code>0x80203000</code>会放在二级页表的4号框内，所以虽然从<code>etext ~ PHYSTOP</code>的内存都被映射了，但实际占用的物理内存页并不多。我们来打印看一下:</p>
+<p><img src="/2023/09/12/%E5%86%85%E6%A0%B8%E5%92%8C%E7%94%A8%E6%88%B7%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%98%A0%E5%B0%84%E9%80%BB%E8%BE%91/image-20230912162657834.png" alt="image-20230912162657834"></p>
+<p><img src="/2023/09/12/%E5%86%85%E6%A0%B8%E5%92%8C%E7%94%A8%E6%88%B7%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%98%A0%E5%B0%84%E9%80%BB%E8%BE%91/image-20230912162442822.png" alt="image-20230912162442822"></p>
+<p>在内存分配函数中加一个使用物理页的打印。</p>
+<p><img src="/2023/09/12/%E5%86%85%E6%A0%B8%E5%92%8C%E7%94%A8%E6%88%B7%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%98%A0%E5%B0%84%E9%80%BB%E8%BE%91/image-20230912162810260.png" alt="image-20230912162810260"></p>
+<p>可以看见映射128M的内存占用的实际的物理内存并不多，映射只是为了告诉MMU真的要去访问一个虚拟地址时如何去查表，并不代表真的占用了，当然最后你想要去访问这128M的虚拟地址最终对应的还是128M的物理地址。</p>
+<h2 id="2-xv6-的应用程序内核栈映射"><a href="#2-xv6-的应用程序内核栈映射" class="headerlink" title="2. xv6 的应用程序内核栈映射"></a>2. xv6 的应用程序内核栈映射</h2><p>在<code>timer os</code>的设计中，之前是使用一个二维数组来作为应用程序的内核栈，我们在<code>trap</code>时会将应用的<code>trap</code>上下文保存到内核栈中</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">uint8_t</span> KernelStack[MAX_TASKS][KERNEL_STACK_SIZE];</span><br></pre></td></tr></table></figure>
+
+<p>在<code>xv6-riscv</code>中是单独为每个应用映射了一个内核栈：</p>
+<p><img src="/2023/09/12/%E5%86%85%E6%A0%B8%E5%92%8C%E7%94%A8%E6%88%B7%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%98%A0%E5%B0%84%E9%80%BB%E8%BE%91/image-20230912163758732.png" alt="image-20230912163758732"></p>
+<p>我们来看看这个函数：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Allocate a page for each process&#x27;s kernel stack.</span></span><br><span class="line"><span class="comment">// Map it high in memory, followed by an invalid</span></span><br><span class="line"><span class="comment">// guard page.</span></span><br><span class="line"><span class="type">void</span></span><br><span class="line"><span class="title function_">proc_mapstacks</span><span class="params">(<span class="type">pagetable_t</span> kpgtbl)</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="class"><span class="keyword">struct</span> <span class="title">proc</span> *<span class="title">p</span>;</span></span><br><span class="line">  </span><br><span class="line">  <span class="keyword">for</span>(p = proc; p &lt; &amp;proc[NPROC]; p++) &#123;</span><br><span class="line">    <span class="type">char</span> *pa = kalloc();</span><br><span class="line">    <span class="keyword">if</span>(pa == <span class="number">0</span>)</span><br><span class="line">      panic(<span class="string">&quot;kalloc&quot;</span>);</span><br><span class="line">    uint64 va = KSTACK((<span class="type">int</span>) (p - proc));</span><br><span class="line">    kvmmap(kpgtbl, va, (uint64)pa, PGSIZE, PTE_R | PTE_W);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其中比较重要的一点是<code>KSTACK</code>这个宏：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">// map the trampoline page to the highest address,</span></span><br><span class="line"><span class="comment">// in both user and kernel space.</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> TRAMPOLINE (MAXVA - PGSIZE)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// map kernel stacks beneath the trampoline,</span></span><br><span class="line"><span class="comment">// each surrounded by invalid guard pages.</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> KSTACK(p) (TRAMPOLINE - ((p)+1)* 2*PGSIZE)</span></span><br></pre></td></tr></table></figure>
+
+<p>遍历所有的应用程序，为每个应用程序映射一个内核栈，可以看见是两页两页的跳着映射，只映射一页，另外一页用来用作栈保护，由于两页中有一页没有映射所以如果应用程序的用户栈超过了一页的大小就会触发缺页异常。并且应用程序的内核栈不是直接映射的，是映射到存放完毕页表之后的可用内存页的。</p>
+<p><img src="/2023/09/12/%E5%86%85%E6%A0%B8%E5%92%8C%E7%94%A8%E6%88%B7%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%98%A0%E5%B0%84%E9%80%BB%E8%BE%91/kernel-as-high.png" alt="../_images/kernel-as-high.png"></p>
+<p>这里在虚拟地址空间的最顶端有一页叫做：<code>TRAMPOLINE</code>，这一页是跳板页，我们后面来分析。</p>
+<p>这时候再来看<code>xv6</code>的内存映射图就很清楚了：</p>
+<p><img src="/2023/09/12/%E5%86%85%E6%A0%B8%E5%92%8C%E7%94%A8%E6%88%B7%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%98%A0%E5%B0%84%E9%80%BB%E8%BE%91/v2-9c287c7d7384525eae9a37022322fd78_720w.png" alt="img"></p>
+<h2 id="3-应用地址空间"><a href="#3-应用地址空间" class="headerlink" title="3. 应用地址空间"></a>3. 应用地址空间</h2><p>应用地址空间的内存布局如下图所示:</p>
+<p><img src="/2023/09/12/%E5%86%85%E6%A0%B8%E5%92%8C%E7%94%A8%E6%88%B7%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%98%A0%E5%B0%84%E9%80%BB%E8%BE%91/app-as-full.png" alt="../_images/app-as-full.png"></p>
+<p>左侧链接脚本中指明了应用连接到<code>0x10000</code>，从 <code>0x10000 </code>开始向高地址放置应用内存布局中的各个逻辑段，最后放置带有一个保护页面的用户栈。</p>
+<p>右侧则给出了最高的 256GiB ，可以看出它只是和内核地址空间一样将跳板放置在最高页，还将 Trap 上下文放置在次高页中。为啥要在应用空间的最高出映射这两页，我们后续再来分析。</p>
+<p>由此为每个应用程序的映射逻辑就清晰了：</p>
+<ul>
+<li>解析每个应用程序的<code>ELF</code>文件，从中解析出各逻辑段的信息</li>
+<li>依次映射各逻辑段</li>
+<li>映射应用程序用户栈</li>
+</ul>
+<h2 id="4-跳板机制的实现"><a href="#4-跳板机制的实现" class="headerlink" title="4. 跳板机制的实现"></a>4. 跳板机制的实现</h2><h3 id="4-1-为什么需要跳板机制"><a href="#4-1-为什么需要跳板机制" class="headerlink" title="4.1 为什么需要跳板机制"></a>4.1 为什么需要跳板机制</h3><p>为啥需要跳板机制，rCore中是下面这样解释的</p>
+<blockquote>
+<p>在上面的内核地址空间和应用程序地址空间中我们看到无论是内核还是应用的地址空间，最高的虚拟页面都是一个跳板。同时应用地址空间的次高虚拟页面还被设置为用来存放应用的<code> Trap</code> 上下文。那么跳板究竟起什么作用呢？为何不直接把 <code>Trap</code> 上下文仍放到应用的内核栈中呢？</p>
+<p>在之前的设计中，当一个应用 Trap 到内核时，<code>sscratch</code> 已指向该应用的内核栈栈顶，我们用一条指令即可从用户栈切换到内核栈，然后直接将 <code>Trap</code> 上下文压入内核栈栈顶。当<code> Trap</code> 处理完毕返回用户态的时候，将 <code>Trap</code> 上下文中的内容恢复到寄存器上，最后将保存着应用用户栈顶的 <code>sscratch</code> 与 <code>sp</code> 进行交换，也就从内核栈切换回了用户栈。在这个过程中， <code>sscratch</code> 起到了非常关键的作用，它使得我们可以在不破坏任何通用寄存器的情况下，完成用户栈与内核栈的切换，以及位于内核栈顶的 <code>Trap</code> 上下文的保存与恢复。</p>
+<p>然而，一旦使能了分页机制，一切就并没有这么简单了，我们必须在这个过程中同时完成地址空间的切换。具体来说，当 <code>__alltraps</code> 保存 Trap 上下文的时候，我们必须通过修改<code> satp</code> 从应用地址空间切换到内核地址空间，因为<code> trap handler</code> 只有在内核地址空间中才能访问；同理，在 <code>__restore</code> 恢复 Trap 上下文的时候，我们也必须从内核地址空间切换回应用地址空间，因为应用的代码和数据只能在它自己的地址空间中才能访问，应用是看不到内核地址空间的。这样就要求地址空间的切换不能影响指令的连续执行，即要求应用和内核地址空间在切换地址空间指令附近是平滑的。</p>
+<p>我们为何将应用的 Trap 上下文放到应用地址空间的次高页面而不是内核地址空间中的内核栈中呢？原因在于，在保存 Trap 上下文到内核栈中之前，我们必须完成两项工作：1）必须先切换到内核地址空间，这就需要将内核地址空间的 token 写入 satp 寄存器；2）之后还需要保存应用的内核栈栈顶的位置，这样才能以它为基址保存 Trap 上下文。这两步需要用寄存器作为临时周转，然而我们无法在不破坏任何一个通用寄存器的情况下做到这一点。因为事实上我们需要用到内核的两条信息：内核地址空间的 token ，以及应用的内核栈栈顶的位置，RISC-V却只提供一个 <code>sscratch</code> 寄存器可用来进行周转。所以，我们不得不将 Trap 上下文保存在应用地址空间的一个虚拟页面中，而不是切换到内核地址空间去保存。</p>
+</blockquote>
+<p>总结一下就是要是想要在内核栈中保存trap上下文，则需要先切换到内核的页表，需要一个寄存器去存内核地址空间<code>satp</code>的值，在进行地址空间切换后，才能将trap上下文压入内核栈中，之前是通过<code>sscratch</code> 来保存应用的内核栈的，现在由于开启了分页机制，导致需要多一个寄存器来实现。但是无法在不破坏任何一个通用寄存器的情况来做到这一点，因此将Trap上下文保存到应用地址空间的一页中。</p>
+<p>这里我有个问题，刚产生<code>trap</code>时，此时已经进入了S模式，需要在S模式下执行<code>__alltraps</code>函数，但此时执行代码和访问数据还是在应用程序所处的用户态虚拟地址空间中，而不是我们通常理解的内核虚拟地址空间。从内核态的<code>trap</code>返回时，会去执行<code>__restore</code>函数，此时也是在S态，但是需要去应用地址空间拿到<code>trap</code>上下文来恢复。</p>
+<p>rCore的解释是：无论是内核还是应用的地址空间，跳板的虚拟页均位于同样位置，且它们也将会映射到同一个实际存放这段汇编代码的物理页帧。也就是说，在执行 <code>__alltraps</code> 或 <code>__restore</code> 函数进行地址空间切换的时候，应用的用户态虚拟地址空间和操作系统内核的内核态虚拟地址空间对切换地址空间的指令所在页的映射方式均是相同的，这就说明了这段切换地址空间的指令控制流仍是可以连续执行的。</p>
+<p>简单点说就是，所用应用程序的跳板页都映射到同一物理内存页上，同时内核的也需要映射一个跳板页到这同一个物理页上，这样无论内核态去访问还是用户态去访问，访问的都是同一页物理内存，这一页物理内存上放的就是之前的<code>__alltraps</code> 函数和<code>__restore</code> ，这样就能理解了。</p>
+<h3 id="4-2-trap修改"><a href="#4-2-trap修改" class="headerlink" title="4.2 trap修改"></a>4.2 trap修改</h3><p>根据上面的分析，<code>__alltraps</code> 函数需要实现在保存完毕<code>trap</code>上下文后从应用地址空间切换到内核地址空间，而<code>__restore</code>函数需要先切换到应用地址空间去恢复<code>trap</code>上下文，然后返回用户态。</p>
+<p>先对<code>trap</code>上下文进行拓展：多了三项</p>
+<p><img src="/2023/09/12/%E5%86%85%E6%A0%B8%E5%92%8C%E7%94%A8%E6%88%B7%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%98%A0%E5%B0%84%E9%80%BB%E8%BE%91/image-20230912173119079.png" alt="image-20230912173119079"></p>
+<p>在多出的三个字段中：</p>
+<ul>
+<li><code>kernel_satp</code> 表示内核地址空间的 token ，即内核页表的起始物理地址；</li>
+<li><code>kernel_sp</code> 表示当前应用在内核地址空间中的内核栈栈顶的虚拟地址；</li>
+<li><code>trap_handler</code> 表示内核中<code>trap handler</code>入口点的虚拟地址。</li>
+</ul>
+<p>然后是切换地址空间：修改<code>kerneltrap.S</code>，在<code>kerneltrap.S</code>文件的开头我们声明此代码段为一个名为<code>trampoline</code>的节，这样<code>trampoline</code>就指向了此段代码的起始地址，用于后面链接和映射</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">.section .text.trampoline</span><br><span class="line">.globl __alltraps</span><br><span class="line">.align 3</span><br><span class="line">__alltraps:</span><br><span class="line">    # 从sscratch获取S模式下的SP，把U模式下的SP保存到sscratch寄存器中</span><br><span class="line">    csrrw sp, sscratch, sp</span><br><span class="line">    # now sp-&gt;kernel stack, sscratch-&gt;user stack</span><br><span class="line">    # allocate a TrapContext on kernel stack</span><br><span class="line">    # save general-purpose registers</span><br><span class="line">    sd x1, 1*8(sp)</span><br><span class="line">    # skip sp(x2), we will save it later</span><br><span class="line">    sd x3, 3*8(sp)</span><br><span class="line">    # skip tp(x4), application does not use it</span><br><span class="line">    # save x5~x31</span><br><span class="line">    sd x4, 4*8(sp)</span><br><span class="line">    sd x5, 5*8(sp)</span><br><span class="line">    sd x6, 6*8(sp)</span><br><span class="line">    sd x7, 7*8(sp)</span><br><span class="line">    sd x8, 8*8(sp)</span><br><span class="line">    sd x9, 9*8(sp)</span><br><span class="line">    sd x10,10*8(sp)</span><br><span class="line">    sd x11, 11*8(sp)</span><br><span class="line">    sd x12, 12*8(sp)</span><br><span class="line">    sd x13, 13*8(sp)</span><br><span class="line">    sd x14, 14*8(sp)</span><br><span class="line">    sd x15, 15*8(sp)</span><br><span class="line">    sd x16, 16*8(sp)</span><br><span class="line">    sd x17, 17*8(sp)</span><br><span class="line">    sd x18, 18*8(sp)</span><br><span class="line">    sd x19, 19*8(sp)</span><br><span class="line">    sd x20, 20*8(sp)</span><br><span class="line">    sd x21, 21*8(sp)</span><br><span class="line">    sd x22, 22*8(sp)</span><br><span class="line">    sd x23, 23*8(sp)</span><br><span class="line">    sd x24, 24*8(sp)</span><br><span class="line">    sd x25, 25*8(sp)</span><br><span class="line">    sd x26, 26*8(sp)</span><br><span class="line">    sd x27, 27*8(sp)</span><br><span class="line">    sd x28, 28*8(sp)</span><br><span class="line">    sd x29, 29*8(sp)</span><br><span class="line">    sd x30, 30*8(sp)</span><br><span class="line">    sd x31, 31*8(sp)</span><br><span class="line"></span><br><span class="line">    # we can use t0/t1/t2 freely, because they were saved on kernel stack</span><br><span class="line">    csrr t0, sstatus</span><br><span class="line">    csrr t1, sepc</span><br><span class="line">    sd t0, 32*8(sp)</span><br><span class="line">    sd t1, 33*8(sp)</span><br><span class="line">    # read user stack from sscratch and save it on the kernel stack</span><br><span class="line">    csrr t2, sscratch</span><br><span class="line">    sd t2, 2*8(sp)</span><br><span class="line">    # load kernel_satp into t0</span><br><span class="line">    ld t0, 34*8(sp)</span><br><span class="line">    # load trap_handler into t1</span><br><span class="line">    ld t1, 36*8(sp)</span><br><span class="line">    # move to kernel_sp</span><br><span class="line">    ld sp, 35*8(sp)</span><br><span class="line">    # switch to kernel space</span><br><span class="line">    csrw satp, t0</span><br><span class="line">    sfence.vma</span><br><span class="line">    # jump to trap_handler</span><br><span class="line">    jr t1</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">.globl __restore</span><br><span class="line">.align 3</span><br><span class="line">__restore:</span><br><span class="line">    # a0: *TrapContext in user space(Constant); a1: user space token</span><br><span class="line">    # switch to user space</span><br><span class="line">    csrw satp, a1</span><br><span class="line">    sfence.vma</span><br><span class="line">    csrw sscratch, a0</span><br><span class="line">    mv sp, a0</span><br><span class="line">    # now sp-&gt;kernel stack(after allocated), sscratch-&gt;user stack</span><br><span class="line">    # restore sstatus/sepc</span><br><span class="line">    ld t0, 32*8(sp)</span><br><span class="line">    ld t1, 33*8(sp)</span><br><span class="line">    csrw sstatus, t0</span><br><span class="line">    csrw sepc, t1</span><br><span class="line">    # restore general-purpuse registers except sp/tp</span><br><span class="line">    ld x1, 1*8(sp)</span><br><span class="line">    ld x3, 3*8(sp)</span><br><span class="line">    ld x4, 4*8(sp)</span><br><span class="line">    ld x5, 5*8(sp)</span><br><span class="line">    ld x6, 6*8(sp)</span><br><span class="line">    ld x7, 7*8(sp)</span><br><span class="line">    ld x8, 8*8(sp)</span><br><span class="line">    ld x9, 9*8(sp)</span><br><span class="line">    ld x10,10*8(sp)</span><br><span class="line">    ld x11, 11*8(sp)</span><br><span class="line">    ld x12, 12*8(sp)</span><br><span class="line">    ld x13, 13*8(sp)</span><br><span class="line">    ld x14, 14*8(sp)</span><br><span class="line">    ld x15, 15*8(sp)</span><br><span class="line">    ld x16, 16*8(sp)</span><br><span class="line">    ld x17, 17*8(sp)</span><br><span class="line">    ld x18, 18*8(sp)</span><br><span class="line">    ld x19, 19*8(sp)</span><br><span class="line">    ld x20, 20*8(sp)</span><br><span class="line">    ld x21, 21*8(sp)</span><br><span class="line">    ld x22, 22*8(sp)</span><br><span class="line">    ld x23, 23*8(sp)</span><br><span class="line">    ld x24, 24*8(sp)</span><br><span class="line">    ld x25, 25*8(sp)</span><br><span class="line">    ld x26, 26*8(sp)</span><br><span class="line">    ld x27, 27*8(sp)</span><br><span class="line">    ld x28, 28*8(sp)</span><br><span class="line">    ld x29, 29*8(sp)</span><br><span class="line">    ld x30, 30*8(sp)</span><br><span class="line">    ld x31, 31*8(sp)</span><br><span class="line"></span><br><span class="line">    # back to user stack</span><br><span class="line">    ld sp, 2*8(sp)</span><br><span class="line"></span><br><span class="line">    sret</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-3-链接文件修改"><a href="#4-3-链接文件修改" class="headerlink" title="4.3 链接文件修改"></a>4.3 链接文件修改</h3><p>将 <code>kerneltrap.S</code> 中的整段汇编代码放置在 <code>.text.trampoline</code> 段，并在调整内存布局的时候将它对齐到代码段的一个页面中：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">skernel = .;   /* 定义内核起始内存地址 */</span><br><span class="line">.text : &#123;</span><br><span class="line">       *(.text.entry)</span><br><span class="line">       . = ALIGN(4K);</span><br><span class="line">       trampoline = .;</span><br><span class="line">       *(.text.trampoline);</span><br><span class="line">       . = ALIGN(4K);</span><br><span class="line">	_strampoline = .;</span><br><span class="line">	*(.text .text.*)</span><br><span class="line">	. = ALIGN(4K);</span><br><span class="line">	PROVIDE(etext = .);</span><br><span class="line">&#125; &gt;ram</span><br></pre></td></tr></table></figure>
+
+<p>这样，这段汇编代码放在一个物理页帧中，且 <code>__alltraps</code> 恰好位于这个物理页帧的开头，其物理地址被外部符号 <code>strampoline</code> 标记。在开启分页模式之后，内核和应用代码都只能看到各自的虚拟地址空间，而在它们的视角中，这段汇编代码都被放在它们各自地址空间的最高虚拟页面上，由于这段汇编代码在执行的时候涉及到地址空间切换，故而被称为跳板页面。</p>
+<h3 id="4-4-映射跳板页"><a href="#4-4-映射跳板页" class="headerlink" title="4.4 映射跳板页"></a>4.4 映射跳板页</h3><p>在<code>kvmmake</code>中将跳板页进行映射，大小为一页，属性为可读可执行</p>
+<p><img src="/2023/09/12/%E5%86%85%E6%A0%B8%E5%92%8C%E7%94%A8%E6%88%B7%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%98%A0%E5%B0%84%E9%80%BB%E8%BE%91/image-20230912195136081.png" alt="image-20230912195136081"></p>
+<h1 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h1><ul>
+<li><p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/351646541">Chapter 3: Page Tables - 知乎 (zhihu.com)</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://pdos.csail.mit.edu/6.828/2019/xv6/book-riscv-rev0.pdf">xv6: a simple, Unix-like teaching operating system (mit.edu)</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="http://rcore-os.cn/rCore-Tutorial-Book-v3/chapter4/6multitasking-based-on-as.html#id8">基于地址空间的分时多任务 - rCore-Tutorial-Book-v3 3.6.0-alpha.1 文档 (rcore-os.cn)</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="http://xv6.dgs.zone/tranlate_books/book-riscv-rev1/c3/s2.html">3.2 内核地址空间 · 6.S081 All-In-One (dgs.zone)</a></p>
+</li>
+</ul>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="https://yanglianoo.github.io">Timer</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://yanglianoo.github.io/2023/09/12/%E5%86%85%E6%A0%B8%E5%92%8C%E7%94%A8%E6%88%B7%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%98%A0%E5%B0%84%E9%80%BB%E8%BE%91/">https://yanglianoo.github.io/2023/09/12/内核和用户程序的映射逻辑/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://yanglianoo.github.io" target="_blank">TimerのBlog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/qemu/">qemu</a><a class="post-meta__tags" href="/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F/">嵌入式</a><a class="post-meta__tags" href="/tags/riscv/">riscv</a><a class="post-meta__tags" href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">操作系统</a></div><div class="post_share"><div class="social-share" data-image="/2023/09/12/%E5%86%85%E6%A0%B8%E5%92%8C%E7%94%A8%E6%88%B7%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%98%A0%E5%B0%84%E9%80%BB%E8%BE%91/v2-9c287c7d7384525eae9a37022322fd78_720w.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/2023/09/11/elf%E6%96%87%E4%BB%B6%E8%A7%A3%E6%9E%90/" title="elf文件解析"><img class="cover" src="/2023/09/11/elf%E6%96%87%E4%BB%B6%E8%A7%A3%E6%9E%90/image-20230419155229377.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">elf文件解析</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2023/08/20/%E5%88%86%E6%97%B6%E5%A4%9A%E4%BB%BB%E5%8A%A1%E7%B3%BB%E7%BB%9F%E4%B8%8E%E6%8A%A2%E5%8D%A0%E5%BC%8F%E8%B0%83%E5%BA%A6/" title="分时多任务系统与抢占式调度"><img class="cover" src="/2023/08/20/%E5%88%86%E6%97%B6%E5%A4%9A%E4%BB%BB%E5%8A%A1%E7%B3%BB%E7%BB%9F%E4%B8%8E%E6%8A%A2%E5%8D%A0%E5%BC%8F%E8%B0%83%E5%BA%A6/image-20230820143746426.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-08-20</div><div class="title">分时多任务系统与抢占式调度</div></div></a></div><div><a href="/2023/08/10/%E5%8D%8F%E4%BD%9C%E5%BC%8F%E5%A4%9A%E4%BB%BB%E5%8A%A1%E8%B0%83%E5%BA%A6/" title="协作式多任务调度"><img class="cover" src="/2023/08/10/%E5%8D%8F%E4%BD%9C%E5%BC%8F%E5%A4%9A%E4%BB%BB%E5%8A%A1%E8%B0%83%E5%BA%A6/image-20230811150744675.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-08-10</div><div class="title">协作式多任务调度</div></div></a></div><div><a href="/2023/08/31/%E5%AE%9E%E7%8E%B0timeros%E7%9A%84%E5%86%85%E5%AD%98%E6%98%A0%E5%B0%84%E6%9C%BA%E5%88%B6/" title="实现timeros的内存映射机制"><img class="cover" src="/2023/08/31/%E5%AE%9E%E7%8E%B0timeros%E7%9A%84%E5%86%85%E5%AD%98%E6%98%A0%E5%B0%84%E6%9C%BA%E5%88%B6/v2-9c287c7d7384525eae9a37022322fd78_720w.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-08-31</div><div class="title">实现timeros的内存映射机制</div></div></a></div><div><a href="/2023/09/10/%E5%BA%94%E7%94%A8%E7%A8%8B%E5%BA%8F%E7%9A%84%E8%A3%85%E8%BD%BD/" title="应用程序的装载"><img class="cover" src="/2023/09/10/%E5%BA%94%E7%94%A8%E7%A8%8B%E5%BA%8F%E7%9A%84%E8%A3%85%E8%BD%BD/image-20230911110419592.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-09-10</div><div class="title">应用程序的装载</div></div></a></div><div><a href="/2023/09/06/%E5%BC%80%E5%90%AFmmu%E5%AE%9E%E7%8E%B0%E8%99%9A%E5%AE%9E%E5%9C%B0%E5%9D%80%E6%98%A0%E5%B0%84/" title="开启mmu实现虚实地址映射"><img class="cover" src="/2023/09/06/%E5%BC%80%E5%90%AFmmu%E5%AE%9E%E7%8E%B0%E8%99%9A%E5%AE%9E%E5%9C%B0%E5%9D%80%E6%98%A0%E5%B0%84/memory.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-09-06</div><div class="title">开启mmu实现虚实地址映射</div></div></a></div><div><a href="/2023/09/04/%E5%BC%80%E5%90%AF%E8%B0%83%E8%AF%95%E5%8A%9F%E8%83%BD/" title="开启调试功能"><img class="cover" src="/2023/09/04/%E5%BC%80%E5%90%AF%E8%B0%83%E8%AF%95%E5%8A%9F%E8%83%BD/image-20230904200407996.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-09-04</div><div class="title">开启调试功能</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/head.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">Timer</div><div class="author-info__description">没有一个健康的身体，如何支撑我龌龊的灵魂!</div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">29</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">14</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">7</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/yanglianoo"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content is-expand"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%86%85%E6%A0%B8%E6%98%A0%E5%B0%84%E8%A1%A5%E5%85%85"><span class="toc-text">1. 内核映射补充</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-xv6-%E7%9A%84%E5%BA%94%E7%94%A8%E7%A8%8B%E5%BA%8F%E5%86%85%E6%A0%B8%E6%A0%88%E6%98%A0%E5%B0%84"><span class="toc-text">2. xv6 的应用程序内核栈映射</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%BA%94%E7%94%A8%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4"><span class="toc-text">3. 应用地址空间</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E8%B7%B3%E6%9D%BF%E6%9C%BA%E5%88%B6%E7%9A%84%E5%AE%9E%E7%8E%B0"><span class="toc-text">4. 跳板机制的实现</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E8%B7%B3%E6%9D%BF%E6%9C%BA%E5%88%B6"><span class="toc-text">4.1 为什么需要跳板机制</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-trap%E4%BF%AE%E6%94%B9"><span class="toc-text">4.2 trap修改</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E9%93%BE%E6%8E%A5%E6%96%87%E4%BB%B6%E4%BF%AE%E6%94%B9"><span class="toc-text">4.3 链接文件修改</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-%E6%98%A0%E5%B0%84%E8%B7%B3%E6%9D%BF%E9%A1%B5"><span class="toc-text">4.4 映射跳板页</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E9%93%BE%E6%8E%A5"><span class="toc-text">参考链接</span></a></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2023/09/12/%E5%86%85%E6%A0%B8%E5%92%8C%E7%94%A8%E6%88%B7%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%98%A0%E5%B0%84%E9%80%BB%E8%BE%91/" title="内核和用户程序的映射逻辑"><img src="/2023/09/12/%E5%86%85%E6%A0%B8%E5%92%8C%E7%94%A8%E6%88%B7%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%98%A0%E5%B0%84%E9%80%BB%E8%BE%91/v2-9c287c7d7384525eae9a37022322fd78_720w.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="内核和用户程序的映射逻辑"/></a><div class="content"><a class="title" href="/2023/09/12/%E5%86%85%E6%A0%B8%E5%92%8C%E7%94%A8%E6%88%B7%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%98%A0%E5%B0%84%E9%80%BB%E8%BE%91/" title="内核和用户程序的映射逻辑">内核和用户程序的映射逻辑</a><time datetime="2023-09-12T04:23:27.000Z" title="发表于 2023-09-12 12:23:27">2023-09-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/09/11/elf%E6%96%87%E4%BB%B6%E8%A7%A3%E6%9E%90/" title="elf文件解析"><img src="/2023/09/11/elf%E6%96%87%E4%BB%B6%E8%A7%A3%E6%9E%90/image-20230419155229377.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="elf文件解析"/></a><div class="content"><a class="title" href="/2023/09/11/elf%E6%96%87%E4%BB%B6%E8%A7%A3%E6%9E%90/" title="elf文件解析">elf文件解析</a><time datetime="2023-09-11T04:03:10.000Z" title="发表于 2023-09-11 12:03:10">2023-09-11</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/09/10/%E5%BA%94%E7%94%A8%E7%A8%8B%E5%BA%8F%E7%9A%84%E8%A3%85%E8%BD%BD/" title="应用程序的装载"><img src="/2023/09/10/%E5%BA%94%E7%94%A8%E7%A8%8B%E5%BA%8F%E7%9A%84%E8%A3%85%E8%BD%BD/image-20230911110419592.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="应用程序的装载"/></a><div class="content"><a class="title" href="/2023/09/10/%E5%BA%94%E7%94%A8%E7%A8%8B%E5%BA%8F%E7%9A%84%E8%A3%85%E8%BD%BD/" title="应用程序的装载">应用程序的装载</a><time datetime="2023-09-10T04:05:54.000Z" title="发表于 2023-09-10 12:05:54">2023-09-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/09/06/%E5%BC%80%E5%90%AFmmu%E5%AE%9E%E7%8E%B0%E8%99%9A%E5%AE%9E%E5%9C%B0%E5%9D%80%E6%98%A0%E5%B0%84/" title="开启mmu实现虚实地址映射"><img src="/2023/09/06/%E5%BC%80%E5%90%AFmmu%E5%AE%9E%E7%8E%B0%E8%99%9A%E5%AE%9E%E5%9C%B0%E5%9D%80%E6%98%A0%E5%B0%84/memory.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="开启mmu实现虚实地址映射"/></a><div class="content"><a class="title" href="/2023/09/06/%E5%BC%80%E5%90%AFmmu%E5%AE%9E%E7%8E%B0%E8%99%9A%E5%AE%9E%E5%9C%B0%E5%9D%80%E6%98%A0%E5%B0%84/" title="开启mmu实现虚实地址映射">开启mmu实现虚实地址映射</a><time datetime="2023-09-06T03:13:41.000Z" title="发表于 2023-09-06 11:13:41">2023-09-06</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2023/09/04/%E5%BC%80%E5%90%AF%E8%B0%83%E8%AF%95%E5%8A%9F%E8%83%BD/" title="开启调试功能"><img src="/2023/09/04/%E5%BC%80%E5%90%AF%E8%B0%83%E8%AF%95%E5%8A%9F%E8%83%BD/image-20230904200407996.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="开启调试功能"/></a><div class="content"><a class="title" href="/2023/09/04/%E5%BC%80%E5%90%AF%E8%B0%83%E8%AF%95%E5%8A%9F%E8%83%BD/" title="开启调试功能">开启调试功能</a><time datetime="2023-09-04T07:21:41.000Z" title="发表于 2023-09-04 15:21:41">2023-09-04</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('/2023/09/12/%E5%86%85%E6%A0%B8%E5%92%8C%E7%94%A8%E6%88%B7%E7%A8%8B%E5%BA%8F%E7%9A%84%E6%98%A0%E5%B0%84%E9%80%BB%E8%BE%91/background.png')"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2023 By Timer</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><div class="js-pjax"></div><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/fireworks.min.js"></script><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div class="no-result" id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js"></script></div></div></body></html>
