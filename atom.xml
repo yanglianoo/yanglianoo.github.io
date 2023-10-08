@@ -6,7 +6,7 @@
   <link href="https://yanglianoo.github.io/atom.xml" rel="self"/>
   
   <link href="https://yanglianoo.github.io/"/>
-  <updated>2023-09-28T08:18:02.772Z</updated>
+  <updated>2023-10-08T13:28:33.737Z</updated>
   <id>https://yanglianoo.github.io/</id>
   
   <author>
@@ -15,6 +15,37 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>sys_fork的实现</title>
+    <link href="https://yanglianoo.github.io/2023/10/08/sys-fork%E7%9A%84%E5%AE%9E%E7%8E%B0/"/>
+    <id>https://yanglianoo.github.io/2023/10/08/sys-fork%E7%9A%84%E5%AE%9E%E7%8E%B0/</id>
+    <published>2023-10-08T07:55:32.000Z</published>
+    <updated>2023-10-08T13:28:33.737Z</updated>
+    
+    
+      
+      
+        
+        
+    <summary type="html">&lt;h2 id=&quot;1-进程控制块&quot;&gt;&lt;a href=&quot;#1-进程控制块&quot; class=&quot;headerlink&quot; title=&quot;1. 进程控制块&quot;&gt;&lt;/a&gt;1.</summary>
+        
+      
+    
+    
+    
+    <category term="基于qemu从零开始构建riscv64的嵌入式系统" scheme="https://yanglianoo.github.io/categories/%E5%9F%BA%E4%BA%8Eqemu%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E6%9E%84%E5%BB%BAriscv64%E7%9A%84%E5%B5%8C%E5%85%A5%E5%BC%8F%E7%B3%BB%E7%BB%9F/"/>
+    
+    
+    <category term="qemu" scheme="https://yanglianoo.github.io/tags/qemu/"/>
+    
+    <category term="嵌入式" scheme="https://yanglianoo.github.io/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F/"/>
+    
+    <category term="riscv" scheme="https://yanglianoo.github.io/tags/riscv/"/>
+    
+    <category term="操作系统" scheme="https://yanglianoo.github.io/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/"/>
+    
+  </entry>
   
   <entry>
     <title>字符读入与应用名称读取</title>
@@ -595,35 +626,6 @@
     <category term="虚拟化" scheme="https://yanglianoo.github.io/tags/%E8%99%9A%E6%8B%9F%E5%8C%96/"/>
     
     <category term="riscv" scheme="https://yanglianoo.github.io/tags/riscv/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>5.为quard-star添加RTC和UART</title>
-    <link href="https://yanglianoo.github.io/2023/06/16/QEMU%E4%B8%AD%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%80%E5%8F%91%E6%9D%BF5-%E4%B8%BAquard-star%E6%B7%BB%E5%8A%A0RTC%E5%92%8CUART/"/>
-    <id>https://yanglianoo.github.io/2023/06/16/QEMU%E4%B8%AD%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%80%E5%8F%91%E6%9D%BF5-%E4%B8%BAquard-star%E6%B7%BB%E5%8A%A0RTC%E5%92%8CUART/</id>
-    <published>2023-06-16T10:10:26.000Z</published>
-    <updated>2023-06-22T11:04:35.758Z</updated>
-    
-    
-      
-      
-        
-        
-    <summary type="html">&lt;h1 id=&quot;1-quard-star-h-修改&quot;&gt;&lt;a href=&quot;#1-quard-star-h-修改&quot; class=&quot;headerlink&quot; title=&quot;1.quard_star.h 修改&quot;&gt;&lt;/a&gt;1.quard_star.h 修改&lt;/h1&gt;&lt;p&gt;&lt;img</summary>
-        
-      
-    
-    
-    
-    <category term="基于qemu从零开始构建riscv64的嵌入式系统" scheme="https://yanglianoo.github.io/categories/%E5%9F%BA%E4%BA%8Eqemu%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E6%9E%84%E5%BB%BAriscv64%E7%9A%84%E5%B5%8C%E5%85%A5%E5%BC%8F%E7%B3%BB%E7%BB%9F/"/>
-    
-    
-    <category term="qemu" scheme="https://yanglianoo.github.io/tags/qemu/"/>
-    
-    <category term="嵌入式" scheme="https://yanglianoo.github.io/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F/"/>
-    
-    <category term="虚拟化" scheme="https://yanglianoo.github.io/tags/%E8%99%9A%E6%8B%9F%E5%8C%96/"/>
     
   </entry>
   
