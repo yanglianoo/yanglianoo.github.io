@@ -6,7 +6,7 @@
   <link href="https://yanglianoo.github.io/atom.xml" rel="self"/>
   
   <link href="https://yanglianoo.github.io/"/>
-  <updated>2023-10-08T13:28:33.737Z</updated>
+  <updated>2023-10-20T13:31:48.423Z</updated>
   <id>https://yanglianoo.github.io/</id>
   
   <author>
@@ -17,11 +17,42 @@
   <generator uri="https://hexo.io/">Hexo</generator>
   
   <entry>
+    <title>sys_exec的实现</title>
+    <link href="https://yanglianoo.github.io/2023/10/20/sys-exec%E7%9A%84%E5%AE%9E%E7%8E%B0/"/>
+    <id>https://yanglianoo.github.io/2023/10/20/sys-exec%E7%9A%84%E5%AE%9E%E7%8E%B0/</id>
+    <published>2023-10-20T04:43:46.000Z</published>
+    <updated>2023-10-20T13:31:48.423Z</updated>
+    
+    
+      
+      
+        
+        
+    <summary type="html">&lt;h2 id=&quot;1-exec系统调用原型&quot;&gt;&lt;a href=&quot;#1-exec系统调用原型&quot; class=&quot;headerlink&quot;</summary>
+        
+      
+    
+    
+    
+    <category term="基于qemu从零开始构建riscv64的嵌入式系统" scheme="https://yanglianoo.github.io/categories/%E5%9F%BA%E4%BA%8Eqemu%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E6%9E%84%E5%BB%BAriscv64%E7%9A%84%E5%B5%8C%E5%85%A5%E5%BC%8F%E7%B3%BB%E7%BB%9F/"/>
+    
+    
+    <category term="qemu" scheme="https://yanglianoo.github.io/tags/qemu/"/>
+    
+    <category term="嵌入式" scheme="https://yanglianoo.github.io/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F/"/>
+    
+    <category term="riscv" scheme="https://yanglianoo.github.io/tags/riscv/"/>
+    
+    <category term="操作系统" scheme="https://yanglianoo.github.io/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/"/>
+    
+  </entry>
+  
+  <entry>
     <title>sys_fork的实现</title>
     <link href="https://yanglianoo.github.io/2023/10/08/sys-fork%E7%9A%84%E5%AE%9E%E7%8E%B0/"/>
     <id>https://yanglianoo.github.io/2023/10/08/sys-fork%E7%9A%84%E5%AE%9E%E7%8E%B0/</id>
     <published>2023-10-08T07:55:32.000Z</published>
-    <updated>2023-10-08T13:28:33.737Z</updated>
+    <updated>2023-10-08T13:30:51.240Z</updated>
     
     
       
@@ -594,38 +625,6 @@
     <category term="数据结构" scheme="https://yanglianoo.github.io/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/"/>
     
     <category term="STL" scheme="https://yanglianoo.github.io/tags/STL/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>6-制作测试固件验证串口打印</title>
-    <link href="https://yanglianoo.github.io/2023/06/17/QEMU%E4%B8%AD%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%80%E5%8F%91%E6%9D%BF6-%E5%88%B6%E4%BD%9C%E6%B5%8B%E8%AF%95%E5%9B%BA%E4%BB%B6%E9%AA%8C%E8%AF%81%E4%B8%B2%E5%8F%A3%E6%89%93%E5%8D%B0/"/>
-    <id>https://yanglianoo.github.io/2023/06/17/QEMU%E4%B8%AD%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%80%E5%8F%91%E6%9D%BF6-%E5%88%B6%E4%BD%9C%E6%B5%8B%E8%AF%95%E5%9B%BA%E4%BB%B6%E9%AA%8C%E8%AF%81%E4%B8%B2%E5%8F%A3%E6%89%93%E5%8D%B0/</id>
-    <published>2023-06-17T07:46:34.000Z</published>
-    <updated>2023-06-22T11:05:13.135Z</updated>
-    
-    
-      
-      
-        
-        
-    <summary type="html">&lt;blockquote&gt;
-&lt;p&gt;参考地址：&lt;a href=&quot;https://quard-star-tutorial.readthedocs.io/zh_CN/latest/ch4.html&quot;&gt;基于qemu-riscv从0开始构建嵌入式linux系统ch4.</summary>
-        
-      
-    
-    
-    
-    <category term="基于qemu从零开始构建riscv64的嵌入式系统" scheme="https://yanglianoo.github.io/categories/%E5%9F%BA%E4%BA%8Eqemu%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E6%9E%84%E5%BB%BAriscv64%E7%9A%84%E5%B5%8C%E5%85%A5%E5%BC%8F%E7%B3%BB%E7%BB%9F/"/>
-    
-    
-    <category term="qemu" scheme="https://yanglianoo.github.io/tags/qemu/"/>
-    
-    <category term="嵌入式" scheme="https://yanglianoo.github.io/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F/"/>
-    
-    <category term="虚拟化" scheme="https://yanglianoo.github.io/tags/%E8%99%9A%E6%8B%9F%E5%8C%96/"/>
-    
-    <category term="riscv" scheme="https://yanglianoo.github.io/tags/riscv/"/>
     
   </entry>
   
