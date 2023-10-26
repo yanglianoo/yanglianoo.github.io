@@ -6,7 +6,7 @@
   <link href="https://yanglianoo.github.io/atom.xml" rel="self"/>
   
   <link href="https://yanglianoo.github.io/"/>
-  <updated>2023-10-20T13:31:48.423Z</updated>
+  <updated>2023-10-26T07:10:35.748Z</updated>
   <id>https://yanglianoo.github.io/</id>
   
   <author>
@@ -15,6 +15,37 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>实现user_shell</title>
+    <link href="https://yanglianoo.github.io/2023/10/26/%E5%AE%9E%E7%8E%B0user-shell/"/>
+    <id>https://yanglianoo.github.io/2023/10/26/%E5%AE%9E%E7%8E%B0user-shell/</id>
+    <published>2023-10-26T03:18:03.000Z</published>
+    <updated>2023-10-26T07:10:35.748Z</updated>
+    
+    
+      
+      
+        
+        
+    <summary type="html">&lt;h2 id=&quot;1-bug修复&quot;&gt;&lt;a href=&quot;#1-bug修复&quot; class=&quot;headerlink&quot;</summary>
+        
+      
+    
+    
+    
+    <category term="基于qemu从零开始构建riscv64的嵌入式系统" scheme="https://yanglianoo.github.io/categories/%E5%9F%BA%E4%BA%8Eqemu%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E6%9E%84%E5%BB%BAriscv64%E7%9A%84%E5%B5%8C%E5%85%A5%E5%BC%8F%E7%B3%BB%E7%BB%9F/"/>
+    
+    
+    <category term="qemu" scheme="https://yanglianoo.github.io/tags/qemu/"/>
+    
+    <category term="嵌入式" scheme="https://yanglianoo.github.io/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F/"/>
+    
+    <category term="riscv" scheme="https://yanglianoo.github.io/tags/riscv/"/>
+    
+    <category term="操作系统" scheme="https://yanglianoo.github.io/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/"/>
+    
+  </entry>
   
   <entry>
     <title>sys_exec的实现</title>
@@ -595,36 +626,6 @@
     <category term="riscv" scheme="https://yanglianoo.github.io/tags/riscv/"/>
     
     <category term="opensbi" scheme="https://yanglianoo.github.io/tags/opensbi/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>手写STL之List</title>
-    <link href="https://yanglianoo.github.io/2023/06/20/%E6%89%8B%E5%86%99STL-List/"/>
-    <id>https://yanglianoo.github.io/2023/06/20/%E6%89%8B%E5%86%99STL-List/</id>
-    <published>2023-06-20T13:36:30.000Z</published>
-    <updated>2023-06-22T10:46:32.285Z</updated>
-    
-    
-      
-      
-        
-        
-    <summary type="html">&lt;blockquote&gt;
-&lt;p&gt;代码仓库：&lt;a href=&quot;https://github.com/yanglianoo/My_STL/tree/timer&quot;&gt;yanglianoo&amp;#x2F;My_STL at timer</summary>
-        
-      
-    
-    
-    
-    <category term="手写STL" scheme="https://yanglianoo.github.io/categories/%E6%89%8B%E5%86%99STL/"/>
-    
-    
-    <category term="C++" scheme="https://yanglianoo.github.io/tags/C/"/>
-    
-    <category term="数据结构" scheme="https://yanglianoo.github.io/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/"/>
-    
-    <category term="STL" scheme="https://yanglianoo.github.io/tags/STL/"/>
     
   </entry>
   
