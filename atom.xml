@@ -6,7 +6,7 @@
   <link href="https://yanglianoo.github.io/atom.xml" rel="self"/>
   
   <link href="https://yanglianoo.github.io/"/>
-  <updated>2023-11-24T04:30:52.394Z</updated>
+  <updated>2023-11-24T09:45:45.415Z</updated>
   <id>https://yanglianoo.github.io/</id>
   
   <author>
@@ -15,6 +15,35 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>CyberRt源码剖析-有界无锁队列</title>
+    <link href="https://yanglianoo.github.io/2023/11/24/CyberRt%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-%E6%9C%89%E7%95%8C%E6%97%A0%E9%94%81%E9%98%9F%E5%88%97/"/>
+    <id>https://yanglianoo.github.io/2023/11/24/CyberRt%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-%E6%9C%89%E7%95%8C%E6%97%A0%E9%94%81%E9%98%9F%E5%88%97/</id>
+    <published>2023-11-24T06:42:19.000Z</published>
+    <updated>2023-11-24T09:45:45.415Z</updated>
+    
+    
+      
+      
+        
+        
+    <summary type="html">&lt;h2 id=&quot;1-源码&quot;&gt;&lt;a href=&quot;#1-源码&quot; class=&quot;headerlink&quot;</summary>
+        
+      
+    
+    
+    
+    <category term="百度Apollo CyberRt源码剖析" scheme="https://yanglianoo.github.io/categories/%E7%99%BE%E5%BA%A6Apollo-CyberRt%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/"/>
+    
+    
+    <category term="CyberRt" scheme="https://yanglianoo.github.io/tags/CyberRt/"/>
+    
+    <category term="c++" scheme="https://yanglianoo.github.io/tags/c/"/>
+    
+    <category term="无界无锁队列" scheme="https://yanglianoo.github.io/tags/%E6%97%A0%E7%95%8C%E6%97%A0%E9%94%81%E9%98%9F%E5%88%97/"/>
+    
+  </entry>
   
   <entry>
     <title>CyberRt源码剖析-无界无锁队列</title>
@@ -52,7 +81,7 @@
     <link href="https://yanglianoo.github.io/2023/11/23/CyberRt%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-%E7%BA%BF%E7%A8%8B%E7%AD%89%E5%BE%85%E7%AD%96%E7%95%A5/"/>
     <id>https://yanglianoo.github.io/2023/11/23/CyberRt%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-%E7%BA%BF%E7%A8%8B%E7%AD%89%E5%BE%85%E7%AD%96%E7%95%A5/</id>
     <published>2023-11-23T12:01:45.000Z</published>
-    <updated>2023-11-23T12:21:07.303Z</updated>
+    <updated>2023-11-24T06:41:38.270Z</updated>
     
     
       
@@ -599,37 +628,6 @@
     
     
     <category term="riscv" scheme="https://yanglianoo.github.io/tags/riscv/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>封装printf函数</title>
-    <link href="https://yanglianoo.github.io/2023/07/11/%E5%B0%81%E8%A3%85printf%E5%87%BD%E6%95%B0/"/>
-    <id>https://yanglianoo.github.io/2023/07/11/%E5%B0%81%E8%A3%85printf%E5%87%BD%E6%95%B0/</id>
-    <published>2023-07-11T15:53:50.000Z</published>
-    <updated>2023-07-16T06:54:14.406Z</updated>
-    
-    
-      
-      
-        
-        
-    <summary type="html">&lt;h1 id=&quot;1-可变参数&quot;&gt;&lt;a href=&quot;#1-可变参数&quot; class=&quot;headerlink&quot; title=&quot;1. 可变参数&quot;&gt;&lt;/a&gt;1. 可变参数&lt;/h1&gt;&lt;h2 id=&quot;1-1-可变参数的使用&quot;&gt;&lt;a href=&quot;#1-1-可变参数的使用&quot;</summary>
-        
-      
-    
-    
-    
-    <category term="基于qemu从零开始构建riscv64的嵌入式系统" scheme="https://yanglianoo.github.io/categories/%E5%9F%BA%E4%BA%8Eqemu%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E6%9E%84%E5%BB%BAriscv64%E7%9A%84%E5%B5%8C%E5%85%A5%E5%BC%8F%E7%B3%BB%E7%BB%9F/"/>
-    
-    
-    <category term="qemu" scheme="https://yanglianoo.github.io/tags/qemu/"/>
-    
-    <category term="嵌入式" scheme="https://yanglianoo.github.io/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F/"/>
-    
-    <category term="riscv" scheme="https://yanglianoo.github.io/tags/riscv/"/>
-    
-    <category term="opensbi" scheme="https://yanglianoo.github.io/tags/opensbi/"/>
     
   </entry>
   
