@@ -6,7 +6,7 @@
   <link href="https://yanglianoo.github.io/atom.xml" rel="self"/>
   
   <link href="https://yanglianoo.github.io/"/>
-  <updated>2023-11-24T09:45:45.415Z</updated>
+  <updated>2023-11-25T12:42:30.444Z</updated>
   <id>https://yanglianoo.github.io/</id>
   
   <author>
@@ -15,6 +15,35 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>CyberRt源码分析-原子读写锁</title>
+    <link href="https://yanglianoo.github.io/2023/11/25/CyberRt%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-%E5%8E%9F%E5%AD%90%E8%AF%BB%E5%86%99%E9%94%81/"/>
+    <id>https://yanglianoo.github.io/2023/11/25/CyberRt%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-%E5%8E%9F%E5%AD%90%E8%AF%BB%E5%86%99%E9%94%81/</id>
+    <published>2023-11-25T10:30:36.000Z</published>
+    <updated>2023-11-25T12:42:30.444Z</updated>
+    
+    
+      
+      
+        
+        
+    <summary type="html">&lt;h2 id=&quot;1-源码&quot;&gt;&lt;a href=&quot;#1-源码&quot; class=&quot;headerlink&quot; title=&quot;1. 源码&quot;&gt;&lt;/a&gt;1.</summary>
+        
+      
+    
+    
+    
+    <category term="百度Apollo CyberRt源码剖析" scheme="https://yanglianoo.github.io/categories/%E7%99%BE%E5%BA%A6Apollo-CyberRt%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/"/>
+    
+    
+    <category term="CyberRt" scheme="https://yanglianoo.github.io/tags/CyberRt/"/>
+    
+    <category term="c++" scheme="https://yanglianoo.github.io/tags/c/"/>
+    
+    <category term="原子读写锁" scheme="https://yanglianoo.github.io/tags/%E5%8E%9F%E5%AD%90%E8%AF%BB%E5%86%99%E9%94%81/"/>
+    
+  </entry>
   
   <entry>
     <title>CyberRt源码剖析-有界无锁队列</title>
@@ -601,31 +630,6 @@
     <category term="qemu" scheme="https://yanglianoo.github.io/tags/qemu/"/>
     
     <category term="嵌入式" scheme="https://yanglianoo.github.io/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F/"/>
-    
-    <category term="riscv" scheme="https://yanglianoo.github.io/tags/riscv/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>riscv编译工具链构建说明</title>
-    <link href="https://yanglianoo.github.io/2023/07/16/riscv%E7%BC%96%E8%AF%91%E5%B7%A5%E5%85%B7%E9%93%BE%E6%9E%84%E5%BB%BA/"/>
-    <id>https://yanglianoo.github.io/2023/07/16/riscv%E7%BC%96%E8%AF%91%E5%B7%A5%E5%85%B7%E9%93%BE%E6%9E%84%E5%BB%BA/</id>
-    <published>2023-07-16T05:52:19.000Z</published>
-    <updated>2023-07-16T06:51:47.910Z</updated>
-    
-    
-      
-      
-        
-        
-    <summary type="html">&lt;h2 id=&quot;riscv编译工具链构建说明&quot;&gt;&lt;a href=&quot;#riscv编译工具链构建说明&quot; class=&quot;headerlink&quot;</summary>
-        
-      
-    
-    
-    
-    <category term="riscv" scheme="https://yanglianoo.github.io/categories/riscv/"/>
-    
     
     <category term="riscv" scheme="https://yanglianoo.github.io/tags/riscv/"/>
     
