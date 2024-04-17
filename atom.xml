@@ -6,7 +6,7 @@
   <link href="https://yanglianoo.github.io/atom.xml" rel="self"/>
   
   <link href="https://yanglianoo.github.io/"/>
-  <updated>2024-02-23T11:32:16.228Z</updated>
+  <updated>2024-04-17T09:03:36.840Z</updated>
   <id>https://yanglianoo.github.io/</id>
   
   <author>
@@ -15,6 +15,40 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>为Quard-star移植FreeRTOS-FreeRTOS内部机制剖析</title>
+    <link href="https://yanglianoo.github.io/2024/04/14/%E4%B8%BAQuard-star%E7%A7%BB%E6%A4%8DFreeRTOS/"/>
+    <id>https://yanglianoo.github.io/2024/04/14/%E4%B8%BAQuard-star%E7%A7%BB%E6%A4%8DFreeRTOS/</id>
+    <published>2024-04-14T06:08:49.000Z</published>
+    <updated>2024-04-17T09:03:36.840Z</updated>
+    
+    
+      
+      
+        
+        
+    <summary type="html">&lt;blockquote&gt;
+&lt;p&gt;博客很久没更新了，忙着写简历、刷题、找实习去了，实习offer倒是拿到几个，但是导师不让我出去实习，哎…….. 苦逼牛马研究生的无奈&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h1 id=&quot;FreeRTOS内部机制剖析&quot;&gt;&lt;a</summary>
+        
+      
+    
+    
+    
+    <category term="基于qemu从零开始构建riscv64的嵌入式系统" scheme="https://yanglianoo.github.io/categories/%E5%9F%BA%E4%BA%8Eqemu%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E6%9E%84%E5%BB%BAriscv64%E7%9A%84%E5%B5%8C%E5%85%A5%E5%BC%8F%E7%B3%BB%E7%BB%9F/"/>
+    
+    
+    <category term="qemu" scheme="https://yanglianoo.github.io/tags/qemu/"/>
+    
+    <category term="嵌入式" scheme="https://yanglianoo.github.io/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F/"/>
+    
+    <category term="riscv" scheme="https://yanglianoo.github.io/tags/riscv/"/>
+    
+    <category term="操作系统" scheme="https://yanglianoo.github.io/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/"/>
+    
+  </entry>
   
   <entry>
     <title>使用原始套接字剖析TCP</title>
@@ -570,37 +604,6 @@
         
         
     <summary type="html">&lt;h1 id=&quot;1-bug修改&quot;&gt;&lt;a href=&quot;#1-bug修改&quot; class=&quot;headerlink&quot; title=&quot;1. bug修改&quot;&gt;&lt;/a&gt;1. bug修改&lt;/h1&gt;&lt;p&gt;</summary>
-        
-      
-    
-    
-    
-    <category term="基于qemu从零开始构建riscv64的嵌入式系统" scheme="https://yanglianoo.github.io/categories/%E5%9F%BA%E4%BA%8Eqemu%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E6%9E%84%E5%BB%BAriscv64%E7%9A%84%E5%B5%8C%E5%85%A5%E5%BC%8F%E7%B3%BB%E7%BB%9F/"/>
-    
-    
-    <category term="qemu" scheme="https://yanglianoo.github.io/tags/qemu/"/>
-    
-    <category term="嵌入式" scheme="https://yanglianoo.github.io/tags/%E5%B5%8C%E5%85%A5%E5%BC%8F/"/>
-    
-    <category term="riscv" scheme="https://yanglianoo.github.io/tags/riscv/"/>
-    
-    <category term="操作系统" scheme="https://yanglianoo.github.io/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>实现timeros的内存映射机制</title>
-    <link href="https://yanglianoo.github.io/2023/08/31/%E5%AE%9E%E7%8E%B0timeros%E7%9A%84%E5%86%85%E5%AD%98%E6%98%A0%E5%B0%84%E6%9C%BA%E5%88%B6/"/>
-    <id>https://yanglianoo.github.io/2023/08/31/%E5%AE%9E%E7%8E%B0timeros%E7%9A%84%E5%86%85%E5%AD%98%E6%98%A0%E5%B0%84%E6%9C%BA%E5%88%B6/</id>
-    <published>2023-08-31T11:35:14.000Z</published>
-    <updated>2023-09-04T11:33:25.510Z</updated>
-    
-    
-      
-      
-        
-        
-    <summary type="html">&lt;h1 id=&quot;1-页表操作&quot;&gt;&lt;a href=&quot;#1-页表操作&quot; class=&quot;headerlink&quot; title=&quot;1. 页表操作&quot;&gt;&lt;/a&gt;1. 页表操作&lt;/h1&gt;&lt;h2 id=&quot;1-1-页表项定义&quot;&gt;&lt;a href=&quot;#1-1-页表项定义&quot;</summary>
         
       
     
