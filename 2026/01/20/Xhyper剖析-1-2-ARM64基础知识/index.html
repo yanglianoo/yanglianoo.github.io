@@ -1,0 +1,1421 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Xhyper剖析[1]--ARM64基础知识 | TimerのBlog</title><meta name="author" content="Timer"><meta name="copyright" content="Timer"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="2.1 寄存器通用寄存器AArch64执行状态提供了32个在任何时间任何特权级下都可访问的64位的通用寄存器。 每个寄存器都有64位宽，它们通常被称为寄存器X0-X30。   SPSR 当异常发生时，处理器状态将保存在相关的程序状态保存寄存器(SPSR)中，     M[3:0] Binary 状态 描述    0 0x0 EL0t EL0（用户态），Thread 模式，使用 SP_EL0（共享栈">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Xhyper剖析[1]--ARM64基础知识">
+<meta property="og:url" content="https://yanglianoo.github.io/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/index.html">
+<meta property="og:site_name" content="TimerのBlog">
+<meta property="og:description" content="2.1 寄存器通用寄存器AArch64执行状态提供了32个在任何时间任何特权级下都可访问的64位的通用寄存器。 每个寄存器都有64位宽，它们通常被称为寄存器X0-X30。   SPSR 当异常发生时，处理器状态将保存在相关的程序状态保存寄存器(SPSR)中，     M[3:0] Binary 状态 描述    0 0x0 EL0t EL0（用户态），Thread 模式，使用 SP_EL0（共享栈">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yanglianoo.github.io/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/176892275018318.png">
+<meta property="article:published_time" content="2026-01-20T15:18:43.000Z">
+<meta property="article:modified_time" content="2026-01-20T15:27:41.128Z">
+<meta property="article:author" content="Timer">
+<meta property="article:tag" content="ARM64">
+<meta property="article:tag" content="Hypervisor">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://yanglianoo.github.io/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/176892275018318.png"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://yanglianoo.github.io/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"languages":{"hits_empty":"找不到您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":500},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: {"chs_to_cht":"你已切换为繁体","cht_to_chs":"你已切换为简体","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"bottom-left"},
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Xhyper剖析[1]--ARM64基础知识',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2026-01-20 23:27:41'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+    win.getCSS = (url,id = false) => new Promise((resolve, reject) => {
+      const link = document.createElement('link')
+      link.rel = 'stylesheet'
+      link.href = url
+      if (id) link.id = id
+      link.onerror = reject
+      link.onload = link.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        link.onload = link.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(link)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/background.css"><meta name="generator" content="Hexo 6.3.0"><link rel="alternate" href="/atom.xml" title="TimerのBlog" type="application/atom+xml">
+</head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/head.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">33</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">28</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">9</div></a></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/176892275018318.png')"><nav id="nav"><span id="blog-info"><a href="/" title="TimerのBlog"><span class="site-name">TimerのBlog</span></a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search" href="javascript:void(0);"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">Xhyper剖析[1]--ARM64基础知识</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-01-20T15:18:43.000Z" title="发表于 2026-01-20 23:18:43">2026-01-20</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-01-20T15:27:41.128Z" title="更新于 2026-01-20 23:27:41">2026-01-20</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Xhyper%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/">Xhyper源码剖析</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="Xhyper剖析[1]--ARM64基础知识"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h3 id="2-1-寄存器"><a href="#2-1-寄存器" class="headerlink" title="2.1 寄存器"></a>2.1 寄存器</h3><h4 id="通用寄存器"><a href="#通用寄存器" class="headerlink" title="通用寄存器"></a>通用寄存器</h4><p>AArch64执行状态提供了32个在任何时间任何特权级下都可访问的64位的通用寄存器。 每个寄存器都有64位宽，它们通常被称为寄存器X0-X30。</p>
+<p><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/176892275018320.png" alt="img"></p>
+<p><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/17689227501811.png" alt="img"></p>
+<p><strong>SPSR</strong></p>
+<p>当异常发生时，处理器状态将保存在相关的程序状态保存寄存器(SPSR)中，</p>
+<p><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/17689227501822.png" alt="img"></p>
+<table>
+<thead>
+<tr>
+<th>M[3:0]</th>
+<th>Binary</th>
+<th>状态</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0</td>
+<td>0x0</td>
+<td>EL0t</td>
+<td>EL0（用户态），Thread 模式，使用 SP_EL0（共享栈），AArch64。</td>
+</tr>
+<tr>
+<td>0</td>
+<td>0x4</td>
+<td>EL1t</td>
+<td>EL1（内核态），Thread 模式，使用 SP_EL0（共享栈），AArch64。</td>
+</tr>
+<tr>
+<td>0</td>
+<td>0x5</td>
+<td>EL1h</td>
+<td>EL1（内核态），Handler 模式，使用 SP_EL1（专用栈），AArch64。</td>
+</tr>
+<tr>
+<td>0</td>
+<td>0x8</td>
+<td>EL2t</td>
+<td>EL2（Hypervisor），Thread 模式，使用 SP_EL0（共享栈），AArch64。</td>
+</tr>
+<tr>
+<td>0</td>
+<td>0x9</td>
+<td>EL2h</td>
+<td>EL2（Hypervisor），Handler 模式，使用 SP_EL2（专用栈），AArch64。</td>
+</tr>
+<tr>
+<td>0</td>
+<td>0xC</td>
+<td>EL3t</td>
+<td>EL3（Secure Monitor），Thread 模式，使用 SP_EL0（共享栈），AArch64。</td>
+</tr>
+<tr>
+<td>0</td>
+<td>0xD</td>
+<td>EL3h</td>
+<td>EL3（Secure Monitor），Handler 模式，使用 SP_EL3（专用栈），AArch64。</td>
+</tr>
+</tbody></table>
+<p><strong>ELR_ELx</strong></p>
+<p><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/17689227501823.png" alt="img"></p>
+<ul>
+<li>异常返回地址存储寄存器</li>
+</ul>
+<h4 id="VTCR-EL2"><a href="#VTCR-EL2" class="headerlink" title="VTCR_EL2"></a>VTCR_EL2</h4><p>Virtualization Translation Control Register (EL2)，用于在虚拟化环境中（即 EL2，Hypervisor 模式）控制虚拟机的地址转换和内存管理。它主要用于配置虚拟机 (VM) 的第二阶段 (Stage-2) 地址转换，管理从虚拟地址到物理地址的映射。</p>
+<p><a target="_blank" rel="noopener" href="https://dflund.se/~getz/ARM/SysReg/AArch64-vtcr_el2.html">https://dflund.se/~getz/ARM/SysReg/AArch64-vtcr_el2.html</a></p>
+<p><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/17689227501824.png" alt="img"></p>
+<ol>
+<li>**T0SZ (**<strong>Bits</strong> <strong>[5:0])</strong><ol>
+<li>指定输入地址范围的大小，表示虚拟机在 Stage-2 转换中使用的虚拟地址范围。</li>
+<li>值为 2^(64-T0SZ)，表示输入地址的位数。例如： <ul>
+<li>T0SZ &#x3D; 24 表示 40 位虚拟地址 (2^(64-24) &#x3D; 2^40)。</li>
+</ul>
+</li>
+<li>用于定义虚拟机可访问的虚拟地址空间大小。</li>
+</ol>
+</li>
+<li>**SL0 (**<strong>Bits</strong> <strong>[7:6])</strong><ol>
+<li>指定 Stage-2 转换表的起始级别 (Starting Level)，决定转换表查找的起始层级。</li>
+<li>例如： <ul>
+<li>0b00：从 Level 0 开始</li>
+<li>0b01：从 Level 1 开始</li>
+<li>0b10：从 Level 2 开始</li>
+</ul>
+</li>
+<li>与页面大小和地址范围相关。</li>
+</ol>
+</li>
+<li>**IRGN0 (**<strong>Bits</strong> <strong>[9:8])</strong><ol>
+<li>控制 Stage-2 转换表的 <strong>Inner Cacheability</strong> 属性： <ul>
+<li>0b00：Non-cacheable</li>
+<li>0b01：Write-Back, Write-Allocate</li>
+<li>0b10：Write-Through, No Write-Allocate</li>
+<li>0b11：Write-Back, No Write-Allocate</li>
+</ul>
+</li>
+</ol>
+</li>
+<li>**ORGN0 (**<strong>Bits</strong> <strong>[11:10])</strong><ol>
+<li>控制 Stage-2 转换表的 <strong>Outer Cacheability</strong> 属性，类似 IRGN0。</li>
+</ol>
+</li>
+<li>**SH0 (**<strong>Bits</strong> <strong>[13:12])</strong><ol>
+<li>控制 Stage-2 转换表的 <strong>Shareability</strong> 属性： <ul>
+<li>0b00：Non-shareable</li>
+<li>0b01：保留</li>
+<li>0b10：Outer Shareable</li>
+<li>0b11：Inner Shareable</li>
+</ul>
+</li>
+</ol>
+</li>
+<li>**TG0 (**<strong>Bits</strong> <strong>[15:14])</strong><ol>
+<li>指定 Stage-2 转换的页面粒度 (Translation Granule)： <ul>
+<li>0b00：4KB 页面</li>
+<li>0b01：16KB 页面</li>
+<li>0b10：64KB 页面</li>
+<li>0b11：保留</li>
+</ul>
+</li>
+</ol>
+</li>
+<li><strong>PS</strong> **(**<strong>Bits</strong> <strong>[19:16])</strong><ol>
+<li>指定 Stage-2 转换支持的物理地址大小 (Physical Address Size)： <ul>
+<li>0b000：32 位</li>
+<li>0b001：36 位</li>
+<li>0b010：40 位</li>
+<li>0b011：42 位</li>
+<li>0b100：44 位</li>
+<li>0b101：48 位</li>
+<li>0b110：52 位</li>
+</ul>
+</li>
+</ol>
+</li>
+<li><strong>VS (Bit [30])</strong><ol>
+<li>表示是否支持 8 位或 16 位 VMID (Virtual Machine Identifier)： <ul>
+<li>0b0：8 位 VMID</li>
+<li>0b1：16 位 VMID</li>
+</ul>
+</li>
+<li>与 <strong>ID_AA64MMFR0_EL1</strong> 的 VMIDBits 字段相关。</li>
+</ol>
+</li>
+<li><strong>RES1 (某些位)</strong><ol>
+<li>某些位是保留位，必须写入 1（RES1），以确保兼容性。</li>
+</ol>
+</li>
+<li><strong>NSW (Non-Secure World)</strong></li>
+</ol>
+<ul>
+<li>指示 Stage-2 转换是否将内存访问视为非安全（Non-Secure）世界的一部分。<ul>
+<li><p><strong>NSW &#x3D; 0</strong>： </p>
+</li>
+<li><p>Stage-2 转换的内存访问被视为安全（Secure）世界的一部分。</p>
+</li>
+<li><p>适用于运行在安全状态下的虚拟机（VM）或需要访问安全内存的场景。</p>
+</li>
+<li><p><strong>NSW &#x3D; 1</strong>： </p>
+</li>
+<li><p>Stage-2 转换的内存访问被视为非安全（Non-Secure）世界的一部分。</p>
+</li>
+<li><p>适用于运行在非安全状态下的虚拟机，这是虚拟化环境中更常见的情况（例如运行普通操作系统如 Linux 的虚拟机）。</p>
+</li>
+<li><p>非安全访问不会触发安全监视器（Secure Monitor）的干预。</p>
+</li>
+</ul>
+</li>
+</ul>
+<ol>
+<li><strong>NSA (Non-Secure Access)</strong><ol>
+<li><p><strong>NSA &#x3D; 0</strong>： </p>
+</li>
+<li><p>Stage-2 转换的内存访问不会被强制标记为非安全访问。</p>
+</li>
+<li><p>内存访问的安全属性由其他控制机制（例如 <strong>NSW</strong> 位或 Stage-2 转换表中的描述符）决定。</p>
+</li>
+<li><p><strong>NSA &#x3D; 1</strong>： </p>
+</li>
+<li><p>Stage-2 转换的内存访问被强制标记为非安全（Non-Secure）访问。</p>
+</li>
+<li><p>这意味着即使虚拟机运行在安全上下文中，其内存访问也会被视为非安全世界的访问，通常用于确保虚拟机的内存操作不会意外访问安全内存。</p>
+</li>
+</ol>
+</li>
+</ol>
+<h4 id="ID-AA64MMFR0-EL1"><a href="#ID-AA64MMFR0-EL1" class="headerlink" title="ID_AA64MMFR0_EL1"></a>ID_AA64MMFR0_EL1</h4><p><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/17689227501825.png" alt="img"></p>
+<ul>
+<li>只读系统寄存器，全称为 AArch64 Memory Model Feature Register 0。它提供了关于处理器内存模型和相关功能的详细信息，主要是描述与内存管理和虚拟化相关的特性。</li>
+</ul>
+<ol>
+<li>PARange (Physical Address Range, Bits [3:0])表示支持的物理地址大小： <ol>
+<li>0b0000: 32 位</li>
+<li>0b0001: 36 位</li>
+<li>0b0010: 40 位</li>
+<li>0b0011: 42 位</li>
+<li>0b0100: 44 位</li>
+<li>0b0101: 48 位</li>
+<li>0b0110: 52 位</li>
+<li>其他值可能表示未来扩展。</li>
+</ol>
+</li>
+</ol>
+<h4 id="MAIR-EL2"><a href="#MAIR-EL2" class="headerlink" title="MAIR_EL2"></a>MAIR_EL2</h4><p><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/17689227501826.png" alt="img"></p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/suifengershi2000/article/details/122805722">https://blog.csdn.net/suifengershi2000/article/details/122805722</a></p>
+<h4 id="HCR-EL2"><a href="#HCR-EL2" class="headerlink" title="HCR_EL2"></a><strong>HCR_EL2</strong></h4><p>HCR_EL2（Hypervisor Configuration Register, EL2）是 ARMv8-A 架构中用于虚拟化环境的系统寄存器</p>
+<p><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/17689227501827.png" alt="img"></p>
+<p><strong>VM (Bit 0)</strong> - Virtual Memory： </p>
+<ul>
+<li>作用：开启或关闭 Stage-2 地址转换。</li>
+<li><strong>0</strong>：虚拟机的内存访问直接使用 Stage-1 转换（不经过 Hypervisor 的额外检查）。</li>
+<li><strong>1</strong>：启用 Stage-2 转换，虚拟机的内存访问由 Hypervisor 控制（通过 VTTBR_EL2 和 VTCR_EL2）。</li>
+<li>类比：就像给虚拟机的内存访问加了一道“安检门”，Hypervisor 可以检查和重新映射虚拟机的地址。</li>
+</ul>
+<p><strong>SWIO (Bit 1)</strong> - Set&#x2F;Way Invalidation Override： </p>
+<ul>
+<li>作用：控制虚拟机对缓存维护指令（如 DC ISW）的行为。</li>
+<li><strong>0</strong>：虚拟机的缓存维护指令按正常方式执行。</li>
+<li><strong>1</strong>：将虚拟机的缓存维护指令转换为 Hypervisor 的陷阱（trap），由 Hypervisor 处理。</li>
+<li>类比：虚拟机想“清理房间”（缓存），Hypervisor 可以选择自己来做，而不是让虚拟机直接干。</li>
+</ul>
+<p><strong>PTW (Bit 2)</strong> - Protected Table Walk： </p>
+<ul>
+<li>作用：保护 Stage-1 转换表遍历（table walk）时的内存访问。</li>
+<li><strong>1</strong>：如果 Stage-1 转换表遍历访问到设备内存，会触发异常到 Hypervisor。</li>
+<li>类比：如果虚拟机在查“地址地图”时误入“危险区域”（设备内存），Hypervisor 会介入阻止。</li>
+</ul>
+<p><strong>AMO (Bit 5)</strong> - Asynchronous Abort Mask Override： </p>
+<ul>
+<li>作用：控制异步异常（如 SError）是否路由到 Hypervisor。</li>
+<li><strong>1</strong>：异步异常会被捕获到 EL2，由 Hypervisor 处理。</li>
+<li>类比：如果虚拟机遇到“突发事故”（异步异常），Hypervisor 会先接手处理，而不是让虚拟机自己解决。</li>
+</ul>
+<p><strong>IMO (Bit 4)</strong> - IRQ Mask Override： </p>
+<ul>
+<li>作用：控制物理中断（IRQ）是否路由到 Hypervisor。</li>
+<li><strong>1</strong>：物理中断会被捕获到 EL2。</li>
+<li>类比：虚拟机收到“电话”（中断），Hypervisor 可以选择先接听。</li>
+</ul>
+<p><strong>FMO (Bit 3)</strong> - FIQ Mask Override： </p>
+<ul>
+<li>作用：类似 IMO，但针对快速中断（FIQ）。</li>
+<li><strong>1</strong>：FIQ 会被路由到 EL2。</li>
+<li>类比：类似 IRQ，但处理更紧急的“快递通知”。</li>
+</ul>
+<p><strong>TWI (Bit 13)</strong> - Trap Wait-for-Interrupt： </p>
+<ul>
+<li>作用：控制虚拟机的 WFI（Wait For Interrupt）指令是否陷入 Hypervisor。</li>
+<li><strong>1</strong>：虚拟机的 WFI 指令会触发异常到 EL2。</li>
+<li>类比：虚拟机想“睡觉”等待中断，Hypervisor 可以说：“先问问我！”</li>
+</ul>
+<p><strong>TSC (Bit 19)</strong> - Trap SMC： </p>
+<ul>
+<li>作用：控制虚拟机的 SMC（Secure Monitor Call）指令是否陷入 Hypervisor。</li>
+<li><strong>1</strong>：SMC 指令会触发异常到 EL2，而不是进入 EL3（Secure Monitor）。</li>
+<li>类比：虚拟机想“呼叫安全主管”（SMC），Hypervisor 可以拦截。</li>
+</ul>
+<p><strong>TIDCP (Bit 20)</strong> - Trap Implementation Defined Control： </p>
+<ul>
+<li>作用：控制对某些实现定义寄存器的访问是否陷入 Hypervisor。</li>
+<li><strong>1</strong>：访问某些特定寄存器会触发异常到 EL2。</li>
+<li>类比：虚拟机想动“特殊设备”，Hypervisor 会先检查。</li>
+</ul>
+<p><strong>RW (Bit 31)</strong> - Register Width： </p>
+<ul>
+<li>作用：决定虚拟机的执行状态是 AArch64 还是 AArch32。</li>
+<li><strong>0</strong>：虚拟机运行在 AArch32 模式。</li>
+<li><strong>1</strong>：虚拟机运行在 AArch64 模式。</li>
+<li>类比：决定虚拟机用“新款电脑”（64 位）还是“老款电脑”（32 位）运行。</li>
+</ul>
+<h4 id="VTTBR-EL2"><a href="#VTTBR-EL2" class="headerlink" title="VTTBR_EL2"></a>VTTBR_EL2</h4><p><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/17689227501828.png" alt="img"></p>
+<p>**BADDR [47:1]**（Base Address，Bits [47:1]）： </p>
+<ul>
+<li>存储 Stage-2 页面表（L0 表）的物理地址（Physical Address）。</li>
+<li>地址必须按页面大小对齐（通常 4KB，即 Bits [11:0] 为 0）。</li>
+</ul>
+<p>**VMID [63:48]**（Virtual Machine Identifier，Bits [63:48]）： </p>
+<ul>
+<li>虚拟机标识符，用于区分不同虚拟机的页面表。</li>
+<li>支持 8 位或 16 位 VMID（由 <strong>VTCR_EL2.VS</strong> 控制）。</li>
+<li>确保多个虚拟机的 Stage-2 转换互不干扰（例如，KVM 为每个虚拟机分配唯一的 VMID）。</li>
+</ul>
+<p>**CnP [0]**（Common not Private，Bit 0）： </p>
+<ul>
+<li>控制页面表是否共享 TLB（Translation Lookaside Buffer）条目。</li>
+<li><strong>0</strong>：页面表为私有，仅用于当前虚拟机。</li>
+<li><strong>1</strong>：页面表可共享（较少见）。</li>
+<li>通常设为 0，代码中未显式设置，默认为 0。</li>
+</ul>
+<h4 id="MPIDR-EL1"><a href="#MPIDR-EL1" class="headerlink" title="MPIDR_EL1"></a>MPIDR_EL1</h4><p>Multiprocessor Affinity Register</p>
+<p><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/17689227501829.png" alt="img"></p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/sinat_32960911/article/details/138754997">【ARMv8&#x2F;v9 系统寄存器 5 – CPU ID 判断寄存器 MPIDR_EL1 使用详细介绍】-CSDN博客</a></p>
+<h4 id="MIDR-EL1"><a href="#MIDR-EL1" class="headerlink" title="MIDR_EL1"></a>MIDR_EL1</h4><p><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/176892275018210.png" alt="img"></p>
+<table>
+<thead>
+<tr>
+<th>位</th>
+<th>字段名</th>
+<th>描述</th>
+<th>值（示例：0x410FD081）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>[31:24]</td>
+<td>Implementer</td>
+<td>实现者代码，表示 CPU 设计厂商。</td>
+<td>0x41 &#x3D; ARM Limited</td>
+</tr>
+<tr>
+<td>[23:20]</td>
+<td>Variant</td>
+<td>主要变体，区分同一部件号的不同版本。</td>
+<td>0x0 &#x3D; 变体 0</td>
+</tr>
+<tr>
+<td>[19:16]</td>
+<td>Architecture</td>
+<td>架构版本，定义 CPU 的指令集架构。</td>
+<td>0xF &#x3D; ARMv8-A</td>
+</tr>
+<tr>
+<td>[15:4]</td>
+<td>PartNum</td>
+<td>部件号，标识具体 CPU 型号。</td>
+<td>0xD08 &#x3D; Cortex-A72</td>
+</tr>
+<tr>
+<td>[3:0]</td>
+<td>Revision</td>
+<td>修订版，标识小版本更新。</td>
+<td>0x1 &#x3D; 修订版 1</td>
+</tr>
+</tbody></table>
+<h4 id="TPIDR-EL2"><a href="#TPIDR-EL2" class="headerlink" title="TPIDR_EL2"></a>TPIDR_EL2</h4><p><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/176892275018211.png" alt="img"></p>
+<p><strong>TPIDR_EL2</strong> 是 EL2（Hypervisor 模式）的专用系统寄存器，64 位宽，位于非安全世界（Non-Secure World）。</p>
+<p><strong>用途</strong>： </p>
+<ul>
+<li>存储 Hypervisor 上下文相关的指针或标识符，通常用于： <ul>
+<li><strong>线程标识</strong>：标识当前运行的 vCPU 或线程。</li>
+<li><strong>上下文切换</strong>：保存指向 Hypervisor 数据结构的指针（如 vCPU 结构体）。</li>
+<li><strong>快速访问</strong>：提供快速访问 Hypervisor 的全局或每线程数据。</li>
+</ul>
+</li>
+<li>操作系统或 Hypervisor 可以自由使用 <strong>TPIDR_EL2</strong> 存储任意数据（通常是一个指针），具体用途由软件定义。</li>
+</ul>
+<h4 id="ESR-ELx"><a href="#ESR-ELx" class="headerlink" title="ESR_ELx"></a>ESR_ELx</h4><p><a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_48728558/article/details/148925993">ESR_ELx寄存器_esr寄存器-CSDN博客</a></p>
+<p><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/176892275018212.png" alt="img"></p>
+<ul>
+<li>ESR_ELx寄存器：当ARMv8处理器发生异常时，该寄存器记录异常原因信息，包括：<ul>
+<li>EC（Exception Class）字段：高6位（bit[31:26]），表示异常类别。</li>
+<li>ISS（Instruction Specific Syndrome）字段：低26位，提供更详细的异常信息。</li>
+</ul>
+</li>
+</ul>
+<p><strong>常见</strong> <strong>EC</strong> <strong>值</strong>（部分）： </p>
+<ul>
+<li>0x00: Unknown reason（未知原因）。</li>
+<li>0x15: Trapped WFI&#x2F;WFE 指令（由 HCR_EL2.TWI&#x2F;TWE 触发）。</li>
+<li>0x16：表示客户机执行的 HVC 指令触发了异常，且被陷阱到 EL2。</li>
+<li>0x17: Trapped SMC 指令（由 HCR_TSC 触发）。</li>
+<li>0x20: Instruction Abort from lower EL（指令页面错误，Stage-2）。</li>
+<li>0x24: Data Abort from lower EL（数据页面错误，Stage-2）。</li>
+<li>0x3C: Hypervisor Call（HVC 指令）。</li>
+<li>该寄存器存在于多个异常级别，如ESR_EL1、ESR_EL2、ESR_EL3。</li>
+</ul>
+<p><strong>子字段</strong>：ISS被分为多个子字段，布局因EC而异。常见子字段包括： </p>
+<ul>
+<li><strong>ISV</strong> **(bit[24])**：Instruction Syndrome Valid，表示ISS中的其他信息（如访问大小）是否有效（1:有效，0:无效）。</li>
+<li><strong>SAS</strong> **(bit[23:22])**：Syndrome Access Size，访问大小（0:字节, 1:半字, 2:字, 3:双字）。</li>
+<li>**SSE (bit[21])**：Syndrome Sign Extend，符号扩展（1:符号扩展, 0:无）。</li>
+<li>**SRT (bit[20:16])**：Syndrome Register Transfer，涉及的寄存器编号（0-31）。</li>
+<li><strong>SF</strong> **(bit[15])**：Sixty-Four bit register，寄存器宽度（1:64位, 0:32位）。</li>
+<li><strong>AR</strong> **(bit[14])**：Acquire&#x2F;Release semantics，获取&#x2F;释放语义（1:有, 0:无）。</li>
+<li>**VNCR (bit[13])**：Virtual Nested Control Register相关（在嵌套虚拟化中用）。</li>
+<li><strong>SET</strong> **(bit[12:11])**：Synchronous Error Type，同步错误类型。</li>
+<li>**FnV (bit[10])**：Fault not Valid，故障无效标志。</li>
+<li>**EA (bit[9])**：External Abort type，外部中止类型。</li>
+<li><strong>CM</strong> **(bit[8])**：Cache Maintenance，缓存维护操作。</li>
+<li>**S1PTW (bit[7])**：Stage 1 Page Table Walk，是否为 Stage-1 页表遍历引起的错误。</li>
+<li>**WnR (bit[6])**：Write not Read，访问类型（1:写, 0:读）。</li>
+<li>**DFSC&#x2F;IFSC (bit[5:0])**：Data&#x2F;Instruction Fault Status Code，错误状态码（FSC），表示具体原因（如翻译错误、权限错误）。</li>
+</ul>
+<h4 id="FAR-EL2"><a href="#FAR-EL2" class="headerlink" title="FAR_EL2"></a>FAR_EL2</h4><p><a target="_blank" rel="noopener" href="https://dflund.se/~getz/ARM/SysReg/AArch64-far_el2.html">FAR_EL2</a></p>
+<p>（Fault Address Register, Exception Level 2，故障地址寄存器），它记录触发内存访问异常的虚拟地址（VA）或中间物理地址（IPA）</p>
+<p><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/176892275018313.png" alt="img"></p>
+<h4 id="VBAR-ELx"><a href="#VBAR-ELx" class="headerlink" title="VBAR_ELx"></a>VBAR_ELx</h4><p><a target="_blank" rel="noopener" href="http://www.wowotech.net/?post=238">ARM64的启动过程之（六）：异常向量表的设定</a></p>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/578252899">https://zhuanlan.zhihu.com/p/578252899</a></p>
+<p><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/176892275018314.png" alt="img"></p>
+<p>异常向量表地址寄存器</p>
+<h4 id="HPFAR-EL2"><a href="#HPFAR-EL2" class="headerlink" title="HPFAR_EL2"></a>HPFAR_EL2</h4><p><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/176892275018315.png" alt="img"></p>
+<ul>
+<li>在 EL2 模式（Hypervisor 模式）下记录 Stage-2 地址转换过程中发生的页面错误（Page Fault）或权限错误的中间物理地址（Intermediate Physical Address, IPA）</li>
+<li>**Faulting IPA (bit[47:12])**：导致错误的 IPA，4KB 对齐。用HPFAR_EL2寄存器的bit[4,40]来存，bit[0,3]默认为0</li>
+</ul>
+<h4 id="DAIF"><a href="#DAIF" class="headerlink" title="DAIF"></a><strong>DAIF</strong></h4><p>DAIF 寄存器的全称是 Debug, Abort, IRQ, FIQ mask register（调试、异常终止、中断请求、快速中断请求屏蔽寄存器）。</p>
+<p><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/176892275018316.png" alt="img"></p>
+<ul>
+<li>D（Debug）：调试异常屏蔽位，用于屏蔽调试相关的异常（如断点、单步执行等）</li>
+<li>A（Abort）：异常终止屏蔽位，用于屏蔽系统错误异常（如内存访问错误等）</li>
+<li>I（IRQ）：中断请求屏蔽位，用于屏蔽普通中断（如外设中断）</li>
+<li>F（FIQ）：快速中断请求屏蔽位，用于屏蔽快速中断（优先级高于 IRQ 的中断）</li>
+</ul>
+<h3 id="2-2-指令"><a href="#2-2-指令" class="headerlink" title="2.2 指令"></a>2.2 指令</h3><h4 id="MRS-x2F-MSR"><a href="#MRS-x2F-MSR" class="headerlink" title="MRS&#x2F;MSR"></a>MRS&#x2F;MSR</h4><p> MRS指令用于将程序状态寄存器的内容传送到通用寄存器中</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">MRS&#123;条件&#125; 通用寄存器，程序状态寄存器（CPSR或SPSR）</span><br></pre></td></tr></table></figure>
+
+<p>MSR指令用于将操作数的内容传送到程序状态寄存器的特定域中</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">MSR&#123;条件&#125; 程序状态寄存器（CPSR或SPSR）_&lt;域&gt;，操作数</span><br></pre></td></tr></table></figure>
+
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/333926905">https://zhuanlan.zhihu.com/p/333926905</a></p>
+<h4 id="DMB、DSB、ISB"><a href="#DMB、DSB、ISB" class="headerlink" title="DMB、DSB、ISB"></a>DMB、DSB、ISB</h4><p><strong>（1）Data Memory Barrier(DMB)：数据内存屏障</strong></p>
+<p>主要用于多核处理器系统中，不同的处理器可能同时执行数据内存传输指令。DMB指令确保在DMB之前的所有显式数据内存传输指令都已经在内存中读取或写入完成，同时确保任何后续的数据内存传输指令都将在DMB执行之后开始执行，否则有些数据传输指令可能会提前执行。</p>
+<p><strong>（2）Data Synchronization Barrier(DSB)：数据同步屏障</strong></p>
+<p>在计算机的体系结构中，处理器在执行指令时通常会利用指令流水线来提高性能。但也会产生一些问题，比如在多线程编程中，两个线程同时对共享的内存进行读写操作，由于读&#x2F;写操作的重排序，就会导致数据的不一致。</p>
+<p>当执行DSB指令时，它确保在DSB之前的所有显式数据内存传输指令都已经在内存中读取或写入完成，同时确保任何后续的指令都将在DSB执行之后开始执行。</p>
+<p>DSB 接受不同的选项，控制同步的范围： </p>
+<ul>
+<li>sy（System）：最强的同步，确保所有处理器核和设备完成内存操作。</li>
+<li>ish（Inner Shareable）：同步内部可共享域（通常是同一集群的核）。</li>
+<li>ishst 确保内部可共享域（同一集群的核）内的所有写操作（store）完成。</li>
+<li>nsh（Non-Shareable）：仅同步本地核的内存操作。</li>
+<li>osh（Outer Shareable）：同步外部可共享域（跨集群或设备）。</li>
+</ul>
+<p><strong>（3）Instruction Synchronization Barrier(ISB)：指令同步屏障</strong></p>
+<p>指令的流水线允许处理器同时执行多条指令的不同阶段，然而这样并行执行可能会导致一些问题，特别是涉及到上下文切换的情况，如实时操作系统的任务切换。当上下文切换时，可能指令流水线中的指令还在执行，而此时上下文已经改变，导致指令执行的结果不正确。</p>
+<p>通过插入ISB指令，处理器会将流水线中的指令全部刷新，从而确保之前的指令不会影响后续指令的执行，并且后续指令将从正确的上下文开始重新获取。</p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/tilblackout/article/details/131949061">https://blog.csdn.net/tilblackout/article/details/131949061</a></p>
+<h4 id="MPIDR-EL1-1"><a href="#MPIDR-EL1-1" class="headerlink" title="MPIDR_EL1"></a>MPIDR_EL1</h4><p><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/176892275018317.png" alt="img"></p>
+<p>U, bit [30]：0表示多核处理， 1表示单核处理</p>
+<p>MT, bit [24]：0表示没有使用单核<a target="_blank" rel="noopener" href="https://zhida.zhihu.com/search?content_id=234085741&content_type=Article&match_order=1&q=%E8%B6%85%E7%BA%BF%E7%A8%8B&zhida_source=entity">超线程</a>， 1表示使用了单核超线程。</p>
+<p>不支持超线程的cpu, Aff0表示核id。每个core上都有一个这个寄存器</p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/sinat_32960911/article/details/138754997">https://blog.csdn.net/sinat_32960911/article/details/138754997</a></p>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/656806517">https://zhuanlan.zhihu.com/p/656806517</a></p>
+<h4 id="LDXR-x2F-STXR"><a href="#LDXR-x2F-STXR" class="headerlink" title="LDXR&#x2F;STXR"></a>LDXR&#x2F;STXR</h4><p><code>LDXR</code>是独占内存加载指令，它以独占的方式加载内存地址的值到通用寄存器。</p>
+<p><code>STXR</code>是独占内存存储指令，它以独占的方式将通用寄存器中的值存储到内存地址。执行的结果放在 ws 寄存器中，如果该寄存器为0则执行成功。</p>
+<p><code>LDXR</code>和<code>STXR</code>指令必须配对使用，位于这两条指令之间的代码是原子的。</p>
+<p>当 CPU 通过<code>LDXR</code>指令从内存加载数据时，CPU 会把这个内存地址标记为独占访问，然后 CPU 内部的独占监视器的状态就变为独占访问状态。当执行到<code>STXR</code>指令时，需要根据独占监视器的状态来做决定：</p>
+<ul>
+<li>如果是独占访问状态并且<code>STXR</code>指令要存储的地址正好是刚才标记过的地址，那么<code>STXR</code>指令执行成功，返回0,并且独占监视器的状态变为开放访问状态。</li>
+<li>如果是开放访问状态，那么<code>STXR</code>指令执行失败，返回1，并且独占监视器的状态仍然保持开放访问状态。</li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://tomsjtu.github.io/notes/arm/atomic/">https://tomsjtu.github.io/notes/arm/atomic/</a></p>
+<h4 id="STR-x2F-LDR-x2F-MOV"><a href="#STR-x2F-LDR-x2F-MOV" class="headerlink" title="STR&#x2F;LDR&#x2F;MOV"></a>STR&#x2F;LDR&#x2F;MOV</h4><p><code>STR</code>: STR是将寄存器中的数字载入内存</p>
+<p><code>LDR</code>：用于将内存中的数据存入寄存器中；</p>
+<p><code>MOV</code>：在ARM体系中，mov只能用于数据在<a target="_blank" rel="noopener" href="https://so.csdn.net/so/search?q=%E5%AF%84%E5%AD%98%E5%99%A8&spm=1001.2101.3001.7020">寄存器</a>之间的移动或者往寄存器中写入立即数</p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/horizontalview/article/details/50773740">https://blog.csdn.net/horizontalview/article/details/50773740</a></p>
+<h4 id="LDP-x2F-STP"><a href="#LDP-x2F-STP" class="headerlink" title="LDP&#x2F;STP"></a>LDP&#x2F;STP</h4><p><code>LDR</code>:从指定的地址加载两个通用寄存器的值</p>
+<p><code>STP</code>:将两个通用寄存器的值存储到指定地址</p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/sinat_32960911/article/details/131533128">https://blog.csdn.net/sinat_32960911/article/details/131533128</a></p>
+<h3 id="2-3-异常"><a href="#2-3-异常" class="headerlink" title="2.3 异常"></a>2.3 异常</h3><p><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/176892275018318.png" alt="img"></p>
+<ul>
+<li>EL0：用户特权，运行普通用户程序</li>
+<li>EL1：系统特权，运行操作系统内核</li>
+<li>EL2：运行虚拟机监视器</li>
+<li>EL3：运行安全监控器</li>
+</ul>
+<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/randcs/p/18238629">minos 2.1 中断虚拟化——ARMv8 异常处理 - Rand_CS - 博客园</a></p>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/578252899">https://zhuanlan.zhihu.com/p/578252899</a></p>
+<p>异常向量表。向量可以分为两大类，四种：</p>
+<ul>
+<li>Exception from Lower EL，从低特权级来的异常<ul>
+<li>低特权级的执行状态为 AArch64</li>
+<li>低特权级的执行状态为 AArch32</li>
+</ul>
+</li>
+<li>Exception from the current EL，异常就来自当前特权级<ul>
+<li>当前选择了使用 SP_EL0 处理异常，就是处理异常使用 EL0 的栈空间</li>
+<li>当前选择了使用 SP_ELx 处理异常，异常处理使用当前特权级的栈空间</li>
+</ul>
+</li>
+</ul>
+<p><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/176892275018319.png" alt="img"></p>
+<h3 id="2-4-内存管理"><a href="#2-4-内存管理" class="headerlink" title="2.4 内存管理"></a>2.4 内存管理</h3><p><a target="_blank" rel="noopener" href="https://blog.csdn.net/flyingnosky/category_11603998.html">https://blog.csdn.net/flyingnosky/category_11603998.html</a></p>
+<p><a target="_blank" rel="noopener" href="https://armv8-doc.readthedocs.io/en/latest/12.html">https://armv8-doc.readthedocs.io/en/latest/12.html</a></p>
+<p><a target="_blank" rel="noopener" href="https://willendless.github.io/%E4%BD%93%E7%B3%BB%E7%BB%93%E6%9E%84/2021/03/14/ARM%E6%9E%B6%E6%9E%845/">https://willendless.github.io/%E4%BD%93%E7%B3%BB%E7%BB%93%E6%9E%84/2021/03/14/ARM%E6%9E%B6%E6%9E%845/</a></p>
+<p><a target="_blank" rel="noopener" href="https://developer.arm.com/documentation/102142/0100">https://developer.arm.com/documentation/102142/0100</a></p>
+<h3 id="2-5-PSCI"><a href="#2-5-PSCI" class="headerlink" title="2.5 PSCI"></a>2.5 PSCI</h3><p>Power State Coordination Interface（电源状态协调接口）。</p>
+<p><strong>作用</strong>： </p>
+<ul>
+<li>提供标准化的 API，允许操作系统（OS）或 Hypervisor 管理 CPU 的电源状态和多核协调。</li>
+<li>通过 SMC（Secure Monitor Call，安全监控调用）或 HVC（Hypervisor Call，虚拟化调用）与 Secure Monitor（EL3）或 Hypervisor（EL2）交互。</li>
+</ul>
+<p>以下是 PSCI 的常见函数（基于 ARM PSCI 1.0 规范）：</p>
+<table>
+<thead>
+<tr>
+<th>函数</th>
+<th>ID（SMC&#x2F;HVC）</th>
+<th>功能</th>
+<th>参数</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>PSCI_VERSION</td>
+<td>0x84000000</td>
+<td>返回 PSCI 版本</td>
+<td>无</td>
+</tr>
+<tr>
+<td>CPU_ON</td>
+<td>0xC4000003</td>
+<td>启动指定 CPU</td>
+<td>目标 CPU ID，入口地址，上下文 ID</td>
+</tr>
+<tr>
+<td>CPU_OFF</td>
+<td>0x84000002</td>
+<td>关闭当前 CPU</td>
+<td>无</td>
+</tr>
+<tr>
+<td>CPU_SUSPEND</td>
+<td>0xC4000001</td>
+<td>挂起 CPU 到低功耗状态</td>
+<td>电源状态，入口地址，上下文 ID</td>
+</tr>
+<tr>
+<td>SYSTEM_OFF</td>
+<td>0x84000008</td>
+<td>关闭整个系统</td>
+<td>无</td>
+</tr>
+<tr>
+<td>SYSTEM_RESET</td>
+<td>0x84000009</td>
+<td>重启整个系统</td>
+<td>无</td>
+</tr>
+</tbody></table>
+<h3 id="2-6-GICV3"><a href="#2-6-GICV3" class="headerlink" title="2.6 GICV3"></a>2.6 GICV3</h3><p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/261379308">https://zhuanlan.zhihu.com/p/261379308</a></p>
+<p>官方文档：<a target="_blank" rel="noopener" href="https://developer.arm.com/documentation/dai0492/b/">GICv3 and GICv4 Software Overview</a></p>
+<p><strong>IRQ****（普通中断请求）</strong>： </p>
+<ul>
+<li>IRQ 是 ARM 架构中用于处理常规中断的机制，适用于大多数外部设备（如定时器、UART、磁盘控制器）或内部事件（如异常、错误）。</li>
+<li>优先级较低，适合需要灵活处理、可能涉及上下文切换的场景。</li>
+<li>由 GIC（Generic Interrupt Controller，通用中断控制器）分发，触发到目标异常级别（如 EL1 或 EL2）。</li>
+</ul>
+<p><strong>FIQ****（快中断请求）</strong>： </p>
+<ul>
+<li>FIQ 是 ARM 架构中专为高优先级、时间敏感的中断设计的机制，旨在实现快速响应和低延迟处理。</li>
+<li>优先级高于 IRQ，适合实时性要求高的场景（如高性能设备或关键系统事件）。</li>
+<li>通常由 GIC 分发，且在某些实现中可能有专用的 FIQ 通道。</li>
+</ul>
+<h4 id="2-6-1-GIC-V3架构"><a href="#2-6-1-GIC-V3架构" class="headerlink" title="2.6.1 GIC-V3架构"></a>2.6.1 GIC-V3架构</h4><p>四种中断类型：</p>
+<p><strong>SPI（Shared</strong> <strong>Peripheral</strong> <strong>Interrupt****，共享外设中断）</strong>： </p>
+<ul>
+<li>来源：外设硬件（如 UART、定时器、磁盘控制器），通常由多个 CPU 核心共享。</li>
+<li>用途：处理来自外部设备的通用中断。</li>
+<li>分发：通过 GIC 分发器（Distributor）分发到任意或指定 CPU 核心（由 GICD 配置决定）。</li>
+<li>触发方式：电平触发（Level-sensitive）或边沿触发（Edge-triggered）。</li>
+</ul>
+<p><strong>PPI（Private</strong> <strong>Peripheral</strong> <strong>Interrupt****，私有外设中断）</strong>： </p>
+<ul>
+<li>来源：与特定 CPU 核心关联的外设（如每个核心的私有定时器或 PMU）。</li>
+<li>用途：处理特定 CPU 核心的私有中断。</li>
+<li>分发：仅分发到关联的 CPU 核心，无法共享。</li>
+<li>触发方式：通常是电平触发或边沿触发，具体由设备决定。</li>
+</ul>
+<p><strong>SGI（Software Generated</strong> <strong>Interrupt****，软件生成中断）</strong>： </p>
+<ul>
+<li>来源：软件触发，通常由一个 CPU 核心通过写入 GIC 寄存器（如 GICD_SGIR）生成，发送到其他核心。</li>
+<li>用途：核间通信（Inter-Processor Interrupt, IPI），如调度、同步或虚拟化消息传递。</li>
+<li>分发：由软件指定目标 CPU（单核、组播或广播）。</li>
+<li>触发方式：通常是边沿触发。</li>
+</ul>
+<p><strong>LPI（Locality-specific</strong> <strong>Peripheral</strong> <strong>Interrupt****，局部外设中断）</strong>： </p>
+<ul>
+<li>来源：虚拟化环境中的虚拟设备或 ITS（Interrupt Translation Service，中断翻译服务）管理的设备。</li>
+<li>用途：支持大规模虚拟化（如虚拟机或容器），与虚拟设备关联。</li>
+<li>分发：通过 ITS 动态映射到虚拟机或 CPU，存储在 LPI 表中（由 Redistributor 和 ITS 管理）。</li>
+<li>触发方式：通常是边沿触发，依赖 ITS 配置。</li>
+</ul>
+<p>中断号：</p>
+<p><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/176892276744861.png" alt="img"></p>
+<p><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/176892276744862.png" alt="img"></p>
+<h4 id="2-6-2-GIC-V3-编程模型"><a href="#2-6-2-GIC-V3-编程模型" class="headerlink" title="2.6.2 GIC-V3 编程模型"></a>2.6.2 GIC-V3 编程模型</h4><p><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/176892276744863.png" alt="img"></p>
+<p>GIC可被分为几个不同的组件，且每个组件都会支持一个或多个编程接口，这些接口又可分为内存映射型寄存器接口和系统寄存器接口两类。其中<a target="_blank" rel="noopener" href="https://zhida.zhihu.com/search?content_id=203717196&content_type=Article&match_order=1&q=Distributor&zhida_source=entity">Distributor</a>、<a target="_blank" rel="noopener" href="https://zhida.zhihu.com/search?content_id=203717196&content_type=Article&match_order=1&q=Redistributor&zhida_source=entity">Redistributor</a>和ITS为内存映射型寄存器接口，而CPU interface则是系统寄存器接口。</p>
+<ul>
+<li>Distributor的寄存器映射地址：12.8章节。 GICD_*</li>
+<li>Redistributor 寄存器映射地址 12.10章节    GICR_*，每个cpu都有各自一套</li>
+<li>CPU interface 寄存器映射地址 12.12章节   ICC_*，每个cpu都有各自一套</li>
+</ul>
+<p><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/176892276744864.png" alt="img"></p>
+<h4 id="2-6-2-中断分组"><a href="#2-6-2-中断分组" class="headerlink" title="2.6.2 中断分组"></a>2.6.2 中断分组</h4><ul>
+<li>Group0：Group0 中断是为 EL3（Exception Level 3）处理而设计的，通常被视为安全中断。在支持两种安全状态（安全和非安全）的系统中，Group0 始终是安全的，只有 EL3 可以处理这些中断。所有的 Group0 中断都被配置为 FIQ（Fast Interrupt Request），这意味着它们具有较高的优先级和快速处理的特性。</li>
+<li>Group1：Group1 中断进一步分为安全 Group1 和非安全 Group1。安全 Group1 中断由安全 EL1 处理，非安全 Group1 中断则由非安全的 EL1 或 EL2 处理。Group1 中断可以是 IRQ（Interrupt Request）或 FIQ，具体取决于当前的安全状态和处理器的异常级别。例如，当 Group1 的安全状态与 CPU 所处的当前异常级别的安全状态不同时，它为 FIQ，否则为 IRQ</li>
+</ul>
+<p>SGI&#x2F;PPI 分组配置：</p>
+<ul>
+<li>SGI（中断 ID 0~15）：软件间通信中断（如 CPU 核心间唤醒），若需在非安全态使用（如 Linux 内核跨核 IPI），需将对应位设为 1（Group 1）；</li>
+<li>PPI（中断 ID 16~31）：CPU 私有外设中断（如每个核心独立的定时器中断），若定时器为非安全功能（如 Linux 系统定时器），则将对应位设为 1（Group 1）；若为安全定时器（如安全监控），则设为 0（Group 0）。</li>
+</ul>
+<h4 id="2-6-3-Distributor寄存器"><a href="#2-6-3-Distributor寄存器" class="headerlink" title="2.6.3 Distributor寄存器"></a>2.6.3 Distributor寄存器</h4><h5 id="GICD-CTLR"><a href="#GICD-CTLR" class="headerlink" title="GICD_CTLR"></a>GICD_CTLR</h5><p>安全模式下</p>
+<p><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/176892276744865.png" alt="img"></p>
+<ul>
+<li>bit[0]，EnableGrp0：用于使能 Group0 中断。当该位被设置时，Group0 中断将被允许通过分发器进行分发。</li>
+<li>bit[1]，EnableGrp1NS：使能非安全 Group1 中断。在非安全状态下，设置此位可允许非安全 Group1 中断的分发</li>
+<li>bit[2]，EnableGrp1S：使能安全 Group1 中断。如果系统支持安全状态，设置该位可允许安全 Group1 中断的分发。</li>
+<li>bit[4]，安全状态下的亲和性路由使能位</li>
+<li>bit[6]，DS：如果设置为 1，禁用安全状态，所有中断被视为非安全中断；如果设置为 0，启用安全状态，使得安全中断和非安全中断能够被分别处理。</li>
+<li>bit[31]，REW：BIT_31 是等待回应位，当配置对应寄存器并写入到硬件后，可读取这个位来看是否已经写入配置信息并生效。</li>
+</ul>
+<p>非安全模式下</p>
+<ul>
+<li>bit[0]，使能非安全 Group1 中断</li>
+<li>bit[1]，使能 Group 1 中断的 “活跃状态传播” 功能</li>
+</ul>
+<p><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/176892276744866.png" alt="img"></p>
+<h5 id="GICD-TYPER"><a href="#GICD-TYPER" class="headerlink" title="GICD_TYPER"></a>GICD_TYPER</h5><p>中断类型控制器</p>
+<p><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/176892276744867.png" alt="img"></p>
+<p>[【ARMv8&#x2F;v9 GIC 系列 3 – GIC 的 类型寄存器 GICD_TYPER】_gicd寄存器-CSDN博客](<a target="_blank" rel="noopener" href="https://blog.csdn.net/sinat_32960911/article/details/139841966#:~:text=GICD_TYPER%E5%AF%84%E5%AD%98%E5%99%A8%EF%BC%8C%E5%8D%B3%E4%B8%AD%E6%96%AD%E6%8E%A7%E5%88%B6%E5%99%A8%E7%B1%BB%E5%9E%8B%E5%AF%84%E5%AD%98%E5%99%A8%EF%BC%8C%E6%98%AFARM">https://blog.csdn.net/sinat_32960911/article/details/139841966#:~:text=GICD_TYPER寄存器，即中断控制器类型寄存器，是ARM</a> GIC（通用中断控制器）中的一个关键寄存器，它提供了关于GIC本身特性的详细信息。 以下是 GICD_TYPER 寄存器的各个字段的详细介绍： 这些位指示支持的扩展SPI（共享外设中断）的范围。,这对于支持大量外设中断的实现特别重要，最大可以支持范围是 (32*(ESPI_range %2B 1) %2B 4095)。)</p>
+<ul>
+<li>ITLinesNumber，bit[4:0]，对于INTID范围为32到1019的情况，指示支持的最大SPI。如果这个字段的值为n，则最大SPI INTID为32*(n+1)减1。</li>
+</ul>
+<h5 id="GICD-IIDR"><a href="#GICD-IIDR" class="headerlink" title="GICD_IIDR"></a>GICD_IIDR</h5><p><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/176892276744968.png" alt="img"></p>
+<p>GICD_IIDR 寄存器（Distributor Identification Register Register）是一个只读寄存器，主要用于标识中断分发器（Distributor）的硬件版本、实现厂商及功能特性</p>
+<h5 id="GICD-IGROUPR"><a href="#GICD-IGROUPR" class="headerlink" title="GICD_IGROUPR"></a>GICD_IGROUPR<n></n></h5><p>此寄存器用于控制中断位于哪个group，一个bit位对应一个中断</p>
+<p><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/176892276744969.png" alt="img"></p>
+<h5 id="GICD-ICENABLER"><a href="#GICD-ICENABLER" class="headerlink" title="GICD_ICENABLER"></a>GICD_ICENABLER<n></n></h5><p><em>中断禁用寄存器，</em>只要在 ICENABLER 中对某 bit 写 1，就会把该中断的“Enable”状态清 0，等效于 <strong>禁用此中断</strong>。</p>
+<p>每个寄存器 <strong>32-bit</strong>，一共覆盖 32 个中断 ID。<code>&lt;n&gt;</code> 的范围：</p>
+<ul>
+<li><strong>n &#x3D; 0</strong> → 中断 ID 0–31</li>
+<li><strong>n &#x3D; 1</strong> → ID 32–63</li>
+<li>…以此类推</li>
+</ul>
+<p>计算公式： <code>Interrupt ID = 32 * n + bit_position</code></p>
+<p><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/176892276744970.png" alt="img"></p>
+<h5 id="GICD-ICACTIVER"><a href="#GICD-ICACTIVER" class="headerlink" title="GICD_ICACTIVER"></a>GICD_ICACTIVER<n></n></h5><p><em>清除活跃**状态寄存器</em></p>
+<p><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/176892276744971.png" alt="img"></p>
+<h5 id="GICD-ICPENDR"><a href="#GICD-ICPENDR" class="headerlink" title="GICD_ICPENDR"></a>GICD_ICPENDR<n></n></h5><p><em>清除挂起**状态寄存器</em></p>
+<p><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/176892276744972.png" alt="img"></p>
+<h5 id="GICD-ISENABLER"><a href="#GICD-ISENABLER" class="headerlink" title="GICD_ISENABLER"></a><strong>GICD_ISENABLER<n></n></strong></h5><p>Interrupt Set-Enable Registers，对应中断的 Enable 位控制寄存器。写 1 &#x3D; 使能中断；写 0 不改变状态。读操作返回对应中断的 当前使能状态。</p>
+<p><strong>宽度</strong>：32-bit</p>
+<p>每个寄存器覆盖 <strong>32 个中断 ID</strong>。</p>
+<p><code>&lt;n&gt;</code> 的范围：</p>
+<ul>
+<li>n&#x3D;0 → ID [0–31]</li>
+<li>n&#x3D;1 → ID [32–63]</li>
+<li>以此类推</li>
+</ul>
+<p>ID 计算方式： <code>Interrupt ID = 32 * n + bit_position</code></p>
+<p><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/176892276744973.png" alt="img"></p>
+<h5 id="GICD-ICENABLER-1"><a href="#GICD-ICENABLER-1" class="headerlink" title="GICD_ICENABLER"></a><strong>GICD_ICENABLER<n></n></strong></h5><p>Interrupt Clear-Enable Registers 清除（禁用）中断的使能位。只要在 ICENABLER 中对某 bit 写 1，就会把该中断的“Enable”状态清 0，等效于 <strong>禁用此中断</strong>。</p>
+<p>每个寄存器 <strong>32-bit</strong>，一共覆盖 32 个中断 ID。</p>
+<p><code>&lt;n&gt;</code> 的范围：</p>
+<ul>
+<li><strong>n &#x3D; 0</strong> → 中断 ID 0–31</li>
+<li><strong>n &#x3D; 1</strong> → ID 32–63</li>
+<li>…以此类推</li>
+</ul>
+<p>计算公式： <code>Interrupt ID = 32 * n + bit_position</code></p>
+<p><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/176892276744974.png" alt="img"></p>
+<h5 id="GICD-ITARGETSR"><a href="#GICD-ITARGETSR" class="headerlink" title="GICD_ITARGETSR"></a><strong>GICD_ITARGETSR<n></n></strong></h5><p><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/176892276744975.png" alt="img"></p>
+<p>定义 <strong>中断 (<strong><strong>SPI</strong></strong>)</strong> 的目标 CPU（处理器接口）。</p>
+<ul>
+<li>每个中断 ID 对应一个 <strong>8-bit 字段</strong>，指明该中断应该被路由到哪个 PE (Processing Element)。</li>
+<li>只适用于 <strong>Shared</strong> <strong>Peripheral</strong> **Interrupts (SPIs, ID ≥ 32)**。</li>
+</ul>
+<p><strong>32-bit 寄存器</strong>。每个寄存器覆盖 <strong>4 个中断 ID</strong>。<code>&lt;n&gt;</code> 的计算方式：<code>中断 ID = 4 * n + (0..3)</code>，每个中断用 <strong>8 位字段</strong>表示目标 CPU。</p>
+<table>
+<thead>
+<tr>
+<th>Bits</th>
+<th>字段</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>[7:0]</td>
+<td>CPU_targets0</td>
+<td>Interrupt ID &#x3D; 4n</td>
+</tr>
+<tr>
+<td>[15:8]</td>
+<td>CPU_targets1</td>
+<td>Interrupt ID &#x3D; 4n+1</td>
+</tr>
+<tr>
+<td>[23:16]</td>
+<td>CPU_targets2</td>
+<td>Interrupt ID &#x3D; 4n+2</td>
+</tr>
+<tr>
+<td>[31:24]</td>
+<td>CPU_targets3</td>
+<td>Interrupt ID &#x3D; 4n+3</td>
+</tr>
+</tbody></table>
+<h5 id="GICD-ICFGR"><a href="#GICD-ICFGR" class="headerlink" title="GICD_ICFGR"></a><strong>GICD_ICFGR<n></n></strong></h5><p><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/176892276744976.png" alt="img"></p>
+<p>控制 <strong>中断触发方式</strong>：电平触发 (Level-sensitive) 还是边沿触发 (Edge-triggered)。</p>
+<p>只适用于 <strong>PPI</strong> <strong>(ID16–31)</strong> 和 <strong>SPI</strong> **(ID ≥ 32)**。</p>
+<ul>
+<li><strong>32-bit 寄存器</strong>。</li>
+<li>每个寄存器覆盖 <strong>16 个中断 ID</strong>。</li>
+<li>每个中断占用 <strong>2 bit</strong>。</li>
+</ul>
+<p><strong>bit[1] (高位)</strong> &#x3D; Trigger mode</p>
+<ul>
+<li>0 &#x3D; Level-sensitive</li>
+<li>1 &#x3D; Edge-triggered</li>
+</ul>
+<p><strong>bit[0] (低位)</strong> &#x3D; Reserved (RES0)，读为 0，写入忽略。</p>
+<table>
+<thead>
+<tr>
+<th>Bits</th>
+<th>对应中断</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>[1:0]</td>
+<td>ID &#x3D; 16n</td>
+</tr>
+<tr>
+<td>[3:2]</td>
+<td>ID &#x3D; 16n+1</td>
+</tr>
+<tr>
+<td>[5:4]</td>
+<td>ID &#x3D; 16n+2</td>
+</tr>
+<tr>
+<td>…</td>
+<td>…</td>
+</tr>
+<tr>
+<td>[31:30]</td>
+<td>ID &#x3D; 16n+15</td>
+</tr>
+</tbody></table>
+<h5 id="GICD-IPRIORITYR"><a href="#GICD-IPRIORITYR" class="headerlink" title="GICD_IPRIORITYR"></a><strong>GICD_IPRIORITYR<n></n></strong></h5><p><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/176892276744977.png" alt="img"></p>
+<ul>
+<li>控制 **每个中断的优先级 (Priority)**。优先级越低，数值越小，代表中断更重要。每个中断对应一个 <strong>8-bit 优先级字段</strong>。</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Bits</th>
+<th>字段</th>
+<th>对应中断</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>[7:0]</td>
+<td>Priority0</td>
+<td>ID &#x3D; 4n</td>
+</tr>
+<tr>
+<td>[15:8]</td>
+<td>Priority1</td>
+<td>ID &#x3D; 4n+1</td>
+</tr>
+<tr>
+<td>[23:16]</td>
+<td>Priority2</td>
+<td>ID &#x3D; 4n+2</td>
+</tr>
+<tr>
+<td>[31:24]</td>
+<td>Priority3</td>
+<td>ID &#x3D; 4n+3</td>
+</tr>
+</tbody></table>
+<h4 id="2-6-4-Redistributor寄存器"><a href="#2-6-4-Redistributor寄存器" class="headerlink" title="2.6.4 Redistributor寄存器"></a>2.6.4 Redistributor寄存器</h4><h5 id="GICR-WAKER"><a href="#GICR-WAKER" class="headerlink" title="GICR_WAKER"></a>GICR_WAKER</h5><p><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/176892276744978.png" alt="img"></p>
+<ul>
+<li>ChildrenAsleep, bit [2] (只读)<ul>
+<li>指示连接的处理器（PE）是否处于静止状态（quiescent）。</li>
+<li><strong>0b0</strong>：至少一个与 PE 关联的接口可能是活跃的（active）。</li>
+<li><strong>0b1</strong>：所有与 PE 关联的接口都处于静止状态（quiescent）。</li>
+<li>GIC 重置（GIC reset）时，此字段复位为 1（表示静止）</li>
+</ul>
+</li>
+<li>ProcessorSleep, bit [1]<ul>
+<li>控制 Redistributor 是否发出 WakeRequest 信号，指示处理器（PE）是否进入低功耗状态。</li>
+<li><strong>0b0</strong>：PE 未处于低功耗状态，Redistributor 正常运行，处理中断。</li>
+<li><strong>0b1</strong>：PE 处于或正在进入低功耗状态，Redistributor 不向 CPU 接口传递中断，而是： <ul>
+<li>发出 WakeRequest 信号（通知电源管理单元）。</li>
+<li>将到达的中断保持在挂起（Pending）状态，不传递到 CPU 接口。</li>
+</ul>
+</li>
+<li><strong>注意</strong>：当 ProcessorSleep &#x3D;&#x3D; 1 时，Redistributor 必须释放 CPU 接口上挂起的中断（通过 Release 命令）。</li>
+<li>GIC 重置时，此字段复位为 1（低功耗状态）。</li>
+</ul>
+</li>
+<li>IMPLEMENTATION DEFINED, bit [0]<ul>
+<li><strong>描述</strong>：由硬件实现定义，可能用于特定功能（例如额外的电源管理控制）。</li>
+</ul>
+</li>
+</ul>
+<h5 id="GICR-IGROUPR0"><a href="#GICR-IGROUPR0" class="headerlink" title="GICR_IGROUPR0"></a>GICR_IGROUPR0</h5><p><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/176892276744979.png" alt="img"></p>
+<table>
+<thead>
+<tr>
+<th>位（Bit）</th>
+<th>对应中断 ID</th>
+<th>读写属性</th>
+<th>功能说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>31 ~ 0</td>
+<td>31 ~ 0</td>
+<td>读写</td>
+<td>控制对应中断 ID 的中断组： - 0：中断归属 Group 0（通常为 “安全中断” 或 “EL1 必须处理的中断”，需通过 IRQ 异常向量处理） - 1：中断归属 Group 1（通常为 “非安全中断”，又细分为 Group 1S&#x2F;1NS，分别对应安全态 EL1、非安全态 EL1&#x2F;EL2 处理）</td>
+</tr>
+</tbody></table>
+<h5 id="GICR-IGRPMODR0"><a href="#GICR-IGRPMODR0" class="headerlink" title="GICR_IGRPMODR0"></a>GICR_IGRPMODR0</h5><p>GICR_IGRPMODR0 的核心是 “覆盖原始分组，强制切换到 Group 1”</p>
+<p><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/176892276744980.png" alt="img"></p>
+<table>
+<thead>
+<tr>
+<th>位（Bit）</th>
+<th>对应中断 ID</th>
+<th>读写属性</th>
+<th>功能说明（核心：修改 “有效分组”）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>31 ~ 0</td>
+<td>31 ~ 0</td>
+<td>读写</td>
+<td>控制对应中断 ID 的 “组模式”，需结合 GICR_IGROUPR0（中断原始分组） 共同生效： - 0：中断的 “有效分组”&#x3D; 原始分组（GICR_IGROUPR0 配置的 Group 0&#x2F;1），无模式修改； - 1：中断的 “有效分组” 被强制改为 Group 1（无论 GICR_IGROUPR0 原始配置是 Group 0 还是 1</td>
+</tr>
+</tbody></table>
+<h5 id="GICR-ICENABLER0"><a href="#GICR-ICENABLER0" class="headerlink" title="GICR_ICENABLER0"></a><strong>GICR_ICENABLER0</strong></h5><p>禁用（关闭）中断 ID 0~31 的私有中断（PPI&#x2F;SGI）</p>
+<p>GICR_ICENABLER0 专门用于 <strong>SGI (ID0–15) 和</strong> <strong>PPI</strong> **(ID16–31)**。</p>
+<p><strong>宽度</strong>：32-bit</p>
+<p><strong>覆盖中断号</strong>：</p>
+<ul>
+<li><strong>bit[0..15]</strong> → SGI0–SGI15</li>
+<li><strong>bit[16..31]</strong> → PPI0–PPI15</li>
+</ul>
+<p><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/176892276744981.png" alt="img"></p>
+<table>
+<thead>
+<tr>
+<th>位（Bit）</th>
+<th>对应中断 ID</th>
+<th>读写属性</th>
+<th>功能说明（核心：触发中断禁用）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>31 ~ 0</td>
+<td>31 ~ 0</td>
+<td>仅写</td>
+<td>控制对应中断 ID 的 “禁用” 动作，规则严格： - 写 1：立即禁用该中断 —— 即使中断当前处于 “待处理” 状态，也会被屏蔽，不再向 CPU 上报； - 写 0：无任何操作（无法通过写 0 “恢复启用”，启用需通过 GICR_ISENABLER0 寄存器）</td>
+</tr>
+</tbody></table>
+<h5 id="GICR-ICACTIVER0"><a href="#GICR-ICACTIVER0" class="headerlink" title="GICR_ICACTIVER0"></a><strong>GICR_ICACTIVER0</strong></h5><p>清除（取消激活）中断 ID 0~31 的私有中断（PPI&#x2F;SGI）的 “激活状态”，解决中断 “触发后持续上报” 的问题</p>
+<ul>
+<li>当中断源（如定时器、传感器）产生触发信号，GIC 会将该中断标记为 “激活态”；</li>
+<li>处于激活态的中断，会持续向 CPU 发起请求（直到被清除）；</li>
+<li>即使通过 <code>GICR_ICENABLER0</code> 禁用中断，若中断已处于激活态，仍需先清除激活态，才能彻底停止上报。</li>
+</ul>
+<p>GICR_ICACTIVER0 的核心作用，就是主动清除这个 “激活态”，让中断回到 “未激活” 状态。</p>
+<p><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/176892276744982.png" alt="img"></p>
+<table>
+<thead>
+<tr>
+<th>位（Bit）</th>
+<th>对应中断 ID</th>
+<th>读写属性</th>
+<th>功能说明（核心：清除激活态）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>31 ~ 0</td>
+<td>31 ~ 0</td>
+<td>仅写</td>
+<td>控制对应中断 ID 的 “激活态清除” 动作，规则严格： - 写 1：立即清除该中断的 “激活态”—— 若中断当前处于激活状态，清除后会停止向 CPU 上报；若中断未激活，写 1 无效果； - 写 0：无任何操作（无法通过写 0 “恢复激活态”，激活态由中断源重新触发产生）</td>
+</tr>
+</tbody></table>
+<h5 id="GICR-ICPENDR0"><a href="#GICR-ICPENDR0" class="headerlink" title="GICR_ICPENDR0"></a>GICR_ICPENDR0</h5><p>清除（取消挂起）中断 ID 0~31 的私有中断（PPI&#x2F;SGI）的 “挂起状态”</p>
+<ul>
+<li>挂起态（Pending）：中断源已触发请求，但 GIC 尚未向 CPU 发起 “激活上报”（可能因优先级不够、被屏蔽等），处于 “等待被激活” 的状态；</li>
+<li>激活态（Active）：中断已通过 GIC 向 CPU 上报，CPU 正在处理或准备处理，处于 “持续请求 CPU 响应” 的状态；</li>
+<li>逻辑关系：多数中断需先进入 “挂起态”，满足条件后再进入 “激活态”；<code>GICR_ICPENDR0</code> 针对 “挂起态”，<code>GICR_ICACTIVER0</code> 针对 “激活态”</li>
+</ul>
+<p><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/176892276744983.png" alt="img"></p>
+<table>
+<thead>
+<tr>
+<th>位（Bit）</th>
+<th>对应中断 ID</th>
+<th>读写属性</th>
+<th>功能说明（核心：清除挂起态）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>31 ~ 0</td>
+<td>31 ~ 0</td>
+<td>仅写</td>
+<td>控制对应中断 ID 的 “挂起态清除” 动作，规则严格： - 写 1：立即清除该中断的 “挂起状态”—— 若中断当前处于挂起态，清除后不会再进入激活态；若中断未挂起（已激活或未触发），写 1 无效果； - 写 0：无任何操作（无法通过写 0 “恢复挂起态”，挂起态需中断源重新触发产生）</td>
+</tr>
+</tbody></table>
+<h5 id="GICR-ICFGR1"><a href="#GICR-ICFGR1" class="headerlink" title="GICR_ICFGR1"></a><strong>GICR_ICFGR1</strong></h5><p>配置特定中断的触发类型，决定中断信号以何种方式（电平 &#x2F; 边沿）被 GIC 识别。</p>
+<p><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/176892276744984.png" alt="img"></p>
+<p>寄存器共 32 位，采用 “2 位控制 1 个中断” 的映射规则，每 2 位对应 1 个中断 ID，具体位分配与含义如下：</p>
+<table>
+<thead>
+<tr>
+<th>寄存器位域</th>
+<th>对应中断 ID</th>
+<th>位值含义（触发类型）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Bit[1:0]</td>
+<td>ID 32</td>
+<td>00 &#x3D; 电平触发（Low-level） 01 &#x3D; 边沿触发（Rising-edge） 10 &#x3D; 边沿触发（Falling-edge） 11 &#x3D; 双边沿触发（Rising &amp; Falling）</td>
+</tr>
+<tr>
+<td>Bit[3:2]</td>
+<td>ID 33</td>
+<td>同 Bit [1:0]</td>
+</tr>
+<tr>
+<td>…</td>
+<td>…</td>
+<td>…</td>
+</tr>
+<tr>
+<td>Bit[31:30]</td>
+<td>ID 47</td>
+<td>同 Bit [1:0]</td>
+</tr>
+</tbody></table>
+<h4 id="2-6-5-CPU-interface寄存器"><a href="#2-6-5-CPU-interface寄存器" class="headerlink" title="2.6.5 CPU interface寄存器"></a>2.6.5 CPU interface寄存器</h4><h5 id="ICC-SRE-EL2"><a href="#ICC-SRE-EL2" class="headerlink" title="ICC_SRE_EL2"></a>ICC_SRE_EL2</h5><p>启用 EL2 对 GIC 系统寄存器的访问、配置中断虚拟化路由特性</p>
+<p><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/176892276744985.png" alt="img"></p>
+<table>
+<thead>
+<tr>
+<th>位</th>
+<th>字段名</th>
+<th>描述</th>
+<th>默认值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>[0]</td>
+<td>SRE</td>
+<td>System Register Enable：使能系统寄存器访问。0：禁用；1：启用。</td>
+<td>0&#x2F;1*</td>
+</tr>
+<tr>
+<td>[1]</td>
+<td>DFB</td>
+<td>Disable FIQ Bypass：禁用 FIQ（Group 0）绕过。1：禁用绕过。</td>
+<td>0</td>
+</tr>
+<tr>
+<td>[2]</td>
+<td>DIB</td>
+<td>Disable IRQ Bypass：禁用 IRQ（Group 1）绕过。1：禁用绕过。</td>
+<td>0</td>
+</tr>
+<tr>
+<td>[3]</td>
+<td>Enable</td>
+<td>Enable Lower ELs：允许较低异常级别（EL1&#x2F;EL0）使用 GIC 系统寄存器。1：允许。</td>
+<td>0</td>
+</tr>
+<tr>
+<td>[63:4]</td>
+<td>RES0</td>
+<td>保留，读为 0，写忽略（RAZ&#x2F;WI）。</td>
+<td>0</td>
+</tr>
+</tbody></table>
+<h5 id="ICC-SRE-EL1"><a href="#ICC-SRE-EL1" class="headerlink" title="ICC_SRE_EL1"></a><strong>ICC_SRE_EL1</strong></h5><p>中断控制器系统寄存器使能寄存器，EL1</p>
+<p><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/176892276744986.png" alt="img"></p>
+<table>
+<thead>
+<tr>
+<th>位</th>
+<th>字段名</th>
+<th>描述</th>
+<th>默认值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>[0]</td>
+<td>SRE</td>
+<td>System Register Enable：使能系统寄存器访问。0：禁用；1：启用。</td>
+<td>0&#x2F;1*</td>
+</tr>
+<tr>
+<td>[1]</td>
+<td>DFB</td>
+<td>Disable FIQ Bypass：禁用 FIQ（Group 0）绕过。1：禁用绕过。</td>
+<td>0</td>
+</tr>
+<tr>
+<td>[2]</td>
+<td>DIB</td>
+<td>Disable IRQ Bypass：禁用 IRQ（Group 1）绕过。1：禁用绕过。</td>
+<td>0</td>
+</tr>
+<tr>
+<td>[63:3]</td>
+<td>RES0</td>
+<td>保留，读为 0，写忽略（RAZ&#x2F;WI）。</td>
+<td>0</td>
+</tr>
+</tbody></table>
+<h5 id="ICC-PMR-EL1"><a href="#ICC-PMR-EL1" class="headerlink" title="ICC_PMR_EL1"></a><strong>ICC_PMR_EL1</strong></h5><p>在 EL1设置中断优先级掩码（Priority Mask），控制哪些中断可以被 CPU 接口传递到处理器。只有小于Priority的中断可以被触发</p>
+<p><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/176892276744987.png" alt="img"></p>
+<table>
+<thead>
+<tr>
+<th>位</th>
+<th>字段名</th>
+<th>描述</th>
+<th>默认值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>[7:0]</td>
+<td>Priority</td>
+<td>优先级掩码值。决定可传递的中断优先级（数值越小，优先级越高）。</td>
+<td>UNKNOWN*</td>
+</tr>
+<tr>
+<td>[63:8]</td>
+<td>RES0</td>
+<td>保留，读为 0，写忽略（RAZ&#x2F;WI）。</td>
+<td>0</td>
+</tr>
+</tbody></table>
+<h5 id="ICC-BPR1-EL1"><a href="#ICC-BPR1-EL1" class="headerlink" title="ICC_BPR1_EL1"></a><strong>ICC_BPR1_EL1</strong></h5><p>用于在 EL1设置 Group 1 中断（通常为 IRQ，非安全中断）的二进制点（Binary Point），从而控制中断的优先级比较和抢占行为</p>
+<p><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/176892276744988.png" alt="img"></p>
+<table>
+<thead>
+<tr>
+<th>位</th>
+<th>字段名</th>
+<th>描述</th>
+<th>默认值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>[2:0]</td>
+<td>BinaryPoint</td>
+<td>二进制点值（0–7）。决定优先级比较的分组方式。</td>
+<td>UNKNOWN*</td>
+</tr>
+<tr>
+<td>[63:3]</td>
+<td>RES0</td>
+<td>保留，读为 0，写忽略（RAZ&#x2F;WI）。</td>
+<td>0</td>
+</tr>
+</tbody></table>
+<p><strong>BinaryPoint</strong>： </p>
+<ul>
+<li>3 位字段，值范围为 0x0 到 0x7，定义优先级值的二进制点位置。</li>
+<li>优先级值（8 位，0x00–0xFF，数值越小优先级越高）被分为： <ul>
+<li><strong>高位（抢占组）</strong>：优先级值的左边部分（高 8 - BinaryPoint 位）。</li>
+<li><strong>低位（子优先级）</strong>：优先级值的右边部分（低 BinaryPoint 位）。</li>
+</ul>
+</li>
+<li>中断抢占规则： <ul>
+<li>只有抢占组值（高位）小于当前运行中断的抢占组值时，新中断才能抢占。</li>
+<li>子优先级（低位）用于同组内中断的排序，不影响抢占。</li>
+</ul>
+</li>
+<li>示例： <ul>
+<li>若 BinaryPoint &#x3D; 0，优先级值全为抢占组，无子优先级，抢占最严格。</li>
+<li>若 BinaryPoint &#x3D; 3，优先级值的高 5 位为抢占组，低 3 位为子优先级。</li>
+<li>若 BinaryPoint &#x3D; 7，优先级值的高 1 位为抢占组，低 7 位为子优先级，抢占最宽松。</li>
+</ul>
+</li>
+</ul>
+<h5 id="ICC-CTLR-EL1"><a href="#ICC-CTLR-EL1" class="headerlink" title="ICC_CTLR_EL1"></a>ICC_CTLR_EL1</h5><p><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/176892276744989.png" alt="img"></p>
+<table>
+<thead>
+<tr>
+<th>字段名称</th>
+<th>位域范围</th>
+<th>读写属性</th>
+<th>核心功能（文档原文定义）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>ExtRange</td>
+<td>Bit [19]</td>
+<td>只读（RO）</td>
+<td>标识 CPU 接口是否支持 1024~8191 范围的 INTID： - 0b0：不支持，若 IRI 转发此范围中断则行为 UNPREDICTABLE； - 0b1：支持，此范围 INTID 均需执行去激活操作。 EL3 关联：若 EL3 实现，此位是 ICC_CTLR_EL3.ExtRange 的别名（此前未提及 EL3 别名关系）。</td>
+</tr>
+<tr>
+<td>RSS</td>
+<td>Bit [18]</td>
+<td>只读（RO）</td>
+<td>范围选择器支持（Targeted SGI 的 Affinity 0 范围）： - 0b0：仅支持 Affinity 0 为 0<del>15 的 SGI； - 0b1：支持 Affinity 0 为 0</del>255 的 SGI。</td>
+</tr>
+<tr>
+<td>A3V</td>
+<td>Bit [15]</td>
+<td>只读（RO）</td>
+<td>Affinity 3 有效性： - 0b0：CPU 接口仅支持 SGI 生成寄存器中 Affinity 3 为 0 的值； - 0b1：支持 Affinity 3 为非 0 的值。 EL3 关联：若 EL3 实现，此位是 ICC_CTLR_EL3.A3V 的别名（此前仅提及 “4 级 affinity 支持”，未明确 “SGI 生成寄存器关联”）。</td>
+</tr>
+<tr>
+<td>SEIS</td>
+<td>Bit [14]</td>
+<td>只读（RO）</td>
+<td>SEI（System Error Interrupt）支持： - 0b0：CPU 接口不支持本地生成 SEI； - 0b1：支持本地生成 SEI。 EL3 关联：若 EL3 实现，此位是 ICC_CTLR_EL3.SEIS 的别名（此前完全遗漏该字段）。</td>
+</tr>
+<tr>
+<td>IDbits</td>
+<td>Bits [13:11]</td>
+<td>只读（RO）</td>
+<td>物理中断标识位数（INTID 位数）： - 0b000：16 位 INTID； - 0b001：24 位 INTID； 其他值保留。 EL3 关联：若 EL3 实现，此字段是 ICC_CTLR_EL3.IDbits 的别名（此前未明确 “仅 0b000&#x2F;0b001 有效”）。</td>
+</tr>
+<tr>
+<td>PRIbits</td>
+<td>Bits [10:8]</td>
+<td>只读（RO）</td>
+<td>优先级位数（实现的优先级位数减 1）： - 若支持两个 Security 状态：至少 5 位（32 级优先级，PRIbits≥0b100）； - 若支持单个 Security 状态：至少 4 位（16 级优先级，PRIbits≥0b011）。 关键约束：此字段值决定 ICC_BPR0_EL1 的最小值（此前未提及 “优先级位数与 BPR 最小值关联”）。</td>
+</tr>
+<tr>
+<td>PMHE</td>
+<td>Bit [6]</td>
+<td>读写 &#x2F; 只读（R&#x2F;W&#x2F;RO）</td>
+<td>优先级掩码提示使能（控制 ICC_PMR_EL1 是否作为中断分发的提示）： - 0b0：禁用； - 0b1：启用。 读写属性约束（文档 12-235）： - EL3 实现时：GICD_CTLR.DS&#x3D;0 → 只读；DS&#x3D;1 → 可写； - EL3 未实现时：IMPLEMENTATION DEFINED（只读则 RAZ&#x2F;WI 或 RAO&#x2F;WI，可写则复位为 0）。</td>
+</tr>
+<tr>
+<td>EOImode</td>
+<td>Bit [1]</td>
+<td>只读（RO）</td>
+<td>EOI 模式（当前 Security 状态）： - 0b0：ICC_EOIR0&#x2F;1_EL1 同时完成 “优先级下降 + 中断去激活”，访问 ICC_DIR_EL1 行为 UNPREDICTABLE； - 0b1：ICC_EOIR0&#x2F;1_EL1 仅完成优先级下降，需 ICC_DIR_EL1 完成去激活。</td>
+</tr>
+<tr>
+<td>CBPR</td>
+<td>Bit [0]</td>
+<td>读写 &#x2F; 只读（R&#x2F;W&#x2F;RO）</td>
+<td>公共二进制点寄存器（控制 Group 0&#x2F;1 中断是否共享 BPR 寄存器）： - 0b0：Group 0 用 ICC_BPR0_EL1，Group 1 用 ICC_BPR1_EL1； - 0b1：Group 0&#x2F;1 均用 ICC_BPR0_EL1。 读写属性约束（文档 12-235）： - EL3 实现时：DS&#x3D;0 → 只读；DS&#x3D;1 → 可写； - EL3 未实现时：可写</td>
+</tr>
+</tbody></table>
+<p>EOI Mode 的本质是规定 CPU 接口处理 “中断结束” 操作时，是否将 “优先级下降” 与 “中断去激活” 两个动作分离：</p>
+<ul>
+<li>“优先级下降”：指 CPU 接口将当前运行优先级（由 <code>ICC_RPR_EL1</code> 记录）恢复为中断处理前的状态，允许低优先级中断被重新响应；</li>
+<li>“中断去激活”：指清除中断的 “活跃状态”（仅适用于 SGIs、PPIs、SPIs，LPIs 无活跃状态），使中断可再次进入 “待处理（Pending）” 状态以响应新的触发。</li>
+</ul>
+<p>文档明确：EOI Mode 的配置仅对物理中断（Group 0&#x2F;Group 1）生效，且与 <code>ICC_EOIR0_EL1</code>（Group 0 中断）、<code>ICC_EOIR1_EL1</code>（Group 1 中断）、<code>ICC_DIR_EL1</code>（中断去激活寄存器）的使用强关联。</p>
+<h5 id="ICC-IGRPEN1-EL1"><a href="#ICC-IGRPEN1-EL1" class="headerlink" title="ICC_IGRPEN1_EL1"></a>ICC_IGRPEN1_EL1</h5><p><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/176892276744990.png" alt="img"></p>
+<table>
+<thead>
+<tr>
+<th>位（Bit）</th>
+<th>名称</th>
+<th>读写属性</th>
+<th>功能说明（Group 1 中断的全局使能控制）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0</td>
+<td>Enable</td>
+<td>读写</td>
+<td>控制 EL1 对 Group 1 中断的响应能力： - 1：使能 ——EL1 可接收并响应 Group 1 中断（符合路由规则的情况下）； - 0：禁用 ——Group 1 中断即使触发，也不会送达 EL1（会被 CPU 接口层屏蔽）。</td>
+</tr>
+</tbody></table>
+<h5 id="ICC-IAR1-EL1"><a href="#ICC-IAR1-EL1" class="headerlink" title="ICC_IAR1_EL1"></a>ICC_IAR1_EL1</h5><p>用于从 GIC CPU 接口获取当前最高优先级中断的标识（Interrupt ID, INTID）。它是在处理 Group 1 中断（通常为 IRQ）时读取的寄存器，配合其他寄存器（如 ICC_EOIR1_EL1 和 ICC_DIR_EL1）完成中断的生命周期管理</p>
+<ul>
+<li>简单来说就是获取当前最高优先级的中断ID，然后cpu会进行处理</li>
+</ul>
+<p><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/176892276744991.png" alt="img"></p>
+<h5 id="ICC-DIR-EL1"><a href="#ICC-DIR-EL1" class="headerlink" title="ICC_DIR_EL1"></a><strong>ICC_DIR_EL1</strong></h5><p>允许软件显式地将一个中断从 Active 状态清除（Deactivate）</p>
+<p><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/176892276744992.png" alt="img"></p>
+<h5 id="ICC-EOIR1-EL1"><a href="#ICC-EOIR1-EL1" class="headerlink" title="ICC_EOIR1_EL1"></a><strong>ICC_EOIR1_EL1</strong></h5><p>用于 结束 (End) 一个 Group1 中断的处理。软件在完成中断服务例程后，必须写入此寄存器，把对应中断标记为 “EOI”</p>
+<p><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/176892276744993.png" alt="img"></p>
+<h4 id="2-6-6-Virtual-interface寄存器"><a href="#2-6-6-Virtual-interface寄存器" class="headerlink" title="2.6.6 Virtual interface寄存器"></a>2.6.6 Virtual interface寄存器</h4><h5 id="ICH-VMCR-EL2"><a href="#ICH-VMCR-EL2" class="headerlink" title="ICH_VMCR_EL2"></a>ICH_VMCR_EL2</h5><ul>
+<li>ICH_VMCR_EL2 模拟客户机的 ICC_CTLR_EL1, ICC_PMR_EL1, ICC_BPR0_EL1, ICC_BPR1_EL1 等寄存器，允许 Hypervisor 配置虚拟中断的优先级、抢占模式、使能状态等。</li>
+<li>它控制虚拟 GIC 的行为，确保客户机看到一个虚拟 CPU 接口，而实际中断由 Hypervisor 处理。</li>
+</ul>
+<p><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/176892276744994.png" alt="img"></p>
+<h5 id="ICH-HCR-EL2"><a href="#ICH-HCR-EL2" class="headerlink" title="ICH_HCR_EL2"></a>ICH_HCR_EL2</h5><p><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/176892276745095.png" alt="img"></p>
+<p><strong>En [0]<strong>：</strong>虚拟 CPU 接口总使能</strong>。为 0 时不产生任何虚拟&#x2F;维护中断，读取 GICV_IAR&#x2F;AIAR 返回伪中断 ID；注：当 SCR_EL3.{NS,EEL2}&#x3D;&#x3D;{0,0} 时此位为 RES0；暖复位为 0</p>
+<h5 id="ICH-VTR-EL2"><a href="#ICH-VTR-EL2" class="headerlink" title="ICH_VTR_EL2"></a>ICH_VTR_EL2</h5><p><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/176892276745096.png" alt="img"></p>
+<p>报告虚拟化 GIC（VGIC）的能力，包括虚拟优先级位数、可抢占位数、可编码的虚拟中断 ID 位宽、是否支持 SEI、是否支持 Aff3、是否支持直注入屏蔽等，以及 List Register（LR）数量。</p>
+<ul>
+<li>[63:32]：RES0。</li>
+<li>PRIbits [31:29]：虚拟优先级位数减 1。实现至少 5 个优先级位（≥32 级优先级）。该字段是 ICV_CTLR_EL1.PRIbits 的别名。实现可选值范围 <code>0b100..0b110</code>。RO。</li>
+<li>PREbits [28:26]：虚拟可抢占（preemption）位数减 1。至少 5 位；且 PREbits ≤ PRIbits；决定 ICH_VMCR_EL2.VBPR0 的最小值。实现可选值 <code>0b000..0b110</code>。RO。</li>
+<li>IDbits [25:23]：虚拟中断 ID 位数；实现可选值：<code>0b000 → 16 位</code>，<code>0b001 → 24 位</code>；其余值保留。该字段是 ICV_CTLR_EL1.IDbits 的别名。RO。</li>
+<li>SEIS [22]：SEI 支持；<code>1=支持</code>，<code>0=不支持</code>；别名 ICV_CTLR_EL1.SEIS。RO。</li>
+<li>A3V [21]：Affinity level 3 有效；<code>1=SGI 产生寄存器支持非零 Aff3</code>；别名 ICV_CTLR_EL1.A3V。RO。</li>
+<li>nV4 [20]：不支持虚拟中断直注入标志；<code>0=支持直注入</code>，<code>1=不支持直注入</code>；在 GICv3 中仅允许取值 1。RO。</li>
+<li>TDS [19]：对 EL1 写 ICV_DIR_EL1 的单独陷入支持；<code>1=实现支持 ICH_HCR_EL2.TDIR</code>（由 FEAT_GICv3_TDIR 引入）。RO。</li>
+<li>DVIM [18]：对“直接注入的虚拟中断”的屏蔽支持；<code>1=支持</code>，<code>0=不支持</code>。在实现了 Realm Management Extension (RME) 的 PE 上，该字段 RAO&#x2F;WI；字段访问属性为 RO。</li>
+<li>[17:5]：RES0。</li>
+<li>ListRegs [4:0]：实现的 List Register 数量减 1。实现可选值范围 <code>0b00000..0b01111</code>。RO。&gt; 例如读到 <code>0b01111</code> 表示 实现了 16 个 LR。</li>
+</ul>
+<h5 id="ICH-LR-EL2"><a href="#ICH-LR-EL2" class="headerlink" title="ICH_LR_EL2"></a><strong>ICH_LR<n>_EL2</n></strong></h5><p><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/176892276745097.png" alt="img"></p>
+<p>该寄存器为虚拟 CPU 接口（virtual Processing Element, vPE）提供中断上下文信息。它充当虚拟中断的缓存，用于存储待处理（pending）、激活（active）或激活且待处理（active and pending）的虚拟中断信息。这有助于模拟硬件中断处理行为，使非虚拟化的操作系统能够像在物理环境中一样处理中断。在虚拟化环境中，Hypervisor 通过切换这些寄存器来管理虚拟机的中断上下文。</p>
+<p>ARMv8 GIC（Generic Interrupt Controller）架构支持多个列表寄存器（List Registers），每个寄存器存储一个虚拟中断的上下文信息（如状态、优先级、虚拟&#x2F;物理中断 ID 等）。</p>
+<p><strong>n</strong> 是一个索引值，范围通常从 0 到 15（具体数量由硬件实现定义，可通过 ICH_VTR_EL2 寄存器的 LRmax 字段查询，实际最大值可能小于 16）。</p>
+<p>每个 ICH_LR<n>_EL2 寄存器（例如 ICH_LR0_EL2、ICH_LR1_EL2 等）对应一个虚拟中断的条目，用于管理虚拟 CPU 接口（vPE）的中断</n></p>
+<table>
+<thead>
+<tr>
+<th>位范围</th>
+<th>字段名</th>
+<th>访问类型</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>[63:62]</td>
+<td>State</td>
+<td>RW</td>
+<td>中断状态： - 0b00：无效&#x2F;非激活（Invalid&#x2F;Inactive） - 0b01：待处理（Pending） - 0b10：激活（Active） - 0b11：激活且待处理（Active and Pending） GIC 在中断生命周期中更新此字段。复位值为 UNKNOWN。</td>
+</tr>
+<tr>
+<td>[61]</td>
+<td>HW</td>
+<td>RW</td>
+<td>指示虚拟中断是否映射到硬件中断： - 0b0：软件中断（Software，不在停用时通知 Distributor） - 0b1：硬件中断（Hardware，使用 pINTID 发送停用请求，对应 ICC_EOIR0&#x2F;1_EL1 或 ICC_DIR_EL1，取决于 ICH_VMCR_EL2.VEOIM） 复位值为 UNKNOWN。</td>
+</tr>
+<tr>
+<td>[60]</td>
+<td>Group</td>
+<td>RW</td>
+<td>中断组： - 0b0：Group 0（作为虚拟 IRQ&#x2F;FIQ 信号，根据 ICH_VMCR_EL2.VFIQEn 启用，由 VENG0 控制） - 0b1：Group 1（作为虚拟 IRQ 信号，由 VENG1 控制） 抢占由 ICC_BPR1_EL1 或 ICH_LR<n>_EL2 控制（取决于 ICH_VMCR_EL2.VCBPR）。复位值为 UNKNOWN。</n></td>
+</tr>
+<tr>
+<td>[59:56]</td>
+<td>RES0</td>
+<td>-</td>
+<td>保留位，必须为 0。</td>
+</tr>
+<tr>
+<td>[55:48]</td>
+<td>Priority</td>
+<td>RW</td>
+<td>中断优先级。位宽实现定义（至少 5 位，未实现的高位从 [48] 开始为 RES0）。复位值为 UNKNOWN。</td>
+</tr>
+<tr>
+<td>[47:45]</td>
+<td>RES0</td>
+<td>-</td>
+<td>保留位，必须为 0。</td>
+</tr>
+<tr>
+<td>[44:32]</td>
+<td>pINTID</td>
+<td>RW</td>
+<td>物理中断 ID（Physical INTID）。当 HW&#x3D;1 时，用于向 Distributor 发送停用请求。当 HW&#x3D;0 时，部分位有特定用途（如位[19] 用于 EOI 维护，位[18:13] 应为 0，位[12:10] 用于 SGI 的请求 PE，如果 vINTID 为 0-15）。复位行为 UNKNOWN。</td>
+</tr>
+<tr>
+<td>[31:0]</td>
+<td>vINTID</td>
+<td>RW</td>
+<td>虚拟中断 ID（Virtual INTID）。持有虚拟中断编号，大小由 ICH_VTR_EL2.IDbits 决定。</td>
+</tr>
+</tbody></table>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="https://yanglianoo.github.io">Timer</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://yanglianoo.github.io/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/">https://yanglianoo.github.io/2026/01/20/Xhyper剖析-1-2-ARM64基础知识/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://yanglianoo.github.io" target="_blank">TimerのBlog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/ARM64/">ARM64</a><a class="post-meta__tags" href="/tags/Hypervisor/">Hypervisor</a></div><div class="post_share"><div class="social-share" data-image="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/176892275018318.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><div class="post-reward"><div class="reward-button"><i class="fas fa-qrcode"></i> 打赏</div><div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/img/wechat.jpg" target="_blank"><img class="post-qr-code-img" src="/img/wechat.jpg" alt="微信"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="/img/alipay.jpg" target="_blank"><img class="post-qr-code-img" src="/img/alipay.jpg" alt="支付宝"/></a><div class="post-qr-code-desc">支付宝</div></li></ul></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-2-Xhyper%E5%90%AF%E5%8A%A8/" title="Xhyper剖析[2]--Xhyper启动"><img class="cover" src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-2-Xhyper%E5%90%AF%E5%8A%A8/17689237041079.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">Xhyper剖析[2]--Xhyper启动</div></div></a></div><div class="next-post pull-right"><a href="/2026/01/20/CyberRt%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-07%E5%8D%8F%E7%A8%8B%E8%B0%83%E5%BA%A6%E6%A1%86%E6%9E%B6/" title="CyberRt源码剖析--07协程调度框架"><img class="cover" src="/2026/01/20/CyberRt%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-07%E5%8D%8F%E7%A8%8B%E8%B0%83%E5%BA%A6%E6%A1%86%E6%9E%B6/17689217883947.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">CyberRt源码剖析--07协程调度框架</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-2-Xhyper%E5%90%AF%E5%8A%A8/" title="Xhyper剖析[2]--Xhyper启动"><img class="cover" src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-2-Xhyper%E5%90%AF%E5%8A%A8/17689237041079.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-20</div><div class="title">Xhyper剖析[2]--Xhyper启动</div></div></a></div><div><a href="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-3-Xhyper%E5%86%85%E5%AD%98%E8%99%9A%E6%8B%9F%E5%8C%96/" title="Xhyper剖析[3]--Xhyper内存虚拟化"><img class="cover" src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-3-Xhyper%E5%86%85%E5%AD%98%E8%99%9A%E6%8B%9F%E5%8C%96/176892388736321.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-20</div><div class="title">Xhyper剖析[3]--Xhyper内存虚拟化</div></div></a></div><div><a href="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-4-XhyperCPU%E8%99%9A%E6%8B%9F%E5%8C%96/" title="Xhyper剖析[4]--XhyperCPU虚拟化"><img class="cover" src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-4-XhyperCPU%E8%99%9A%E6%8B%9F%E5%8C%96/17689241119091.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-20</div><div class="title">Xhyper剖析[4]--XhyperCPU虚拟化</div></div></a></div><div><a href="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-5-MMIO%E8%99%9A%E6%8B%9F%E5%8C%96/" title="Xhyper剖析[5]--MMIO虚拟化"><img class="cover" src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-5-MMIO%E8%99%9A%E6%8B%9F%E5%8C%96/17689243819381.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-20</div><div class="title">Xhyper剖析[5]--MMIO虚拟化</div></div></a></div><div><a href="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-6-%E4%B8%AD%E6%96%AD%E8%99%9A%E6%8B%9F%E5%8C%96/" title="Xhyper剖析[6]--中断虚拟化"><img class="cover" src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-6-%E4%B8%AD%E6%96%AD%E8%99%9A%E6%8B%9F%E5%8C%96/17689244713913.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-20</div><div class="title">Xhyper剖析[6]--中断虚拟化</div></div></a></div><div><a href="/2024/06/07/Linux%E5%86%85%E6%A0%B8%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/" title="Linux内核启动流程分析"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-06-07</div><div class="title">Linux内核启动流程分析</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/head.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">Timer</div><div class="author-info__description">没有一个健康的身体，如何支撑我龌龊的灵魂!</div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">33</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">28</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">9</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/yanglianoo"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/yanglianoo" target="_blank" title="Github"><i class="fab fa-github" style="color: #24292e;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">个人微信：13699648817</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content is-expand"><ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%AF%84%E5%AD%98%E5%99%A8"><span class="toc-text">2.1 寄存器</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%80%9A%E7%94%A8%E5%AF%84%E5%AD%98%E5%99%A8"><span class="toc-text">通用寄存器</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#VTCR-EL2"><span class="toc-text">VTCR_EL2</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#ID-AA64MMFR0-EL1"><span class="toc-text">ID_AA64MMFR0_EL1</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#MAIR-EL2"><span class="toc-text">MAIR_EL2</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#HCR-EL2"><span class="toc-text">HCR_EL2</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#VTTBR-EL2"><span class="toc-text">VTTBR_EL2</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#MPIDR-EL1"><span class="toc-text">MPIDR_EL1</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#MIDR-EL1"><span class="toc-text">MIDR_EL1</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#TPIDR-EL2"><span class="toc-text">TPIDR_EL2</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#ESR-ELx"><span class="toc-text">ESR_ELx</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#FAR-EL2"><span class="toc-text">FAR_EL2</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#VBAR-ELx"><span class="toc-text">VBAR_ELx</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#HPFAR-EL2"><span class="toc-text">HPFAR_EL2</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#DAIF"><span class="toc-text">DAIF</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E6%8C%87%E4%BB%A4"><span class="toc-text">2.2 指令</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#MRS-x2F-MSR"><span class="toc-text">MRS&#x2F;MSR</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#DMB%E3%80%81DSB%E3%80%81ISB"><span class="toc-text">DMB、DSB、ISB</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#MPIDR-EL1-1"><span class="toc-text">MPIDR_EL1</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#LDXR-x2F-STXR"><span class="toc-text">LDXR&#x2F;STXR</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#STR-x2F-LDR-x2F-MOV"><span class="toc-text">STR&#x2F;LDR&#x2F;MOV</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#LDP-x2F-STP"><span class="toc-text">LDP&#x2F;STP</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E5%BC%82%E5%B8%B8"><span class="toc-text">2.3 异常</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86"><span class="toc-text">2.4 内存管理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-5-PSCI"><span class="toc-text">2.5 PSCI</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-6-GICV3"><span class="toc-text">2.6 GICV3</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2-6-1-GIC-V3%E6%9E%B6%E6%9E%84"><span class="toc-text">2.6.1 GIC-V3架构</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-6-2-GIC-V3-%E7%BC%96%E7%A8%8B%E6%A8%A1%E5%9E%8B"><span class="toc-text">2.6.2 GIC-V3 编程模型</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-6-2-%E4%B8%AD%E6%96%AD%E5%88%86%E7%BB%84"><span class="toc-text">2.6.2 中断分组</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-6-3-Distributor%E5%AF%84%E5%AD%98%E5%99%A8"><span class="toc-text">2.6.3 Distributor寄存器</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#GICD-CTLR"><span class="toc-text">GICD_CTLR</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#GICD-TYPER"><span class="toc-text">GICD_TYPER</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#GICD-IIDR"><span class="toc-text">GICD_IIDR</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#GICD-IGROUPR"><span class="toc-text">GICD_IGROUPR</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#GICD-ICENABLER"><span class="toc-text">GICD_ICENABLER</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#GICD-ICACTIVER"><span class="toc-text">GICD_ICACTIVER</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#GICD-ICPENDR"><span class="toc-text">GICD_ICPENDR</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#GICD-ISENABLER"><span class="toc-text">GICD_ISENABLER</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#GICD-ICENABLER-1"><span class="toc-text">GICD_ICENABLER</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#GICD-ITARGETSR"><span class="toc-text">GICD_ITARGETSR</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#GICD-ICFGR"><span class="toc-text">GICD_ICFGR</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#GICD-IPRIORITYR"><span class="toc-text">GICD_IPRIORITYR</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-6-4-Redistributor%E5%AF%84%E5%AD%98%E5%99%A8"><span class="toc-text">2.6.4 Redistributor寄存器</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#GICR-WAKER"><span class="toc-text">GICR_WAKER</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#GICR-IGROUPR0"><span class="toc-text">GICR_IGROUPR0</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#GICR-IGRPMODR0"><span class="toc-text">GICR_IGRPMODR0</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#GICR-ICENABLER0"><span class="toc-text">GICR_ICENABLER0</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#GICR-ICACTIVER0"><span class="toc-text">GICR_ICACTIVER0</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#GICR-ICPENDR0"><span class="toc-text">GICR_ICPENDR0</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#GICR-ICFGR1"><span class="toc-text">GICR_ICFGR1</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-6-5-CPU-interface%E5%AF%84%E5%AD%98%E5%99%A8"><span class="toc-text">2.6.5 CPU interface寄存器</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#ICC-SRE-EL2"><span class="toc-text">ICC_SRE_EL2</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#ICC-SRE-EL1"><span class="toc-text">ICC_SRE_EL1</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#ICC-PMR-EL1"><span class="toc-text">ICC_PMR_EL1</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#ICC-BPR1-EL1"><span class="toc-text">ICC_BPR1_EL1</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#ICC-CTLR-EL1"><span class="toc-text">ICC_CTLR_EL1</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#ICC-IGRPEN1-EL1"><span class="toc-text">ICC_IGRPEN1_EL1</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#ICC-IAR1-EL1"><span class="toc-text">ICC_IAR1_EL1</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#ICC-DIR-EL1"><span class="toc-text">ICC_DIR_EL1</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#ICC-EOIR1-EL1"><span class="toc-text">ICC_EOIR1_EL1</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-6-6-Virtual-interface%E5%AF%84%E5%AD%98%E5%99%A8"><span class="toc-text">2.6.6 Virtual interface寄存器</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#ICH-VMCR-EL2"><span class="toc-text">ICH_VMCR_EL2</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#ICH-HCR-EL2"><span class="toc-text">ICH_HCR_EL2</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#ICH-VTR-EL2"><span class="toc-text">ICH_VTR_EL2</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#ICH-LR-EL2"><span class="toc-text">ICH_LR_EL2</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-6-%E4%B8%AD%E6%96%AD%E8%99%9A%E6%8B%9F%E5%8C%96/" title="Xhyper剖析[6]--中断虚拟化"><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-6-%E4%B8%AD%E6%96%AD%E8%99%9A%E6%8B%9F%E5%8C%96/17689244713913.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Xhyper剖析[6]--中断虚拟化"/></a><div class="content"><a class="title" href="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-6-%E4%B8%AD%E6%96%AD%E8%99%9A%E6%8B%9F%E5%8C%96/" title="Xhyper剖析[6]--中断虚拟化">Xhyper剖析[6]--中断虚拟化</a><time datetime="2026-01-20T15:54:17.000Z" title="发表于 2026-01-20 23:54:17">2026-01-20</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-5-MMIO%E8%99%9A%E6%8B%9F%E5%8C%96/" title="Xhyper剖析[5]--MMIO虚拟化"><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-5-MMIO%E8%99%9A%E6%8B%9F%E5%8C%96/17689243819381.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Xhyper剖析[5]--MMIO虚拟化"/></a><div class="content"><a class="title" href="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-5-MMIO%E8%99%9A%E6%8B%9F%E5%8C%96/" title="Xhyper剖析[5]--MMIO虚拟化">Xhyper剖析[5]--MMIO虚拟化</a><time datetime="2026-01-20T15:52:10.000Z" title="发表于 2026-01-20 23:52:10">2026-01-20</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-4-XhyperCPU%E8%99%9A%E6%8B%9F%E5%8C%96/" title="Xhyper剖析[4]--XhyperCPU虚拟化"><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-4-XhyperCPU%E8%99%9A%E6%8B%9F%E5%8C%96/17689241119091.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Xhyper剖析[4]--XhyperCPU虚拟化"/></a><div class="content"><a class="title" href="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-4-XhyperCPU%E8%99%9A%E6%8B%9F%E5%8C%96/" title="Xhyper剖析[4]--XhyperCPU虚拟化">Xhyper剖析[4]--XhyperCPU虚拟化</a><time datetime="2026-01-20T15:48:15.000Z" title="发表于 2026-01-20 23:48:15">2026-01-20</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-3-Xhyper%E5%86%85%E5%AD%98%E8%99%9A%E6%8B%9F%E5%8C%96/" title="Xhyper剖析[3]--Xhyper内存虚拟化"><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-3-Xhyper%E5%86%85%E5%AD%98%E8%99%9A%E6%8B%9F%E5%8C%96/176892388736321.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Xhyper剖析[3]--Xhyper内存虚拟化"/></a><div class="content"><a class="title" href="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-3-Xhyper%E5%86%85%E5%AD%98%E8%99%9A%E6%8B%9F%E5%8C%96/" title="Xhyper剖析[3]--Xhyper内存虚拟化">Xhyper剖析[3]--Xhyper内存虚拟化</a><time datetime="2026-01-20T15:44:25.000Z" title="发表于 2026-01-20 23:44:25">2026-01-20</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-2-Xhyper%E5%90%AF%E5%8A%A8/" title="Xhyper剖析[2]--Xhyper启动"><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-2-Xhyper%E5%90%AF%E5%8A%A8/17689237041079.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Xhyper剖析[2]--Xhyper启动"/></a><div class="content"><a class="title" href="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-2-Xhyper%E5%90%AF%E5%8A%A8/" title="Xhyper剖析[2]--Xhyper启动">Xhyper剖析[2]--Xhyper启动</a><time datetime="2026-01-20T15:38:23.000Z" title="发表于 2026-01-20 23:38:23">2026-01-20</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/176892275018318.png')"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2026 By Timer</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><div class="js-pjax"></div><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/fireworks.min.js"></script><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div class="no-result" id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js"></script></div></div></body></html>

@@ -2,6 +2,60 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>https://yanglianoo.github.io/2026/01/20/Xhyper%E5%89%96%E6%9E%90-6-%E4%B8%AD%E6%96%AD%E8%99%9A%E6%8B%9F%E5%8C%96/</loc>
+    
+    <lastmod>2026-01-20</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://yanglianoo.github.io/2026/01/20/Xhyper%E5%89%96%E6%9E%90-5-MMIO%E8%99%9A%E6%8B%9F%E5%8C%96/</loc>
+    
+    <lastmod>2026-01-20</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://yanglianoo.github.io/2026/01/20/Xhyper%E5%89%96%E6%9E%90-4-XhyperCPU%E8%99%9A%E6%8B%9F%E5%8C%96/</loc>
+    
+    <lastmod>2026-01-20</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://yanglianoo.github.io/2026/01/20/Xhyper%E5%89%96%E6%9E%90-3-Xhyper%E5%86%85%E5%AD%98%E8%99%9A%E6%8B%9F%E5%8C%96/</loc>
+    
+    <lastmod>2026-01-20</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://yanglianoo.github.io/2026/01/20/Xhyper%E5%89%96%E6%9E%90-2-Xhyper%E5%90%AF%E5%8A%A8/</loc>
+    
+    <lastmod>2026-01-20</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://yanglianoo.github.io/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/</loc>
+    
+    <lastmod>2026-01-20</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
     <loc>https://yanglianoo.github.io/2026/01/20/CyberRt%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-07%E5%8D%8F%E7%A8%8B%E8%B0%83%E5%BA%A6%E6%A1%86%E6%9E%B6/</loc>
     
     <lastmod>2026-01-20</lastmod>
@@ -460,6 +514,13 @@
     <priority>0.2</priority>
   </url>
   
+  <url>
+    <loc>https://yanglianoo.github.io/tags/Hypervisor/</loc>
+    <lastmod>2026-01-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
 
   
   <url>
@@ -513,6 +574,13 @@
   
   <url>
     <loc>https://yanglianoo.github.io/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F%E5%9F%BA%E7%A1%80/</loc>
+    <lastmod>2026-01-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://yanglianoo.github.io/categories/Xhyper%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/</loc>
     <lastmod>2026-01-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>

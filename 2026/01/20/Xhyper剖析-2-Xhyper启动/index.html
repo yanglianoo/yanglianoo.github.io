@@ -1,0 +1,228 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Xhyper剖析[2]--Xhyper启动 | TimerのBlog</title><meta name="author" content="Timer"><meta name="copyright" content="Timer"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="3.1 设备内存分布项目使用qemu的aarch64的virt机器来运行 CPU&#x3D;&quot;cortex-a72&quot;QCPU&#x3D;&quot;cortex-a72&quot;QEMU&#x3D;&quot;qemu-system-aarch64&quot;GIC_VERSION&#x3D;3MACHINE&#x3D;&quot;virt,gic-version&#x3D;$GIC_VERSION,virtualization&#x3D;o">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Xhyper剖析[2]--Xhyper启动">
+<meta property="og:url" content="https://yanglianoo.github.io/2026/01/20/Xhyper%E5%89%96%E6%9E%90-2-Xhyper%E5%90%AF%E5%8A%A8/index.html">
+<meta property="og:site_name" content="TimerのBlog">
+<meta property="og:description" content="3.1 设备内存分布项目使用qemu的aarch64的virt机器来运行 CPU&#x3D;&quot;cortex-a72&quot;QCPU&#x3D;&quot;cortex-a72&quot;QEMU&#x3D;&quot;qemu-system-aarch64&quot;GIC_VERSION&#x3D;3MACHINE&#x3D;&quot;virt,gic-version&#x3D;$GIC_VERSION,virtualization&#x3D;o">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yanglianoo.github.io/2026/01/20/Xhyper%E5%89%96%E6%9E%90-2-Xhyper%E5%90%AF%E5%8A%A8/17689237041079.png">
+<meta property="article:published_time" content="2026-01-20T15:38:23.000Z">
+<meta property="article:modified_time" content="2026-01-20T15:42:27.355Z">
+<meta property="article:author" content="Timer">
+<meta property="article:tag" content="ARM64">
+<meta property="article:tag" content="Hypervisor">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://yanglianoo.github.io/2026/01/20/Xhyper%E5%89%96%E6%9E%90-2-Xhyper%E5%90%AF%E5%8A%A8/17689237041079.png"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://yanglianoo.github.io/2026/01/20/Xhyper%E5%89%96%E6%9E%90-2-Xhyper%E5%90%AF%E5%8A%A8/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"languages":{"hits_empty":"找不到您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":500},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: {"chs_to_cht":"你已切换为繁体","cht_to_chs":"你已切换为简体","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"bottom-left"},
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Xhyper剖析[2]--Xhyper启动',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2026-01-20 23:42:27'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+    win.getCSS = (url,id = false) => new Promise((resolve, reject) => {
+      const link = document.createElement('link')
+      link.rel = 'stylesheet'
+      link.href = url
+      if (id) link.id = id
+      link.onerror = reject
+      link.onload = link.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        link.onload = link.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(link)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/background.css"><meta name="generator" content="Hexo 6.3.0"><link rel="alternate" href="/atom.xml" title="TimerのBlog" type="application/atom+xml">
+</head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/head.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">33</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">28</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">9</div></a></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/2026/01/20/Xhyper%E5%89%96%E6%9E%90-2-Xhyper%E5%90%AF%E5%8A%A8/17689237041079.png')"><nav id="nav"><span id="blog-info"><a href="/" title="TimerのBlog"><span class="site-name">TimerのBlog</span></a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search" href="javascript:void(0);"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">Xhyper剖析[2]--Xhyper启动</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-01-20T15:38:23.000Z" title="发表于 2026-01-20 23:38:23">2026-01-20</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-01-20T15:42:27.355Z" title="更新于 2026-01-20 23:42:27">2026-01-20</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Xhyper%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/">Xhyper源码剖析</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="Xhyper剖析[2]--Xhyper启动"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><p><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-2-Xhyper%E5%90%AF%E5%8A%A8/17689237041079.png" alt="img"></p>
+<h3 id="3-1-设备内存分布"><a href="#3-1-设备内存分布" class="headerlink" title="3.1 设备内存分布"></a>3.1 设备内存分布</h3><p>项目使用<code>qemu</code>的<code>aarch64</code>的<code>virt</code>机器来运行</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">CPU=<span class="string">&quot;cortex-a72&quot;</span></span><br><span class="line">QCPU=<span class="string">&quot;cortex-a72&quot;</span></span><br><span class="line">QEMU=<span class="string">&quot;qemu-system-aarch64&quot;</span></span><br><span class="line">GIC_VERSION=3</span><br><span class="line">MACHINE=<span class="string">&quot;virt,gic-version=<span class="variable">$GIC_VERSION</span>,virtualization=on&quot;</span></span><br><span class="line">NCPU=4</span><br><span class="line">QEMUOPTS=<span class="string">&quot;-cpu <span class="variable">$QCPU</span> -machine <span class="variable">$MACHINE</span> -smp <span class="variable">$NCPU</span> -m 128M -nographic \</span></span><br><span class="line"><span class="string">          -bios ./u-boot/u-boot.bin \</span></span><br><span class="line"><span class="string">          -device loader,file=./build/X-Hyper_Uimage,addr=0x40200000,force-raw=on&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>其中<code>virt</code>的内存分布如下，定义在<code>qemu</code>源码的<code>hw/arm/virt.c</code>中</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">static</span> const MemMapEntry base_memmap[] <span class="operator">=</span> &#123;</span><br><span class="line">    <span class="comment">/* Space up to 0x8000000 is reserved for a boot ROM */</span></span><br><span class="line">    [VIRT_FLASH] <span class="operator">=</span>              &#123;          <span class="number">0</span>, <span class="number">0x08000000</span> &#125;,</span><br><span class="line">    [VIRT_CPUPERIPHS] <span class="operator">=</span>         &#123; <span class="number">0x08000000</span>, <span class="number">0x00020000</span> &#125;,</span><br><span class="line">    <span class="comment">/* GIC distributor and CPU interfaces sit inside the CPU peripheral space */</span></span><br><span class="line">    [VIRT_GIC_DIST] <span class="operator">=</span>           &#123; <span class="number">0x08000000</span>, <span class="number">0x00010000</span> &#125;,</span><br><span class="line">    [VIRT_GIC_CPU] <span class="operator">=</span>            &#123; <span class="number">0x08010000</span>, <span class="number">0x00010000</span> &#125;,</span><br><span class="line">    [VIRT_GIC_V2M] <span class="operator">=</span>            &#123; <span class="number">0x08020000</span>, <span class="number">0x00001000</span> &#125;,</span><br><span class="line">    [VIRT_GIC_HYP] <span class="operator">=</span>            &#123; <span class="number">0x08030000</span>, <span class="number">0x00010000</span> &#125;,</span><br><span class="line">    [VIRT_GIC_VCPU] <span class="operator">=</span>           &#123; <span class="number">0x08040000</span>, <span class="number">0x00010000</span> &#125;,</span><br><span class="line">    <span class="comment">/* The space in between here is reserved for GICv3 CPU/vCPU/HYP */</span></span><br><span class="line">    [VIRT_GIC_ITS] <span class="operator">=</span>            &#123; <span class="number">0x08080000</span>, <span class="number">0x00020000</span> &#125;,</span><br><span class="line">    <span class="comment">/* This redistributor space allows up to 2*64kB*123 CPUs */</span></span><br><span class="line">    [VIRT_GIC_REDIST] <span class="operator">=</span>         &#123; <span class="number">0x080A0000</span>, <span class="number">0x00F60000</span> &#125;,</span><br><span class="line">    [VIRT_UART] <span class="operator">=</span>               &#123; <span class="number">0x09000000</span>, <span class="number">0x00001000</span> &#125;,</span><br><span class="line">    [VIRT_RTC] <span class="operator">=</span>                &#123; <span class="number">0x09010000</span>, <span class="number">0x00001000</span> &#125;,</span><br><span class="line">    [VIRT_FW_CFG] <span class="operator">=</span>             &#123; <span class="number">0x09020000</span>, <span class="number">0x00000018</span> &#125;,</span><br><span class="line">    [VIRT_GPIO] <span class="operator">=</span>               &#123; <span class="number">0x09030000</span>, <span class="number">0x00001000</span> &#125;,</span><br><span class="line">    [VIRT_SECURE_UART] <span class="operator">=</span>        &#123; <span class="number">0x09040000</span>, <span class="number">0x00001000</span> &#125;,</span><br><span class="line">    [VIRT_SMMU] <span class="operator">=</span>               &#123; <span class="number">0x09050000</span>, <span class="number">0x00020000</span> &#125;,</span><br><span class="line">    [VIRT_PCDIMM_ACPI] <span class="operator">=</span>        &#123; <span class="number">0x09070000</span>, MEMORY_HOTPLUG_IO_LEN &#125;,</span><br><span class="line">    [VIRT_ACPI_GED] <span class="operator">=</span>           &#123; <span class="number">0x09080000</span>, ACPI_GED_EVT_SEL_LEN &#125;,</span><br><span class="line">    [VIRT_NVDIMM_ACPI] <span class="operator">=</span>        &#123; <span class="number">0x09090000</span>, NVDIMM_ACPI_IO_LEN&#125;,</span><br><span class="line">    [VIRT_PVTIME] <span class="operator">=</span>             &#123; <span class="number">0x090a0000</span>, <span class="number">0x00010000</span> &#125;,</span><br><span class="line">    [VIRT_SECURE_GPIO] <span class="operator">=</span>        &#123; <span class="number">0x090b0000</span>, <span class="number">0x00001000</span> &#125;,</span><br><span class="line">    [VIRT_MMIO] <span class="operator">=</span>               &#123; <span class="number">0x0a000000</span>, <span class="number">0x00000200</span> &#125;,</span><br><span class="line">    <span class="comment">/* ...repeating for a total of NUM_VIRTIO_TRANSPORTS, each of that size */</span></span><br><span class="line">    [VIRT_PLATFORM_BUS] <span class="operator">=</span>       &#123; <span class="number">0x0c000000</span>, <span class="number">0x02000000</span> &#125;,</span><br><span class="line">    [VIRT_SECURE_MEM] <span class="operator">=</span>         &#123; <span class="number">0x0e000000</span>, <span class="number">0x01000000</span> &#125;,</span><br><span class="line">    [VIRT_PCIE_MMIO] <span class="operator">=</span>          &#123; <span class="number">0x10000000</span>, <span class="number">0x2eff0000</span> &#125;,</span><br><span class="line">    [VIRT_PCIE_PIO] <span class="operator">=</span>           &#123; <span class="number">0x3eff0000</span>, <span class="number">0x00010000</span> &#125;,</span><br><span class="line">    [VIRT_PCIE_ECAM] <span class="operator">=</span>          &#123; <span class="number">0x3f000000</span>, <span class="number">0x01000000</span> &#125;,</span><br><span class="line">    <span class="comment">/* Actual RAM size depends on initial RAM and device memory settings */</span></span><br><span class="line">    [VIRT_MEM] <span class="operator">=</span>                &#123; GiB, LEGACY_RAMLIMIT_BYTES &#125;,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>-bios</code>指定的<code>uboot</code>的镜像会被加载到<code>FLASH</code>处执行</li>
+<li><code>DRAM</code>的起始地址为<code>GIB</code>，<code>GIB</code>的值为：<code>#define GiB     (INT64_C(1) &lt;&lt; 30)</code> 即<code>0x4000 0000</code></li>
+<li><code>-device loader</code>指令可以把<code>X-Hyper_Uimage</code>镜像加载到<code>0x40200000</code>处</li>
+</ul>
+<h3 id="3-2-uboot配置"><a href="#3-2-uboot配置" class="headerlink" title="3.2 uboot配置"></a>3.2 uboot配置</h3><p><code>uboot</code>的下载编译执行脚本如下：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> [ -d <span class="string">&quot;./u-boot&quot;</span> ]; <span class="keyword">then</span></span><br><span class="line">    <span class="built_in">rm</span> -rf ./u-boot</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line">git <span class="built_in">clone</span> --depth=1 https://github.com/u-boot/u-boot.git</span><br><span class="line"></span><br><span class="line"><span class="built_in">cd</span> u-boot</span><br><span class="line">make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- qemu_arm64_defconfig</span><br><span class="line"></span><br><span class="line"><span class="comment"># 借助sed命令修改配置文件，把预启动命令从原本的 &quot;usb start&quot; 替换成 &quot;bootm 0x40200000 - $&#123;fdtcontroladdr&#125;&quot;。</span></span><br><span class="line"><span class="comment"># 这一修改的目的是让 U-Boot 启动时直接从内存地址0x40200000加载内核镜像。</span></span><br><span class="line"><span class="comment"># Set preboot</span></span><br><span class="line">sed -i <span class="string">&#x27;s/CONFIG_PREBOOT=&quot;usb start&quot;/CONFIG_PREBOOT=&quot;bootm 0x40200000 - $&#123;fdtcontroladdr&#125;&quot;/g&#x27;</span> <span class="string">&quot;./.config&quot;</span></span><br><span class="line">make CROSS_COMPILE=aarch64-linux-gnu- -j4</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>sed -i &#39;s/CONFIG_PREBOOT=&quot;usb start&quot;/CONFIG_PREBOOT=&quot;bootm 0x40200000</code> </li>
+<li>这个修改目的是让<code>uboot</code>先使用<code>bootm</code>从内存地址<code>0x40200000</code>加载镜像</li>
+</ul>
+<h3 id="3-3-Xhyper镜像生成"><a href="#3-3-Xhyper镜像生成" class="headerlink" title="3.3 Xhyper镜像生成"></a>3.3 Xhyper镜像生成</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line">load_addr=0x40200000</span><br><span class="line">entry_point=0x40200000</span><br><span class="line">output_name=X-Hyper_Uimage</span><br><span class="line">image_name=X-Hyper</span><br><span class="line"></span><br><span class="line"><span class="built_in">cd</span> guest </span><br><span class="line">make clean</span><br><span class="line">make </span><br><span class="line"></span><br><span class="line"><span class="built_in">cd</span> ..</span><br><span class="line">make </span><br><span class="line"><span class="built_in">cd</span> build</span><br><span class="line"><span class="comment"># mkimage</span></span><br><span class="line">mkimage -A arm64 -O linux -C none -a <span class="variable">$load_addr</span> -e <span class="variable">$entry_point</span> -d <span class="variable">$&#123;image_name&#125;</span> <span class="variable">$&#123;output_name&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># -A arm64：指定架构为 ARM64。</span></span><br><span class="line"><span class="comment"># -O linux：指定操作系统为 Linux。</span></span><br><span class="line"><span class="comment"># -C none：不压缩内核（若内核已压缩，可改为-C gzip）。</span></span><br><span class="line"><span class="comment"># -a $load_addr：设置加载地址为 0x40200000。</span></span><br><span class="line"><span class="comment"># -e $entry_point：设置入口点地址为 0x40200000。</span></span><br><span class="line"><span class="comment"># -d $&#123;image_name&#125;：输入文件为X-Hyper（编译生成的内核）。</span></span><br><span class="line"><span class="comment"># $&#123;output_name&#125;：输出 UImage 文件名为X-Hyper_Uimage。</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>使用<code>mkimage</code>来生成*<code>X-Hyper_Uimage</code>*<em>，</em>这样得到的镜像会包含一个<code>UImage Header</code></li>
+</ul>
+<p><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-2-Xhyper%E5%90%AF%E5%8A%A8/17689237041051.png" alt="img"></p>
+<ul>
+<li>此头部的信息可以使用如下的命令看见</li>
+</ul>
+<p><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-2-Xhyper%E5%90%AF%E5%8A%A8/17689237041062.png" alt="img"></p>
+<p>Ulmage Header 中关键的两个值:</p>
+<ul>
+<li><strong>Load Address</strong> :即 U-boot 加载管理器镜像的内存地址，在 U-boot 中使用 bootm 加载Ulmage 后，U-boot 会解析 Ulmage 的 Header，并根据 Load Address 将 Uimage 的虚拟机管理器镜像文件重新加载到 0x40200000 处;</li>
+<li><strong>Entry Point</strong>: U-boot 加载完虚拟机管理器镜像文件到指定内存地址后，再根据Entry Point 跳转到0x40200000 处，也就是虚拟机管理器镜像文件中的的start 处开始执行程序;</li>
+</ul>
+<p>流程如下：</p>
+<p><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-2-Xhyper%E5%90%AF%E5%8A%A8/17689237041063.png" alt="img"></p>
+<h3 id="3-4-Guest管理"><a href="#3-4-Guest管理" class="headerlink" title="3.4 Guest管理"></a>3.4 Guest管理</h3><h4 id="3-4-1-Guest-os-镜像生成"><a href="#3-4-1-Guest-os-镜像生成" class="headerlink" title="3.4.1 Guest os 镜像生成"></a>3.4.1 Guest os 镜像生成</h4><p>Guest os 的镜像文件编译后链接首先生成<code>Guest_VM.elf</code></p>
+<p><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-2-Xhyper%E5%90%AF%E5%8A%A8/17689237041064.png" alt="img"></p>
+<p>然后通过<code>objcopy</code>指令转换成去除<code>elf</code>头部的二进制可执行文件<code>Guest_VM</code>，最后通过<code>ld</code>指令将<code>Guest_VM</code>转换成可重定位目标文件<code>Guest_VM.o</code></p>
+<p><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-2-Xhyper%E5%90%AF%E5%8A%A8/17689237041065.png" alt="img"></p>
+<p>Xhyper通过链接<code>Guest_VM.o</code>将<code>Guest os</code>的镜像加入到<code>xhper</code>的镜像文件中：</p>
+<p><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-2-Xhyper%E5%90%AF%E5%8A%A8/17689237041066.png" alt="img"></p>
+<ul>
+<li>其中<code>Guest_VM.o</code>的链接地址定义再<code>layout.h</code>中：<code>#define HIMAGE_VADDR    0x40200000</code></li>
+</ul>
+<p><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-2-Xhyper%E5%90%AF%E5%8A%A8/17689237041067.png" alt="img"></p>
+<ul>
+<li>通过如下指令可以看见被链接的<code>Guest_VM.o</code>镜像的信息</li>
+</ul>
+<p><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-2-Xhyper%E5%90%AF%E5%8A%A8/17689237041068.png" alt="img"></p>
+<ul>
+<li>输出的三行是 <code>ld</code> 链接器在处理二进制文件时自动生成的符号，对应之前通过 <code>ld -r -b binary</code> 转换的二进制文件</li>
+</ul>
+<h4 id="3-4-2-Xhyper读入Guest-os"><a href="#3-4-2-Xhyper读入Guest-os" class="headerlink" title="3.4.2 Xhyper读入Guest os"></a>3.4.2 Xhyper读入Guest os</h4><p>首先定义一个<code>guest</code>结构体用来描述一个<code>guest os</code>的镜像：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">//vm.h</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">guest</span> &#123;</span></span><br><span class="line">    <span class="type">char</span> *guest_name;</span><br><span class="line">    u64   start_addr;</span><br><span class="line">    u64   end_addr;</span><br><span class="line">    u64   image_size;</span><br><span class="line">&#125; <span class="type">guest_t</span>;</span><br></pre></td></tr></table></figure>
+
+<p>定义<code>guest_vm_image</code>来读取：</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">//guest.c</span></span><br><span class="line"><span class="comment">/* Guest vm image are packaged in X-Hyper Image with aarch64-linux-gnu--ld */</span></span><br><span class="line"><span class="keyword">extern</span> <span class="type">char</span> _binary_build_Guest_VM_start[];</span><br><span class="line"><span class="keyword">extern</span> <span class="type">char</span> _binary_build_Guest_VM_end[];</span><br><span class="line"><span class="keyword">extern</span> <span class="type">char</span> _binary_build_Guest_VM_size[];</span><br><span class="line"></span><br><span class="line"><span class="type">guest_t</span> guest_vm_image = &#123;</span><br><span class="line">    .guest_name  = <span class="string">&quot;guest_vm&quot;</span>,</span><br><span class="line">    .start_addr  = (u64)_binary_build_Guest_VM_start,</span><br><span class="line">    .image_size  = (u64)_binary_build_Guest_VM_size,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>接着定义<code>vm</code>配置结构体，用<code>vm_config_t</code>来代替一个<code>Guest os</code></p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">vm_config</span> &#123;</span></span><br><span class="line">    <span class="type">guest_t</span> *guest_image;</span><br><span class="line">    <span class="type">guest_t</span> *guest_dtb;</span><br><span class="line">    <span class="type">guest_t</span> *guest_initrd;</span><br><span class="line">    u64      entry_addr;</span><br><span class="line">&#125; <span class="type">vm_config_t</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">extern</span> <span class="type">guest_t</span> guest_vm_image;</span><br><span class="line"><span class="type">vm_config_t</span> guest_vm_cfg = &#123;</span><br><span class="line">    .guest_image  = &amp;guest_vm_image,</span><br><span class="line">    .guest_dtb    = <span class="literal">NULL</span>,</span><br><span class="line">    .guest_initrd = <span class="literal">NULL</span>,</span><br><span class="line">    .entry_addr   = <span class="number">0x80200000</span>,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="https://yanglianoo.github.io">Timer</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://yanglianoo.github.io/2026/01/20/Xhyper%E5%89%96%E6%9E%90-2-Xhyper%E5%90%AF%E5%8A%A8/">https://yanglianoo.github.io/2026/01/20/Xhyper剖析-2-Xhyper启动/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://yanglianoo.github.io" target="_blank">TimerのBlog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/ARM64/">ARM64</a><a class="post-meta__tags" href="/tags/Hypervisor/">Hypervisor</a></div><div class="post_share"><div class="social-share" data-image="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-2-Xhyper%E5%90%AF%E5%8A%A8/17689237041079.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><div class="post-reward"><div class="reward-button"><i class="fas fa-qrcode"></i> 打赏</div><div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/img/wechat.jpg" target="_blank"><img class="post-qr-code-img" src="/img/wechat.jpg" alt="微信"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="/img/alipay.jpg" target="_blank"><img class="post-qr-code-img" src="/img/alipay.jpg" alt="支付宝"/></a><div class="post-qr-code-desc">支付宝</div></li></ul></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-3-Xhyper%E5%86%85%E5%AD%98%E8%99%9A%E6%8B%9F%E5%8C%96/" title="Xhyper剖析[3]--Xhyper内存虚拟化"><img class="cover" src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-3-Xhyper%E5%86%85%E5%AD%98%E8%99%9A%E6%8B%9F%E5%8C%96/176892388736321.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">Xhyper剖析[3]--Xhyper内存虚拟化</div></div></a></div><div class="next-post pull-right"><a href="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/" title="Xhyper剖析[1]--ARM64基础知识"><img class="cover" src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/176892275018318.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">Xhyper剖析[1]--ARM64基础知识</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/" title="Xhyper剖析[1]--ARM64基础知识"><img class="cover" src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/176892275018318.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-20</div><div class="title">Xhyper剖析[1]--ARM64基础知识</div></div></a></div><div><a href="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-3-Xhyper%E5%86%85%E5%AD%98%E8%99%9A%E6%8B%9F%E5%8C%96/" title="Xhyper剖析[3]--Xhyper内存虚拟化"><img class="cover" src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-3-Xhyper%E5%86%85%E5%AD%98%E8%99%9A%E6%8B%9F%E5%8C%96/176892388736321.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-20</div><div class="title">Xhyper剖析[3]--Xhyper内存虚拟化</div></div></a></div><div><a href="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-4-XhyperCPU%E8%99%9A%E6%8B%9F%E5%8C%96/" title="Xhyper剖析[4]--XhyperCPU虚拟化"><img class="cover" src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-4-XhyperCPU%E8%99%9A%E6%8B%9F%E5%8C%96/17689241119091.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-20</div><div class="title">Xhyper剖析[4]--XhyperCPU虚拟化</div></div></a></div><div><a href="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-5-MMIO%E8%99%9A%E6%8B%9F%E5%8C%96/" title="Xhyper剖析[5]--MMIO虚拟化"><img class="cover" src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-5-MMIO%E8%99%9A%E6%8B%9F%E5%8C%96/17689243819381.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-20</div><div class="title">Xhyper剖析[5]--MMIO虚拟化</div></div></a></div><div><a href="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-6-%E4%B8%AD%E6%96%AD%E8%99%9A%E6%8B%9F%E5%8C%96/" title="Xhyper剖析[6]--中断虚拟化"><img class="cover" src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-6-%E4%B8%AD%E6%96%AD%E8%99%9A%E6%8B%9F%E5%8C%96/17689244713913.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-20</div><div class="title">Xhyper剖析[6]--中断虚拟化</div></div></a></div><div><a href="/2024/06/07/Linux%E5%86%85%E6%A0%B8%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/" title="Linux内核启动流程分析"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-06-07</div><div class="title">Linux内核启动流程分析</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/head.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">Timer</div><div class="author-info__description">没有一个健康的身体，如何支撑我龌龊的灵魂!</div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">33</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">28</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">9</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/yanglianoo"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/yanglianoo" target="_blank" title="Github"><i class="fab fa-github" style="color: #24292e;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">个人微信：13699648817</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content is-expand"><ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E8%AE%BE%E5%A4%87%E5%86%85%E5%AD%98%E5%88%86%E5%B8%83"><span class="toc-text">3.1 设备内存分布</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-uboot%E9%85%8D%E7%BD%AE"><span class="toc-text">3.2 uboot配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-Xhyper%E9%95%9C%E5%83%8F%E7%94%9F%E6%88%90"><span class="toc-text">3.3 Xhyper镜像生成</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-Guest%E7%AE%A1%E7%90%86"><span class="toc-text">3.4 Guest管理</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#3-4-1-Guest-os-%E9%95%9C%E5%83%8F%E7%94%9F%E6%88%90"><span class="toc-text">3.4.1 Guest os 镜像生成</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-4-2-Xhyper%E8%AF%BB%E5%85%A5Guest-os"><span class="toc-text">3.4.2 Xhyper读入Guest os</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-6-%E4%B8%AD%E6%96%AD%E8%99%9A%E6%8B%9F%E5%8C%96/" title="Xhyper剖析[6]--中断虚拟化"><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-6-%E4%B8%AD%E6%96%AD%E8%99%9A%E6%8B%9F%E5%8C%96/17689244713913.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Xhyper剖析[6]--中断虚拟化"/></a><div class="content"><a class="title" href="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-6-%E4%B8%AD%E6%96%AD%E8%99%9A%E6%8B%9F%E5%8C%96/" title="Xhyper剖析[6]--中断虚拟化">Xhyper剖析[6]--中断虚拟化</a><time datetime="2026-01-20T15:54:17.000Z" title="发表于 2026-01-20 23:54:17">2026-01-20</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-5-MMIO%E8%99%9A%E6%8B%9F%E5%8C%96/" title="Xhyper剖析[5]--MMIO虚拟化"><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-5-MMIO%E8%99%9A%E6%8B%9F%E5%8C%96/17689243819381.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Xhyper剖析[5]--MMIO虚拟化"/></a><div class="content"><a class="title" href="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-5-MMIO%E8%99%9A%E6%8B%9F%E5%8C%96/" title="Xhyper剖析[5]--MMIO虚拟化">Xhyper剖析[5]--MMIO虚拟化</a><time datetime="2026-01-20T15:52:10.000Z" title="发表于 2026-01-20 23:52:10">2026-01-20</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-4-XhyperCPU%E8%99%9A%E6%8B%9F%E5%8C%96/" title="Xhyper剖析[4]--XhyperCPU虚拟化"><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-4-XhyperCPU%E8%99%9A%E6%8B%9F%E5%8C%96/17689241119091.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Xhyper剖析[4]--XhyperCPU虚拟化"/></a><div class="content"><a class="title" href="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-4-XhyperCPU%E8%99%9A%E6%8B%9F%E5%8C%96/" title="Xhyper剖析[4]--XhyperCPU虚拟化">Xhyper剖析[4]--XhyperCPU虚拟化</a><time datetime="2026-01-20T15:48:15.000Z" title="发表于 2026-01-20 23:48:15">2026-01-20</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-3-Xhyper%E5%86%85%E5%AD%98%E8%99%9A%E6%8B%9F%E5%8C%96/" title="Xhyper剖析[3]--Xhyper内存虚拟化"><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-3-Xhyper%E5%86%85%E5%AD%98%E8%99%9A%E6%8B%9F%E5%8C%96/176892388736321.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Xhyper剖析[3]--Xhyper内存虚拟化"/></a><div class="content"><a class="title" href="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-3-Xhyper%E5%86%85%E5%AD%98%E8%99%9A%E6%8B%9F%E5%8C%96/" title="Xhyper剖析[3]--Xhyper内存虚拟化">Xhyper剖析[3]--Xhyper内存虚拟化</a><time datetime="2026-01-20T15:44:25.000Z" title="发表于 2026-01-20 23:44:25">2026-01-20</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-2-Xhyper%E5%90%AF%E5%8A%A8/" title="Xhyper剖析[2]--Xhyper启动"><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-2-Xhyper%E5%90%AF%E5%8A%A8/17689237041079.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Xhyper剖析[2]--Xhyper启动"/></a><div class="content"><a class="title" href="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-2-Xhyper%E5%90%AF%E5%8A%A8/" title="Xhyper剖析[2]--Xhyper启动">Xhyper剖析[2]--Xhyper启动</a><time datetime="2026-01-20T15:38:23.000Z" title="发表于 2026-01-20 23:38:23">2026-01-20</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('/2026/01/20/Xhyper%E5%89%96%E6%9E%90-2-Xhyper%E5%90%AF%E5%8A%A8/17689237041079.png')"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2026 By Timer</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><div class="js-pjax"></div><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/fireworks.min.js"></script><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div class="no-result" id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js"></script></div></div></body></html>
