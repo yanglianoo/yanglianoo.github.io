@@ -1,0 +1,239 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>CyberRt源码剖析--05基于共享内存的通信实现 | TimerのBlog</title><meta name="author" content="Timer"><meta name="copyright" content="Timer"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="5.1 什么是共享内存共享内存（Shared Memory）是操作系统层面实现高效进程间通信（Inter-Process Communication, IPC）的关键机制，其核心设计理念在于突破传统进程间内存隔离的限制，使多个进程能够直接访问同一物理内存区域，从而显著提升数据传输效率并减少通信过程中的数据复制开销。  5.2 CyberRT共享内存通信模型 发送进程中的Transmitter在发送">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CyberRt源码剖析--05基于共享内存的通信实现">
+<meta property="og:url" content="https://yanglianoo.github.io/2026/01/20/CyberRt%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-05%E5%9F%BA%E4%BA%8E%E5%85%B1%E4%BA%AB%E5%86%85%E5%AD%98%E7%9A%84%E9%80%9A%E4%BF%A1%E5%AE%9E%E7%8E%B0/index.html">
+<meta property="og:site_name" content="TimerのBlog">
+<meta property="og:description" content="5.1 什么是共享内存共享内存（Shared Memory）是操作系统层面实现高效进程间通信（Inter-Process Communication, IPC）的关键机制，其核心设计理念在于突破传统进程间内存隔离的限制，使多个进程能够直接访问同一物理内存区域，从而显著提升数据传输效率并减少通信过程中的数据复制开销。  5.2 CyberRT共享内存通信模型 发送进程中的Transmitter在发送">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yanglianoo.github.io/2026/01/20/CyberRt%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-05%E5%9F%BA%E4%BA%8E%E5%85%B1%E4%BA%AB%E5%86%85%E5%AD%98%E7%9A%84%E9%80%9A%E4%BF%A1%E5%AE%9E%E7%8E%B0/17689214877461.png">
+<meta property="article:published_time" content="2026-01-20T15:04:27.000Z">
+<meta property="article:modified_time" content="2026-01-20T15:05:27.852Z">
+<meta property="article:author" content="Timer">
+<meta property="article:tag" content="CyberRt">
+<meta property="article:tag" content="c++">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://yanglianoo.github.io/2026/01/20/CyberRt%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-05%E5%9F%BA%E4%BA%8E%E5%85%B1%E4%BA%AB%E5%86%85%E5%AD%98%E7%9A%84%E9%80%9A%E4%BF%A1%E5%AE%9E%E7%8E%B0/17689214877461.png"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://yanglianoo.github.io/2026/01/20/CyberRt%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-05%E5%9F%BA%E4%BA%8E%E5%85%B1%E4%BA%AB%E5%86%85%E5%AD%98%E7%9A%84%E9%80%9A%E4%BF%A1%E5%AE%9E%E7%8E%B0/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"languages":{"hits_empty":"找不到您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":500},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: {"chs_to_cht":"你已切换为繁体","cht_to_chs":"你已切换为简体","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"bottom-left"},
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'CyberRt源码剖析--05基于共享内存的通信实现',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2026-01-20 23:05:27'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+    win.getCSS = (url,id = false) => new Promise((resolve, reject) => {
+      const link = document.createElement('link')
+      link.rel = 'stylesheet'
+      link.href = url
+      if (id) link.id = id
+      link.onerror = reject
+      link.onload = link.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        link.onload = link.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(link)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/background.css"><meta name="generator" content="Hexo 6.3.0"><link rel="alternate" href="/atom.xml" title="TimerのBlog" type="application/atom+xml">
+</head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/head.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">28</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">29</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">8</div></a></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/2026/01/20/CyberRt%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-05%E5%9F%BA%E4%BA%8E%E5%85%B1%E4%BA%AB%E5%86%85%E5%AD%98%E7%9A%84%E9%80%9A%E4%BF%A1%E5%AE%9E%E7%8E%B0/17689214877461.png')"><nav id="nav"><span id="blog-info"><a href="/" title="TimerのBlog"><span class="site-name">TimerのBlog</span></a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search" href="javascript:void(0);"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">CyberRt源码剖析--05基于共享内存的通信实现</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-01-20T15:04:27.000Z" title="发表于 2026-01-20 23:04:27">2026-01-20</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-01-20T15:05:27.852Z" title="更新于 2026-01-20 23:05:27">2026-01-20</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E7%99%BE%E5%BA%A6Apollo-CyberRt%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/">百度Apollo CyberRt源码剖析</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="CyberRt源码剖析--05基于共享内存的通信实现"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h2 id="5-1-什么是共享内存"><a href="#5-1-什么是共享内存" class="headerlink" title="5.1 什么是共享内存"></a>5.1 什么是共享内存</h2><p>共享内存（Shared Memory）是操作系统层面实现高效进程间通信（Inter-Process Communication, IPC）的关键机制，其核心设计理念在于突破传统进程间内存隔离的限制，使多个进程能够直接访问同一物理内存区域，从而显著提升数据传输效率并减少通信过程中的数据复制开销。</p>
+<p><img src="/2026/01/20/CyberRt%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-05%E5%9F%BA%E4%BA%8E%E5%85%B1%E4%BA%AB%E5%86%85%E5%AD%98%E7%9A%84%E9%80%9A%E4%BF%A1%E5%AE%9E%E7%8E%B0/17689214877479.png" alt="img"></p>
+<h2 id="5-2-CyberRT共享内存通信模型"><a href="#5-2-CyberRT共享内存通信模型" class="headerlink" title="5.2 CyberRT共享内存通信模型"></a>5.2 CyberRT共享内存通信模型</h2><p><img src="/2026/01/20/CyberRt%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-05%E5%9F%BA%E4%BA%8E%E5%85%B1%E4%BA%AB%E5%86%85%E5%AD%98%E7%9A%84%E9%80%9A%E4%BF%A1%E5%AE%9E%E7%8E%B0/17689214877461.png" alt="img"></p>
+<p>发送进程中的Transmitter在发送数据时会绑定一个确定的<code>channel_id</code>，同时根据此<code>channel_id</code>去创建一片共享内存，这片共享内存被定义成一个<code>Segment</code>。接收进程中的<code>Receiver</code>也会存在自己所关注的<code>channel_id</code>，在接收进程设计了一个<code>SegmentMap：&lt;channel_id, Segment&gt;</code>的数据结构，<code>SegmentMap</code>保存了<code>channel_id</code>和对应共享内存<code>Segment</code>之间的索引关系，<code>Receiver</code>在获取对应<code>channel_id</code>上的数据时会首先向<code>SegmentMap</code>中注册，后续获取数据通过去<code>SegmentMap</code>根据<code>channel_id</code>找到<code>Segment</code>从而拿到数据。<code>Transmitter</code>在向一个<code>Segment</code>写入数据后会发送通知信息代表自己已经将数据写入完毕，<code>Receiver</code>可以从此<code>Segment</code>中拿到数据。通知信息被定义为<code>ReadableInfo</code>，在同一主机中会专门创建一块名为<code>Indicator</code>的共享内存用于存放这些通知信息。在接收进程中<code>Dispatcher</code>用于监测是否有<code>Segment</code>上的数据被更新写入了，<code>Dispatcher</code>内部会有一个单独的线程不断的去遍历读取<code>Indicator</code>上的通知消息来判断是哪个<code>channel_id</code>上的<code>Transmitter</code>发送了数据，即如果发送进程的<code>Transmitter</code>向其<code>channel_id</code>对应的<code>Segment</code>写入数据了则<code>Dispatcher</code>会实时监测到将数据分发给订阅者。</p>
+<h3 id="5-2-1-Segment定义"><a href="#5-2-1-Segment定义" class="headerlink" title="5.2.1 Segment定义"></a>5.2.1 Segment定义</h3><p>Segment的内存结构定义如图所示，每个Segment共享的内容有：一个State、n个Block、n个Buffer、一个Unused。State控制的是当前Segment进程间的共享状态；Buffer储存了Transmitter发送的每条数据；Block控制了Buffer的读写状态；Unused为未使用内存区域，设置为冗余内存。</p>
+<p><img src="/2026/01/20/CyberRt%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-05%E5%9F%BA%E4%BA%8E%E5%85%B1%E4%BA%AB%E5%86%85%E5%AD%98%E7%9A%84%E9%80%9A%E4%BF%A1%E5%AE%9E%E7%8E%B0/17689214877462.png" alt="img"></p>
+<p>一个Segment的内存占用大小是和想要传递的消息数据大小息息相关的。具体地，比如假设传递的一条消息的大小在10kb~100kb，则对应第2条规则，首先规则中定义了每个Block的大小为1024字节，一个Segment中Block个数为128，buffer的个数也对应为128个，一个buffer由两部分组成：承载消息的Message和额外的MessageInfo。MessageInfo的大小固定为1024个字节，因此此时一个buffer的大小就是128kb+1kb &#x3D;129kb。除此之外规定Segment头部的State的大小为1024字节，Segment的尾部未使用的部分占用的大小为1024*4&#x3D;4kb。</p>
+<table>
+<thead>
+<tr>
+<th><strong>消息大小</strong></th>
+<th><strong>Block数量</strong></th>
+<th><strong>Buffer数量</strong></th>
+<th><strong>消息占用<strong><strong>内存</strong></strong>（字节）</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0~16k</td>
+<td>512</td>
+<td>512</td>
+<td>1024*16</td>
+</tr>
+<tr>
+<td>16k~128k</td>
+<td>128</td>
+<td>128</td>
+<td>1024*128</td>
+</tr>
+<tr>
+<td>128k~1M</td>
+<td>64</td>
+<td>64</td>
+<td>1024*1024</td>
+</tr>
+<tr>
+<td>1M~8M</td>
+<td>32</td>
+<td>32</td>
+<td>1024<em>1024</em>8</td>
+</tr>
+<tr>
+<td>8M~16M</td>
+<td>16</td>
+<td>16</td>
+<td>1024<em>1024</em>16</td>
+</tr>
+<tr>
+<td>16M~32M</td>
+<td>8</td>
+<td>8</td>
+<td>1024<em>1024</em>32</td>
+</tr>
+</tbody></table>
+<p>State由四个原子变量组成，need_remap_用于控制当前的Segment是否需要重新映射，ceiling_msg_size_代表消息数据的大小即一个Buffer的字节数，从上面的规则可以看出，如果数据消息越大，那么Segment维护的队列长度越短。seq_代表的是当前正在写的Block的索引，Transmitter每发送一条消息就会去写入一个Block和一个Buffer，每次写完数据后就会将seq+1，reference_count代表使用这片内存的用户的个数。</p>
+<p><img src="/2026/01/20/CyberRt%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-05%E5%9F%BA%E4%BA%8E%E5%85%B1%E4%BA%AB%E5%86%85%E5%AD%98%E7%9A%84%E9%80%9A%E4%BF%A1%E5%AE%9E%E7%8E%B0/17689214877473.png" alt="img"></p>
+<p>Block由三个原子变量组成，，lock_num_用于控制Block对应的那个buffer的读写互斥，用于做到进程间的安全读写，msg_size__和msg_info_size_代表着消息的长度。</p>
+<p><img src="/2026/01/20/CyberRt%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-05%E5%9F%BA%E4%BA%8E%E5%85%B1%E4%BA%AB%E5%86%85%E5%AD%98%E7%9A%84%E9%80%9A%E4%BF%A1%E5%AE%9E%E7%8E%B0/17689214877474.png" alt="img"></p>
+<h3 id="5-2-2-Indicator定义"><a href="#5-2-2-Indicator定义" class="headerlink" title="5.2.2 Indicator定义"></a>5.2.2 Indicator定义</h3><p>为了实现多进程间各发布者和订阅者之间的消息通知机制，创建了一个特殊的数据结构Indicator，当第一个发布节点启动后则会去开辟一块全局唯一的共享内存用于存放Indicator。此Indicator是同主机上所有发布者和订阅者共享的</p>
+<p><img src="/2026/01/20/CyberRt%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-05%E5%9F%BA%E4%BA%8E%E5%85%B1%E4%BA%AB%E5%86%85%E5%AD%98%E7%9A%84%E9%80%9A%E4%BF%A1%E5%AE%9E%E7%8E%B0/17689214877475.png" alt="img"></p>
+<p>Indicator为一个队列形的数据结构，可存储4096个ReadableInfo，每个ReadableInfo会对应一个索引，此索引会被写入到Indicator尾部的seq数组中，因此seq数组的大小也为4096。头部的next_seq是一个原子变量代表着下一个可写的ReadableInfo的索引，host_id为每个主机的唯一标识；channel_id 即代表发布者向哪个channel_id上的Segment写入数据；block_index即代表着写入数据的Segment的block索引。</p>
+<p><img src="/2026/01/20/CyberRt%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-05%E5%9F%BA%E4%BA%8E%E5%85%B1%E4%BA%AB%E5%86%85%E5%AD%98%E7%9A%84%E9%80%9A%E4%BF%A1%E5%AE%9E%E7%8E%B0/17689214877476.png" alt="img"></p>
+<h2 id="5-3-基于共享内存的发布方实现"><a href="#5-3-基于共享内存的发布方实现" class="headerlink" title="5.3 基于共享内存的发布方实现"></a>5.3 <strong>基于<strong><strong>共享内存</strong></strong>的发布方实现</strong></h2><p>通信架构中ShmTransmitter会实现基于共享内存的发布方，其软件架构如图所示。根据通信流程可知，ShmTransmitter会向一个channel上写数据，并且写入的数据结构类型也是发送方事先确定好的，每个channel会对应一个Segment，因此ShmTransmitter在发布数据时会先去根据要发布的数据结构的类型和大小根据上述的规则去创建一片Segment，即在重载的Enable函数中会根据当前Transmitter的channel_id去新建一块Segment，Segment为一片全局的共享内存，在linux环境下有两种方式来创建共享内存，分别是基于System V IPC和 POSIX IPC，使用这两种方式都可以。</p>
+<p><img src="/2026/01/20/CyberRt%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-05%E5%9F%BA%E4%BA%8E%E5%85%B1%E4%BA%AB%E5%86%85%E5%AD%98%E7%9A%84%E9%80%9A%E4%BF%A1%E5%AE%9E%E7%8E%B0/17689214877477.png" alt="img"></p>
+<p>在创建完毕Segment后就可以往这片Segment上写入数据了，通过Transmitt函数来实现。数据写入的目标是向Segment中的其中一个Block和对应的Buffer填入数据，因此需要事先拿到一个Buffer的索引，而State的seq_就记录了该索引。State中的seq_初始值为0，每一次获取可写的Block索引时都会将seq_的值增加1，如果seq_的值超过了当前Segment的Block的数量，则从头轮转，即使用取余操作，使得seq_的值限定在0和Block的数量数量之间。同时获取可写的Block索引这步操作是一个循环操作，只有在确定拿到的这个Block的索引对应的Block是可写的才会将此索引返回从而跳出循环操作。Block是根据头部的lock_num_来进行读写互斥的，lock_num_是一个原子变量，初始值为0，因此对此变量的读写是进程安全的，假设当前的Block是可写的，那么会去原子性的判断ock_num_的值是否为0，如果为0，则将lock_num_的值置为负数，代表有一个进程已经占用了此Block，如果此时有另外一个进程也想来对此Block进行写入，则先判断lock_num_的值发现为负数，则不可被此进程进行写。</p>
+<p>通过上面的操作就能从Segment中去拿到一个可写的Block和对应的Buffer，接着就是向此Block和Buffer写入数据，当写入数据后需要释放对此Block和Buffer的独占所有权，这里就是将此Block的lock_num_的值重新置为0，说明没有进程在对此Block写入数据了。</p>
+<p>当ShmTransmitter向一个channel_id上的Segment中的某个Block和Buffer上写入完毕数据后，接着需要填充一个ReadableInfo，因此首先需要向Indicator中请求，此时全局的Indicator头部的next_seq就是可写的ReadableInfo的索引，发布者写入ReadableInfo之前会将next_seq原子性的增加1，然后再向拿到的索引处写入通知信息。</p>
+<p>订阅者进程中会不断读取Indicator上的ReadableInfo的信息进行数据分发，具体来说内部会单独启用一个线程，此线程的主体为一个无限循环的函数，内部会单独保存一个本地的seq索引，初始值为0。线程循环函数会循环读取Indicator头部的next_seq的值和本地的seq进行比对，如果next_seq的值不等于本地的seq则说明由其他发布者发布了数据并且写入了ReadableInfo，此时就可根据本地保存的seq去Indicator索引seq数组，然后将本地的seq更新为seq数组中的值，接着就可去拿到本地seq对应的ReadableInfo，最后比对channel_id判断当前发布者进程是否包含此channel_id的订阅者，如果存在则根据channel_id去索引Segment，然后根据ReadableInfo中的block_index去把发布者写入的数据读取出来。</p>
+<h2 id="5-4-基于共享内存的订阅方实现"><a href="#5-4-基于共享内存的订阅方实现" class="headerlink" title="5.4 基于共享内存的订阅方实现"></a>5.4 <strong>基于<strong><strong>共享内存</strong></strong>的订阅方实现</strong></h2><p><img src="/2026/01/20/CyberRt%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-05%E5%9F%BA%E4%BA%8E%E5%85%B1%E4%BA%AB%E5%86%85%E5%AD%98%E7%9A%84%E9%80%9A%E4%BF%A1%E5%AE%9E%E7%8E%B0/17689214877478.png" alt="img"></p>
+<p>基于共享内存的数据订阅方由ShmReceiver与ShmDispatcher联合实现，具体设计如图所示，ShmReceiver的实现和RtpsReceiver类似，会把传入ShmReceiver的回调函数进行打包后然后调用ShmDispatcher的AddListener函数。在ShmDispatcher中定义了SegmentMap：&lt;channel_id, Segment&gt;，用于保存channel_id和Segment的索引关系，在AddListener函数中会根据ShmReceiver的channel_id去创建一块Segment，创建完毕后就会将索引关系注册到SegmentMap中。在ShmDispatcher中单独创建了一个独立的线程thread_,此线程的执行主体为ThreadFunc函数，在ThreadFunc函数内部会不断地轮询Indicator去获取ReadableInfo，如果有ShmTransmitter发送了数据则就会往Indicator中写入一条新的ReadableInfo，此时会被ThreadFunc捕捉到，如果此ReadableInfo的channel_id能在SegmentMap中查找到则说明是当前进程的ShmReceiver订阅的。随后将读取到的ReadableInfo传递给ReadMessage函数处理，在ReadMessage函数中会取出对应的Segment，再从此Segment中取出Block和Buffer，最后将Buffer中的Message和MessageInfo传递给OnMessage函数，最后通过信号槽机制执行回调处理。</p>
+<p>在通信中间件框架中，拓扑机制是实现网络节点互联管理的核心组成部分，其设计目标在于确保分布式系统中节点加入或退出时，网络能够动态调整并维持通信的连贯性与一致性。拓扑结构本质上是网络中各站点互联形式的抽象表达，在本文设计的通信中间件中体现为：当一个新节点加入通信平面时，其他节点通过广播机制感知其存在并更新全局拓扑图。新节点可能扮演发布者或订阅者的角色，在正式参与数据交互前，需广播其属性信息，以便网络中的其他节点据此建立连接。然而，如何高效地表示和管理这种动态的节点关系，是拓扑机制设计的关键问题。</p>
+<p>在分布式系统中，节点间的通信关系具有方向性（例如从发布者到订阅者的数据流）和动态性（节点可能随时加入或退出），这对拓扑表示方法提出了较高要求。有向图作为一种经典的图论模型，能够以O(V+E)（E为边数）的空间复杂度高效表示稀疏网络，同时通过邻接表或边列表结构支持节点的动态增删操作。此外，有向图天然支持方向性关系的表达，能够清晰刻画发布者到订阅者的单向数据流，符合发布-订阅架构的通信特性。因此，本文选择基于有向图构建拓扑机制，以充分利用其在表示复杂网络关系、支持动态调整及优化查询效率方面的优势。</p>
+<p>在具体实现中，本设计通过有向图抽象分布式系统中节点间的通信关系，其中顶点表示通信实体，有向边表示数据流方向（如从发布者到订阅者的Channel连接）。当新节点加入时，其属性信息通过广播分发，其他节点据此更新本地拓扑图，从而实现网络的自适应调整。以下将从角色定义、底层数据结构及动态管理三个方面，详细阐述该机制的设计与实现。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="https://yanglianoo.github.io">Timer</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://yanglianoo.github.io/2026/01/20/CyberRt%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-05%E5%9F%BA%E4%BA%8E%E5%85%B1%E4%BA%AB%E5%86%85%E5%AD%98%E7%9A%84%E9%80%9A%E4%BF%A1%E5%AE%9E%E7%8E%B0/">https://yanglianoo.github.io/2026/01/20/CyberRt源码剖析-05基于共享内存的通信实现/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://yanglianoo.github.io" target="_blank">TimerのBlog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/CyberRt/">CyberRt</a><a class="post-meta__tags" href="/tags/c/">c++</a></div><div class="post_share"><div class="social-share" data-image="/2026/01/20/CyberRt%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-05%E5%9F%BA%E4%BA%8E%E5%85%B1%E4%BA%AB%E5%86%85%E5%AD%98%E7%9A%84%E9%80%9A%E4%BF%A1%E5%AE%9E%E7%8E%B0/17689214877461.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><div class="post-reward"><div class="reward-button"><i class="fas fa-qrcode"></i> 打赏</div><div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/img/wechat.jpg" target="_blank"><img class="post-qr-code-img" src="/img/wechat.jpg" alt="微信"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="/img/alipay.jpg" target="_blank"><img class="post-qr-code-img" src="/img/alipay.jpg" alt="支付宝"/></a><div class="post-qr-code-desc">支付宝</div></li></ul></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2026/01/20/CyberRt%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-06%E5%9F%BA%E4%BA%8E%E6%9C%89%E5%90%91%E5%9B%BE%E7%9A%84%E6%8B%93%E6%89%91%E6%9C%BA%E5%88%B6%E8%AE%BE%E8%AE%A1/" title="CyberRt源码剖析--06基于有向图的拓扑机制设计"><img class="cover" src="/2026/01/20/CyberRt%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-06%E5%9F%BA%E4%BA%8E%E6%9C%89%E5%90%91%E5%9B%BE%E7%9A%84%E6%8B%93%E6%89%91%E6%9C%BA%E5%88%B6%E8%AE%BE%E8%AE%A1/17689216018181.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">CyberRt源码剖析--06基于有向图的拓扑机制设计</div></div></a></div><div class="next-post pull-right"><a href="/2026/01/20/CyberRt%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-04%E5%9F%BA%E4%BA%8EFastRTPS%E7%9A%84%E9%80%9A%E4%BF%A1%E5%AE%9E%E7%8E%B0/" title="CyberRt源码剖析--04基于FastRTPS的通信实现"><img class="cover" src="/2026/01/20/CyberRt%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-04%E5%9F%BA%E4%BA%8EFastRTPS%E7%9A%84%E9%80%9A%E4%BF%A1%E5%AE%9E%E7%8E%B0/17689213718935.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">CyberRt源码剖析--04基于FastRTPS的通信实现</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2023/11/25/CyberRt%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-%E5%8E%9F%E5%AD%90%E8%AF%BB%E5%86%99%E9%94%81/" title="CyberRt源码分析-原子读写锁"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-11-25</div><div class="title">CyberRt源码分析-原子读写锁</div></div></a></div><div><a href="/2023/12/01/CyberRt%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-%E5%AF%B9%E8%B1%A1%E6%B1%A0/" title="CyberRt源码分析-对象池"><img class="cover" src="/2023/12/01/CyberRt%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-%E5%AF%B9%E8%B1%A1%E6%B1%A0/image-20231202111140335.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-12-01</div><div class="title">CyberRt源码分析-对象池</div></div></a></div><div><a href="/2023/11/30/CyberRt%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-%E6%97%A0%E9%94%81%E5%93%88%E5%B8%8C%E8%A1%A8/" title="CyberRt源码分析-无锁哈希表"><img class="cover" src="/2023/11/30/CyberRt%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-%E6%97%A0%E9%94%81%E5%93%88%E5%B8%8C%E8%A1%A8/image-20231130123005161.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-11-30</div><div class="title">CyberRt源码分析-无锁哈希表</div></div></a></div><div><a href="/2023/11/29/CyberRt%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-%E7%BA%BF%E7%A8%8B%E6%B1%A0/" title="CyberRt源码分析-线程池"><img class="cover" src="/2023/11/29/CyberRt%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90-%E7%BA%BF%E7%A8%8B%E6%B1%A0/image-20231129165547298.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-11-29</div><div class="title">CyberRt源码分析-线程池</div></div></a></div><div><a href="/2023/11/23/CyberRt%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-%E5%8D%95%E4%BE%8B%E5%AE%8F/" title="CyberRt源码剖析-常用宏分析"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-11-23</div><div class="title">CyberRt源码剖析-常用宏分析</div></div></a></div><div><a href="/2023/11/23/CyberRt%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-%E6%97%A0%E7%95%8C%E6%97%A0%E9%94%81%E9%98%9F%E5%88%97/" title="CyberRt源码剖析-无界无锁队列"><img class="cover" src="/2023/11/23/CyberRt%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-%E6%97%A0%E7%95%8C%E6%97%A0%E9%94%81%E9%98%9F%E5%88%97/image-20231124122433323.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-11-23</div><div class="title">CyberRt源码剖析-无界无锁队列</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/head.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">Timer</div><div class="author-info__description">没有一个健康的身体，如何支撑我龌龊的灵魂!</div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">28</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">29</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">8</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/yanglianoo"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/yanglianoo" target="_blank" title="Github"><i class="fab fa-github" style="color: #24292e;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">个人微信：13699648817</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content is-expand"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#5-1-%E4%BB%80%E4%B9%88%E6%98%AF%E5%85%B1%E4%BA%AB%E5%86%85%E5%AD%98"><span class="toc-text">5.1 什么是共享内存</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-2-CyberRT%E5%85%B1%E4%BA%AB%E5%86%85%E5%AD%98%E9%80%9A%E4%BF%A1%E6%A8%A1%E5%9E%8B"><span class="toc-text">5.2 CyberRT共享内存通信模型</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-1-Segment%E5%AE%9A%E4%B9%89"><span class="toc-text">5.2.1 Segment定义</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-2-Indicator%E5%AE%9A%E4%B9%89"><span class="toc-text">5.2.2 Indicator定义</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-3-%E5%9F%BA%E4%BA%8E%E5%85%B1%E4%BA%AB%E5%86%85%E5%AD%98%E7%9A%84%E5%8F%91%E5%B8%83%E6%96%B9%E5%AE%9E%E7%8E%B0"><span class="toc-text">5.3 基于共享内存的发布方实现</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-4-%E5%9F%BA%E4%BA%8E%E5%85%B1%E4%BA%AB%E5%86%85%E5%AD%98%E7%9A%84%E8%AE%A2%E9%98%85%E6%96%B9%E5%AE%9E%E7%8E%B0"><span class="toc-text">5.4 基于共享内存的订阅方实现</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/01/20/CyberRt%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-07%E5%8D%8F%E7%A8%8B%E8%B0%83%E5%BA%A6%E6%A1%86%E6%9E%B6/" title="CyberRt源码剖析--07协程调度框架"><img src="/2026/01/20/CyberRt%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-07%E5%8D%8F%E7%A8%8B%E8%B0%83%E5%BA%A6%E6%A1%86%E6%9E%B6/17689217883947.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="CyberRt源码剖析--07协程调度框架"/></a><div class="content"><a class="title" href="/2026/01/20/CyberRt%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-07%E5%8D%8F%E7%A8%8B%E8%B0%83%E5%BA%A6%E6%A1%86%E6%9E%B6/" title="CyberRt源码剖析--07协程调度框架">CyberRt源码剖析--07协程调度框架</a><time datetime="2026-01-20T15:09:03.000Z" title="发表于 2026-01-20 23:09:03">2026-01-20</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/01/20/CyberRt%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-06%E5%9F%BA%E4%BA%8E%E6%9C%89%E5%90%91%E5%9B%BE%E7%9A%84%E6%8B%93%E6%89%91%E6%9C%BA%E5%88%B6%E8%AE%BE%E8%AE%A1/" title="CyberRt源码剖析--06基于有向图的拓扑机制设计"><img src="/2026/01/20/CyberRt%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-06%E5%9F%BA%E4%BA%8E%E6%9C%89%E5%90%91%E5%9B%BE%E7%9A%84%E6%8B%93%E6%89%91%E6%9C%BA%E5%88%B6%E8%AE%BE%E8%AE%A1/17689216018181.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="CyberRt源码剖析--06基于有向图的拓扑机制设计"/></a><div class="content"><a class="title" href="/2026/01/20/CyberRt%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-06%E5%9F%BA%E4%BA%8E%E6%9C%89%E5%90%91%E5%9B%BE%E7%9A%84%E6%8B%93%E6%89%91%E6%9C%BA%E5%88%B6%E8%AE%BE%E8%AE%A1/" title="CyberRt源码剖析--06基于有向图的拓扑机制设计">CyberRt源码剖析--06基于有向图的拓扑机制设计</a><time datetime="2026-01-20T15:06:26.000Z" title="发表于 2026-01-20 23:06:26">2026-01-20</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/01/20/CyberRt%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-05%E5%9F%BA%E4%BA%8E%E5%85%B1%E4%BA%AB%E5%86%85%E5%AD%98%E7%9A%84%E9%80%9A%E4%BF%A1%E5%AE%9E%E7%8E%B0/" title="CyberRt源码剖析--05基于共享内存的通信实现"><img src="/2026/01/20/CyberRt%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-05%E5%9F%BA%E4%BA%8E%E5%85%B1%E4%BA%AB%E5%86%85%E5%AD%98%E7%9A%84%E9%80%9A%E4%BF%A1%E5%AE%9E%E7%8E%B0/17689214877461.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="CyberRt源码剖析--05基于共享内存的通信实现"/></a><div class="content"><a class="title" href="/2026/01/20/CyberRt%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-05%E5%9F%BA%E4%BA%8E%E5%85%B1%E4%BA%AB%E5%86%85%E5%AD%98%E7%9A%84%E9%80%9A%E4%BF%A1%E5%AE%9E%E7%8E%B0/" title="CyberRt源码剖析--05基于共享内存的通信实现">CyberRt源码剖析--05基于共享内存的通信实现</a><time datetime="2026-01-20T15:04:27.000Z" title="发表于 2026-01-20 23:04:27">2026-01-20</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/01/20/CyberRt%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-04%E5%9F%BA%E4%BA%8EFastRTPS%E7%9A%84%E9%80%9A%E4%BF%A1%E5%AE%9E%E7%8E%B0/" title="CyberRt源码剖析--04基于FastRTPS的通信实现"><img src="/2026/01/20/CyberRt%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-04%E5%9F%BA%E4%BA%8EFastRTPS%E7%9A%84%E9%80%9A%E4%BF%A1%E5%AE%9E%E7%8E%B0/17689213718935.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="CyberRt源码剖析--04基于FastRTPS的通信实现"/></a><div class="content"><a class="title" href="/2026/01/20/CyberRt%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-04%E5%9F%BA%E4%BA%8EFastRTPS%E7%9A%84%E9%80%9A%E4%BF%A1%E5%AE%9E%E7%8E%B0/" title="CyberRt源码剖析--04基于FastRTPS的通信实现">CyberRt源码剖析--04基于FastRTPS的通信实现</a><time datetime="2026-01-20T15:02:33.000Z" title="发表于 2026-01-20 23:02:33">2026-01-20</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/01/20/CyberRT%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-03%E9%80%9A%E4%BF%A1%E6%9E%B6%E6%9E%84/" title="CyberRT源码剖析--03通信架构"><img src="/2026/01/20/CyberRT%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-03%E9%80%9A%E4%BF%A1%E6%9E%B6%E6%9E%84/176892110857216.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="CyberRT源码剖析--03通信架构"/></a><div class="content"><a class="title" href="/2026/01/20/CyberRT%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-03%E9%80%9A%E4%BF%A1%E6%9E%B6%E6%9E%84/" title="CyberRT源码剖析--03通信架构">CyberRT源码剖析--03通信架构</a><time datetime="2026-01-20T14:57:36.000Z" title="发表于 2026-01-20 22:57:36">2026-01-20</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('/2026/01/20/CyberRt%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90-05%E5%9F%BA%E4%BA%8E%E5%85%B1%E4%BA%AB%E5%86%85%E5%AD%98%E7%9A%84%E9%80%9A%E4%BF%A1%E5%AE%9E%E7%8E%B0/17689214877461.png')"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2026 By Timer</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><div class="js-pjax"></div><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/fireworks.min.js"></script><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div class="no-result" id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js"></script></div></div></body></html>
