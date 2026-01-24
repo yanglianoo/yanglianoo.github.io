@@ -1,0 +1,713 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>ARM64-Trust-Firmware[3]-BL1解析 | TimerのBlog</title><meta name="author" content="Timer"><meta name="copyright" content="Timer"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="3 BL13.1 bl1_entrypointbl1的源码如下   bl1.ld.S为链接文件 bl1.mk为编译文件  在bl1.ld.S中定义了bl1的入口函数为bl1_entrypoint以及内存布局，ROM的内存为可读可执行，RAM的内存可读可写可执行 ENTRY(bl1_entrypoint)MEMORY &amp;#123;    ROM (rx): ORIGIN &#x3D; BL1_RO_BASE,">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ARM64-Trust-Firmware[3]-BL1解析">
+<meta property="og:url" content="https://yanglianoo.github.io/2026/01/24/ARM64-Trust-Firmware-3-BL1%E8%A7%A3%E6%9E%90/index.html">
+<meta property="og:site_name" content="TimerのBlog">
+<meta property="og:description" content="3 BL13.1 bl1_entrypointbl1的源码如下   bl1.ld.S为链接文件 bl1.mk为编译文件  在bl1.ld.S中定义了bl1的入口函数为bl1_entrypoint以及内存布局，ROM的内存为可读可执行，RAM的内存可读可写可执行 ENTRY(bl1_entrypoint)MEMORY &amp;#123;    ROM (rx): ORIGIN &#x3D; BL1_RO_BASE,">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yanglianoo.github.io/2026/01/24/ARM64-Trust-Firmware-3-BL1%E8%A7%A3%E6%9E%90/17692290470595.png">
+<meta property="article:published_time" content="2026-01-24T04:29:40.000Z">
+<meta property="article:modified_time" content="2026-01-24T04:31:26.139Z">
+<meta property="article:author" content="Timer">
+<meta property="article:tag" content="ARM64">
+<meta property="article:tag" content="ATF">
+<meta property="article:tag" content="ARM安全">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://yanglianoo.github.io/2026/01/24/ARM64-Trust-Firmware-3-BL1%E8%A7%A3%E6%9E%90/17692290470595.png"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://yanglianoo.github.io/2026/01/24/ARM64-Trust-Firmware-3-BL1%E8%A7%A3%E6%9E%90/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"languages":{"hits_empty":"找不到您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":500},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: {"chs_to_cht":"你已切换为繁体","cht_to_chs":"你已切换为简体","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"bottom-left"},
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'ARM64-Trust-Firmware[3]-BL1解析',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2026-01-24 12:31:26'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+    win.getCSS = (url,id = false) => new Promise((resolve, reject) => {
+      const link = document.createElement('link')
+      link.rel = 'stylesheet'
+      link.href = url
+      if (id) link.id = id
+      link.onerror = reject
+      link.onload = link.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        link.onload = link.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(link)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/background.css"><meta name="generator" content="Hexo 6.3.0"><link rel="alternate" href="/atom.xml" title="TimerのBlog" type="application/atom+xml">
+</head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/head.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">36</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">30</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">10</div></a></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/2026/01/24/ARM64-Trust-Firmware-3-BL1%E8%A7%A3%E6%9E%90/17692290470595.png')"><nav id="nav"><span id="blog-info"><a href="/" title="TimerのBlog"><span class="site-name">TimerのBlog</span></a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search" href="javascript:void(0);"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">ARM64-Trust-Firmware[3]-BL1解析</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-01-24T04:29:40.000Z" title="发表于 2026-01-24 12:29:40">2026-01-24</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-01-24T04:31:26.139Z" title="更新于 2026-01-24 12:31:26">2026-01-24</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/ARM64-Trust-Firmware/">ARM64-Trust-Firmware</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="ARM64-Trust-Firmware[3]-BL1解析"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="3-BL1"><a href="#3-BL1" class="headerlink" title="3 BL1"></a>3 BL1</h1><h2 id="3-1-bl1-entrypoint"><a href="#3-1-bl1-entrypoint" class="headerlink" title="3.1 bl1_entrypoint"></a>3.1 <code>bl1_entrypoint</code></h2><p>bl1的源码如下</p>
+<p><img src="/2026/01/24/ARM64-Trust-Firmware-3-BL1%E8%A7%A3%E6%9E%90/17692290470596.png" alt="img"></p>
+<ul>
+<li>bl1.ld.S为链接文件</li>
+<li>bl1.mk为编译文件</li>
+</ul>
+<p>在<code>bl1.ld.S</code>中定义了bl1的入口函数为<code>bl1_entrypoint</code>以及内存布局，ROM的内存为可读可执行，RAM的内存可读可写可执行</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">ENTRY(bl1_entrypoint)</span><br><span class="line"></span><br><span class="line">MEMORY &#123;</span><br><span class="line">    ROM (rx): ORIGIN = BL1_RO_BASE, LENGTH = BL1_RO_LIMIT - BL1_RO_BASE</span><br><span class="line">    RAM (rwx): ORIGIN = BL1_RW_BASE, LENGTH = BL1_RW_LIMIT - BL1_RW_BASE</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>关于<code>BL1_RO_BASE</code>和<code>BL1_RW_BASE</code>的值，这个是和平台息息相关的，比如<code>qemu</code>平台上：</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment"> * Partition memory into secure ROM, non-secure DRAM, secure &quot;SRAM&quot;,</span></span><br><span class="line"><span class="comment"> * and secure DRAM.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> SEC_ROM_BASE            0x00000000</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> SEC_ROM_SIZE            0x00020000</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> SEC_SRAM_BASE           0x0e000000</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> SEC_SRAM_SIZE           0x00100000</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment"> * ARM-TF lives in SRAM, partition it here</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> SHARED_RAM_BASE         SEC_SRAM_BASE</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> SHARED_RAM_SIZE         0x00001000</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> BL_RAM_BASE         (SHARED_RAM_BASE + SHARED_RAM_SIZE)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> BL_RAM_SIZE         (SEC_SRAM_SIZE - SHARED_RAM_SIZE)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment"> * BL1 specific defines.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * BL1 RW data is relocated from ROM to RAM at runtime so we need 2 sets of</span></span><br><span class="line"><span class="comment"> * addresses.</span></span><br><span class="line"><span class="comment"> * Put BL1 RW at the top of the Secure SRAM. BL1_RW_BASE is calculated using</span></span><br><span class="line"><span class="comment"> * the current BL1 RW debug size plus a little space for growth.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> BL1_RO_BASE         SEC_ROM_BASE</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> BL1_RO_LIMIT            (SEC_ROM_BASE + SEC_ROM_SIZE)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> BL1_RW_BASE         (BL1_RW_LIMIT - 0x12000)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> BL1_RW_LIMIT            (BL_RAM_BASE + BL_RAM_SIZE)</span></span><br></pre></td></tr></table></figure>
+
+<p><code>bl1_entrypoint</code>函数定义在<code>bl1\aarch64\bl1_entrypoint.S</code>中：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">    .globl  bl1_entrypoint</span><br><span class="line">    .globl  bl1_run_bl2_in_root</span><br><span class="line"></span><br><span class="line">    /* -----------------------------------------------------</span><br><span class="line">     * bl1_entrypoint() is the entry point into the trusted</span><br><span class="line">     * firmware code when a cpu is released from warm or</span><br><span class="line">     * cold reset.</span><br><span class="line">     * -----------------------------------------------------</span><br><span class="line">     */</span><br><span class="line"></span><br><span class="line">func bl1_entrypoint</span><br><span class="line">    /* ---------------------------------------------------------------------</span><br><span class="line">     * If the reset address is programmable then bl1_entrypoint() is</span><br><span class="line">     * executed only on the cold boot path. Therefore, we can skip the warm</span><br><span class="line">     * boot mailbox mechanism.</span><br><span class="line">     * ---------------------------------------------------------------------</span><br><span class="line">     */</span><br><span class="line">     // EL3级别运行环境的初始化，该函数定义在   include/common/aarch64/el3_common_macros.S文件中</span><br><span class="line">    el3_entrypoint_common                   \</span><br><span class="line">        _init_sctlr=1                   \</span><br><span class="line">        _warm_boot_mailbox=!PROGRAMMABLE_RESET_ADDRESS  \</span><br><span class="line">        _secondary_cold_boot=!COLD_BOOT_SINGLE_CPU  \</span><br><span class="line">        _init_memory=1                  \</span><br><span class="line">        _init_c_runtime=1               \</span><br><span class="line">        _exception_vectors=bl1_exceptions       \</span><br><span class="line">        _pie_fixup_size=0</span><br><span class="line"></span><br><span class="line">    /* --------------------------------------------------------------------</span><br><span class="line">     * Initialize platform and jump to our c-entry point</span><br><span class="line">     * for this type of reset.</span><br><span class="line">     * --------------------------------------------------------------------</span><br><span class="line">     */</span><br><span class="line">    bl  bl1_main</span><br><span class="line"></span><br><span class="line">    /* --------------------------------------------------</span><br><span class="line">     * Do the transition to next boot image.</span><br><span class="line">     * --------------------------------------------------</span><br><span class="line">     */</span><br><span class="line">#if ENABLE_RME</span><br><span class="line">    b   bl1_run_bl2_in_root</span><br><span class="line">#else</span><br><span class="line">    b   el3_exit</span><br><span class="line">#endif</span><br><span class="line">endfunc bl1_entrypoint</span><br><span class="line"></span><br><span class="line">func bl1_run_bl2_in_root</span><br><span class="line">    /* read bl2_ep_info */</span><br><span class="line">    adrp    x20, bl2_ep_info</span><br><span class="line">    add x20, x20, :lo12:bl2_ep_info</span><br><span class="line">    ldr x20, [x20]</span><br><span class="line"></span><br><span class="line">    /* ---------------------------------------------</span><br><span class="line">     * MMU needs to be disabled because BL2 executes</span><br><span class="line">     * in EL3. It will initialize the address space</span><br><span class="line">     * according to its own requirements.</span><br><span class="line">     * ---------------------------------------------</span><br><span class="line">     */</span><br><span class="line">    bl  disable_mmu_icache_el3</span><br><span class="line">    tlbi    alle3</span><br><span class="line"></span><br><span class="line">    ldp x0, x1, [x20, #ENTRY_POINT_INFO_PC_OFFSET]</span><br><span class="line">    msr elr_el3, x0</span><br><span class="line">    msr spsr_el3, x1</span><br><span class="line"></span><br><span class="line">    ldp x6, x7, [x20, #(ENTRY_POINT_INFO_ARGS_OFFSET + 0x30)]</span><br><span class="line">    ldp x4, x5, [x20, #(ENTRY_POINT_INFO_ARGS_OFFSET + 0x20)]</span><br><span class="line">    ldp x2, x3, [x20, #(ENTRY_POINT_INFO_ARGS_OFFSET + 0x10)]</span><br><span class="line">    ldp x0, x1, [x20, #(ENTRY_POINT_INFO_ARGS_OFFSET + 0x0)]</span><br><span class="line">    exception_return</span><br><span class="line">endfunc bl1_run_bl2_in_root</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>bl1_entrypoint函数进来首先会掉用<code>el3_entrypoint_common</code>此宏，此宏做了很多事情，会根据传入的参数来进行操作：</p>
+<ul>
+<li><table>
+<thead>
+<tr>
+<th>参数</th>
+<th>含义（是否需要执行该步骤）</th>
+<th>典型使用场景</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>_init_sctlr</td>
+<td>是否初始化 SCTLR_EL3（含 endian 设置）</td>
+<td>几乎总是需要</td>
+<td>通常传 1</td>
+</tr>
+<tr>
+<td>_warm_boot_mailbox</td>
+<td>是否检查 warm boot mailbox 并跳转</td>
+<td>BL31 通常需要，BL1 通常不需要</td>
+<td>决定是否要读平台 entrypoint</td>
+</tr>
+<tr>
+<td>_secondary_cold_boot</td>
+<td>是否区分 primary&#x2F;secondary CPU 并处理 secondary</td>
+<td>冷启动多核平台几乎都要</td>
+<td>可设 0 跳过（已知只 primary）</td>
+</tr>
+<tr>
+<td>_init_memory</td>
+<td>是否执行平台内存初始化（platform_mem_init）</td>
+<td>通常 primary CPU 冷启动需要</td>
+<td>—</td>
+</tr>
+<tr>
+<td>_init_c_runtime</td>
+<td>是否初始化 C 运行时环境（清 BSS、COHERENT_RAM 等）</td>
+<td>几乎所有进入 C 代码前都要</td>
+<td>—</td>
+</tr>
+<tr>
+<td>_exception_vectors</td>
+<td>要设置的 VBAR_EL3 向量表地址</td>
+<td>必填，通常是 el3_vectors 或类似</td>
+<td>—</td>
+</tr>
+<tr>
+<td>_pie_fixup_size</td>
+<td>PIE（位置无关可执行）需要修复的 GDT 大小</td>
+<td>开启 PIE 时非 0</td>
+<td>通常是映像大小</td>
+</tr>
+</tbody></table>
+</li>
+</ul>
+</li>
+<li><p>接着通过<code>bl  bl1_main</code>跳转到<code>bl1_main</code>函数中执行，执行完毕<code>bl1_main</code>后会接着判断是否启用<code>ENABLE_RME</code>，关于RME是什么，可以参考如下的文章，这是ARM-V9引入的新的特性，我们暂且不关注<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/25848029106%E3%80%82%E8%BF%99%E6%98%AF%E4%B8%80%E7%A7%8D%E5%BA%94%E7%94%A8%E4%BA%8EARM%E6%9C%BA%E5%AF%86%E8%AE%A1%E7%AE%97(CCA)%E7%9A%84%E4%B8%80%E7%A7%8D%E6%96%B0%E6%9E%B6%E6%9E%84">https://zhuanlan.zhihu.com/p/25848029106。这是一种应用于ARM机密计算(CCA)的一种新架构</a></p>
+</li>
+</ul>
+<p><img src="/2026/01/24/ARM64-Trust-Firmware-3-BL1%E8%A7%A3%E6%9E%90/17692290470591.png" alt="img"></p>
+<ul>
+<li>最后调用<code>el3_exit</code>函数进入下一阶段运行</li>
+</ul>
+<h2 id="3-2-el3-entrypoint-common"><a href="#3-2-el3-entrypoint-common" class="headerlink" title="3.2 el3_entrypoint_common"></a>3.2 el3_entrypoint_common</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">/* -----------------------------------------------------------------------------</span><br><span class="line"> * This is the super set of actions that need to be performed during a cold boot</span><br><span class="line"> * or a warm boot in EL3. This code is shared by BL1 and BL31.</span><br><span class="line"> *</span><br><span class="line"> * This macro will always perform reset handling, architectural initialisations</span><br><span class="line"> * and stack setup. The rest of the actions are optional because they might not</span><br><span class="line"> * be needed, depending on the context in which this macro is called. This is</span><br><span class="line"> * why this macro is parameterised ; each parameter allows to enable/disable</span><br><span class="line"> * some actions.</span><br><span class="line"> *</span><br><span class="line"> *  _init_sctlr:</span><br><span class="line"> *  Whether the macro needs to initialise SCTLR_EL3, including configuring</span><br><span class="line"> *      the endianness of data accesses.</span><br><span class="line"> *</span><br><span class="line"> *  _warm_boot_mailbox:</span><br><span class="line"> *  Whether the macro needs to detect the type of boot (cold/warm). The</span><br><span class="line"> *  detection is based on the platform entrypoint address : if it is zero</span><br><span class="line"> *  then it is a cold boot, otherwise it is a warm boot. In the latter case,</span><br><span class="line"> *  this macro jumps on the platform entrypoint address.</span><br><span class="line"> *</span><br><span class="line"> *  _secondary_cold_boot:</span><br><span class="line"> *  Whether the macro needs to identify the CPU that is calling it: primary</span><br><span class="line"> *  CPU or secondary CPU. The primary CPU will be allowed to carry on with</span><br><span class="line"> *  the platform initialisations, while the secondaries will be put in a</span><br><span class="line"> *  platform-specific state in the meantime.</span><br><span class="line"> *</span><br><span class="line"> *  If the caller knows this macro will only be called by the primary CPU</span><br><span class="line"> *  then this parameter can be defined to 0 to skip this step.</span><br><span class="line"> *</span><br><span class="line"> * _init_memory:</span><br><span class="line"> *  Whether the macro needs to initialise the memory.</span><br><span class="line"> *</span><br><span class="line"> * _init_c_runtime:</span><br><span class="line"> *  Whether the macro needs to initialise the C runtime environment.</span><br><span class="line"> *</span><br><span class="line"> * _exception_vectors:</span><br><span class="line"> *  Address of the exception vectors to program in the VBAR_EL3 register.</span><br><span class="line"> *</span><br><span class="line"> * _pie_fixup_size:</span><br><span class="line"> *  Size of memory region to fixup Global Descriptor Table (GDT).</span><br><span class="line"> *</span><br><span class="line"> *  A non-zero value is expected when firmware needs GDT to be fixed-up.</span><br><span class="line"> *</span><br><span class="line"> * -----------------------------------------------------------------------------</span><br><span class="line"> */</span><br><span class="line">    .macro el3_entrypoint_common                    \</span><br><span class="line">        _init_sctlr, _warm_boot_mailbox, _secondary_cold_boot,  \</span><br><span class="line">        _init_memory, _init_c_runtime, _exception_vectors,  \</span><br><span class="line">        _pie_fixup_size</span><br><span class="line"></span><br><span class="line">    .if \_init_sctlr</span><br><span class="line">        /* -------------------------------------------------------------</span><br><span class="line">         * This is the initialisation of SCTLR_EL3 and so must ensure</span><br><span class="line">         * that all fields are explicitly set rather than relying on hw.</span><br><span class="line">         * Some fields reset to an IMPLEMENTATION DEFINED value and</span><br><span class="line">         * others are architecturally UNKNOWN on reset.</span><br><span class="line">         *</span><br><span class="line">         * SCTLR.EE: Set the CPU endianness before doing anything that</span><br><span class="line">         *  might involve memory reads or writes. Set to zero to select</span><br><span class="line">         *  Little Endian.</span><br><span class="line">         *</span><br><span class="line">         * SCTLR_EL3.WXN: For the EL3 translation regime, this field can</span><br><span class="line">         *  force all memory regions that are writeable to be treated as</span><br><span class="line">         *  XN (Execute-never). Set to zero so that this control has no</span><br><span class="line">         *  effect on memory access permissions.</span><br><span class="line">         *</span><br><span class="line">         * SCTLR_EL3.SA: Set to zero to disable Stack Alignment check.</span><br><span class="line">         *</span><br><span class="line">         * SCTLR_EL3.A: Set to zero to disable Alignment fault checking.</span><br><span class="line">         *</span><br><span class="line">         * SCTLR.DSSBS: Set to zero to disable speculation store bypass</span><br><span class="line">         *  safe behaviour upon exception entry to EL3.</span><br><span class="line">         * -------------------------------------------------------------</span><br><span class="line">         */</span><br><span class="line">        mov_imm x0, (SCTLR_RESET_VAL &amp; ~(SCTLR_EE_BIT | SCTLR_WXN_BIT \</span><br><span class="line">                | SCTLR_SA_BIT | SCTLR_A_BIT | SCTLR_DSSBS_BIT))</span><br><span class="line">#if ENABLE_FEAT_RAS</span><br><span class="line">        /* If FEAT_RAS is present assume FEAT_IESB is also present */</span><br><span class="line">        orr x0, x0, #SCTLR_IESB_BIT</span><br><span class="line">#endif</span><br><span class="line">        msr sctlr_el3, x0</span><br><span class="line">        isb</span><br><span class="line">    .endif /* _init_sctlr */</span><br><span class="line">/* 判定是否需要调用do_cold_boot流程 */</span><br><span class="line">    .if \_warm_boot_mailbox</span><br><span class="line">        /* -------------------------------------------------------------</span><br><span class="line">         * This code will be executed for both warm and cold resets.</span><br><span class="line">         * Now is the time to distinguish between the two.</span><br><span class="line">         * Query the platform entrypoint address and if it is not zero</span><br><span class="line">         * then it means it is a warm boot so jump to this address.</span><br><span class="line">         * -------------------------------------------------------------</span><br><span class="line">         */</span><br><span class="line">        bl  plat_get_my_entrypoint</span><br><span class="line">        cbz x0, do_cold_boot</span><br><span class="line">        br  x0</span><br><span class="line"></span><br><span class="line">    do_cold_boot:</span><br><span class="line">    .endif /* _warm_boot_mailbox */</span><br><span class="line"></span><br><span class="line">    .if \_pie_fixup_size</span><br><span class="line">#if ENABLE_PIE</span><br><span class="line">        /*</span><br><span class="line">         * ------------------------------------------------------------</span><br><span class="line">         * If PIE is enabled fixup the Global descriptor Table only</span><br><span class="line">         * once during primary core cold boot path.</span><br><span class="line">         *</span><br><span class="line">         * Compile time base address, required for fixup, is calculated</span><br><span class="line">         * using &quot;pie_fixup&quot; label present within first page.</span><br><span class="line">         * ------------------------------------------------------------</span><br><span class="line">         */</span><br><span class="line">    pie_fixup:</span><br><span class="line">        ldr x0, =pie_fixup</span><br><span class="line">        and x0, x0, #~(PAGE_SIZE_MASK)</span><br><span class="line">        mov_imm x1, \_pie_fixup_size</span><br><span class="line">        add x1, x1, x0</span><br><span class="line">        bl  fixup_gdt_reloc</span><br><span class="line">#endif /* ENABLE_PIE */</span><br><span class="line">    .endif /* _pie_fixup_size */</span><br><span class="line"></span><br><span class="line">    /* ---------------------------------------------------------------------</span><br><span class="line">     * Set the exception vectors.</span><br><span class="line">     * 初始化异常向量表</span><br><span class="line">     * ---------------------------------------------------------------------</span><br><span class="line">     */</span><br><span class="line">    adr x0, \_exception_vectors</span><br><span class="line">    msr vbar_el3, x0</span><br><span class="line">    isb</span><br><span class="line"></span><br><span class="line">    call_reset_handler</span><br><span class="line"></span><br><span class="line">    el3_arch_init_common</span><br><span class="line"></span><br><span class="line">    /* ---------------------------------------------------------------------</span><br><span class="line">     * Set the el3 execution context(i.e. root_context).</span><br><span class="line">     * ---------------------------------------------------------------------</span><br><span class="line">     */</span><br><span class="line">    setup_el3_execution_context</span><br><span class="line">/* 判定当前CPU是否是主CPU，如果是则做主CPU的初始化 */</span><br><span class="line">    .if \_secondary_cold_boot</span><br><span class="line">        /* -------------------------------------------------------------</span><br><span class="line">         * Check if this is a primary or secondary CPU cold boot.</span><br><span class="line">         * The primary CPU will set up the platform while the</span><br><span class="line">         * secondaries are placed in a platform-specific state until the</span><br><span class="line">         * primary CPU performs the necessary actions to bring them out</span><br><span class="line">         * of that state and allows entry into the OS.</span><br><span class="line">         * -------------------------------------------------------------</span><br><span class="line">         */</span><br><span class="line">        bl  plat_is_my_cpu_primary</span><br><span class="line">        cbnz    w0, do_primary_cold_boot</span><br><span class="line"></span><br><span class="line">        /* This is a cold boot on a secondary CPU */</span><br><span class="line">        bl  plat_secondary_cold_boot_setup</span><br><span class="line">        /* plat_secondary_cold_boot_setup() is not supposed to return */</span><br><span class="line">        bl  el3_panic</span><br><span class="line"></span><br><span class="line">    do_primary_cold_boot:</span><br><span class="line">    .endif /* _secondary_cold_boot */</span><br><span class="line"></span><br><span class="line">    /* ---------------------------------------------------------------------</span><br><span class="line">     * Initialize memory now. Secondary CPU initialization won&#x27;t get to this</span><br><span class="line">     * point.</span><br><span class="line">     * ---------------------------------------------------------------------</span><br><span class="line">     */</span><br><span class="line">/* 初始化memory */</span><br><span class="line">    .if \_init_memory</span><br><span class="line">        bl  platform_mem_init</span><br><span class="line">    .endif /* _init_memory */</span><br><span class="line"></span><br><span class="line">    /* ---------------------------------------------------------------------</span><br><span class="line">     * Init C runtime environment:</span><br><span class="line">     *   - Zero-initialise the NOBITS sections. There are 2 of them:</span><br><span class="line">     *       - the .bss section;</span><br><span class="line">     *       - the coherent memory section (if any).</span><br><span class="line">     *   - Relocate the data section from ROM to RAM, if required.</span><br><span class="line">     * ---------------------------------------------------------------------</span><br><span class="line">     */</span><br><span class="line">    .if \_init_c_runtime</span><br><span class="line">#if defined(IMAGE_BL31) || (defined(IMAGE_BL2) &amp;&amp; \</span><br><span class="line">    ((RESET_TO_BL2 &amp;&amp; BL2_INV_DCACHE) || ENABLE_RME))</span><br><span class="line">        /* -------------------------------------------------------------</span><br><span class="line">         * Invalidate the RW memory used by the BL31 image. This</span><br><span class="line">         * includes the data and NOBITS sections. This is done to</span><br><span class="line">         * safeguard against possible corruption of this memory by</span><br><span class="line">         * dirty cache lines in a system cache as a result of use by</span><br><span class="line">         * an earlier boot loader stage. If PIE is enabled however,</span><br><span class="line">         * RO sections including the GOT may be modified during</span><br><span class="line">                 * pie fixup. Therefore, to be on the safe side, invalidate</span><br><span class="line">         * the entire image region if PIE is enabled.</span><br><span class="line">         * -------------------------------------------------------------</span><br><span class="line">         */</span><br><span class="line">#if ENABLE_PIE</span><br><span class="line">#if SEPARATE_CODE_AND_RODATA</span><br><span class="line">        adrp    x0, __TEXT_START__</span><br><span class="line">        add x0, x0, :lo12:__TEXT_START__</span><br><span class="line">#else</span><br><span class="line">        adrp    x0, __RO_START__</span><br><span class="line">        add x0, x0, :lo12:__RO_START__</span><br><span class="line">#endif /* SEPARATE_CODE_AND_RODATA */</span><br><span class="line">#else</span><br><span class="line">        adrp    x0, __RW_START__</span><br><span class="line">        add x0, x0, :lo12:__RW_START__</span><br><span class="line">#endif /* ENABLE_PIE */</span><br><span class="line">        adrp    x1, __RW_END__</span><br><span class="line">        add x1, x1, :lo12:__RW_END__</span><br><span class="line">        sub x1, x1, x0</span><br><span class="line">        bl  inv_dcache_range</span><br><span class="line">#if defined(IMAGE_BL31) &amp;&amp; SEPARATE_NOBITS_REGION</span><br><span class="line">        adrp    x0, __NOBITS_START__</span><br><span class="line">        add x0, x0, :lo12:__NOBITS_START__</span><br><span class="line">        adrp    x1, __NOBITS_END__</span><br><span class="line">        add x1, x1, :lo12:__NOBITS_END__</span><br><span class="line">        sub x1, x1, x0</span><br><span class="line">        bl  inv_dcache_range</span><br><span class="line">#endif</span><br><span class="line">#if defined(IMAGE_BL2) &amp;&amp; SEPARATE_BL2_NOLOAD_REGION</span><br><span class="line">        adrp    x0, __BL2_NOLOAD_START__</span><br><span class="line">        add x0, x0, :lo12:__BL2_NOLOAD_START__</span><br><span class="line">        adrp    x1, __BL2_NOLOAD_END__</span><br><span class="line">        add x1, x1, :lo12:__BL2_NOLOAD_END__</span><br><span class="line">        sub x1, x1, x0</span><br><span class="line">        bl  inv_dcache_range</span><br><span class="line">#endif</span><br><span class="line">#endif</span><br><span class="line">#if defined(IMAGE_BL31)</span><br><span class="line">        adrp    x0, __PER_CPU_START__</span><br><span class="line">        add x0, x0, :lo12:__PER_CPU_START__</span><br><span class="line">        adrp    x1, __PER_CPU_END__</span><br><span class="line">        add x1, x1, :lo12:__PER_CPU_END__</span><br><span class="line">        sub x1, x1, x0</span><br><span class="line">#if (PLATFORM_NODE_COUNT &gt; 1)</span><br><span class="line">        mov x9, x1</span><br><span class="line">#endif /* (PLATFORM_NODE_COUNT &gt; 1) */</span><br><span class="line">        bl  zeromem</span><br><span class="line">#if (PLATFORM_NODE_COUNT &gt; 1)</span><br><span class="line">        /*</span><br><span class="line">         * Zero-initialize per-cpu sections defined by the platform.</span><br><span class="line">         * Care must be taken to preserve and retain the clobbered</span><br><span class="line">         * registers. A standard around the container for per-cpu nodes</span><br><span class="line">         * is not yet defined.</span><br><span class="line">         */</span><br><span class="line">        mov x10, #1</span><br><span class="line">        mov x11, #PLATFORM_NODE_COUNT</span><br><span class="line"></span><br><span class="line">        1:</span><br><span class="line">            cmp x10, x11</span><br><span class="line">            b.hs    2f</span><br><span class="line"></span><br><span class="line">            mov x0, x10</span><br><span class="line">            bl  plat_per_cpu_node_base</span><br><span class="line">            cmn x0, #1</span><br><span class="line">            b.eq    3f</span><br><span class="line"></span><br><span class="line">            /* x1 contains size param */</span><br><span class="line">            mov x1, x9</span><br><span class="line">            bl  zeromem</span><br><span class="line"></span><br><span class="line">        3:</span><br><span class="line">            add x10, x10, #1</span><br><span class="line">            b   1b</span><br><span class="line"></span><br><span class="line">        2:</span><br><span class="line">#endif /* (PLATFORM_NODE_COUNT &gt; 1) */</span><br><span class="line">#endif /* defined(IMAGE_BL31) */</span><br><span class="line"></span><br><span class="line">        adrp    x0, __BSS_START__</span><br><span class="line">        add x0, x0, :lo12:__BSS_START__</span><br><span class="line"></span><br><span class="line">        adrp    x1, __BSS_END__</span><br><span class="line">        add x1, x1, :lo12:__BSS_END__</span><br><span class="line">        sub x1, x1, x0</span><br><span class="line">        bl  zeromem</span><br><span class="line"></span><br><span class="line">#if USE_COHERENT_MEM</span><br><span class="line">        adrp    x0, __COHERENT_RAM_START__</span><br><span class="line">        add x0, x0, :lo12:__COHERENT_RAM_START__</span><br><span class="line">        adrp    x1, __COHERENT_RAM_END_UNALIGNED__</span><br><span class="line">        add x1, x1, :lo12: __COHERENT_RAM_END_UNALIGNED__</span><br><span class="line">        sub x1, x1, x0</span><br><span class="line">        bl  zeromem</span><br><span class="line">#endif</span><br><span class="line"></span><br><span class="line">#if defined(IMAGE_BL1) ||   \</span><br><span class="line">    (defined(IMAGE_BL2) &amp;&amp; RESET_TO_BL2 &amp;&amp; BL2_IN_XIP_MEM) || \</span><br><span class="line">    (defined(IMAGE_BL31) &amp;&amp; SEPARATE_RWDATA_REGION)</span><br><span class="line"></span><br><span class="line">        adrp    x0, __DATA_RAM_START__</span><br><span class="line">        add x0, x0, :lo12:__DATA_RAM_START__</span><br><span class="line">        adrp    x1, __DATA_ROM_START__</span><br><span class="line">        add x1, x1, :lo12:__DATA_ROM_START__</span><br><span class="line">        adrp    x2, __DATA_RAM_END__</span><br><span class="line">        add x2, x2, :lo12:__DATA_RAM_END__</span><br><span class="line">        sub x2, x2, x0</span><br><span class="line">        bl  memcpy16</span><br><span class="line">#endif</span><br><span class="line">    .endif /* _init_c_runtime */</span><br><span class="line"></span><br><span class="line">    /* ---------------------------------------------------------------------</span><br><span class="line">     * Use SP_EL0 for the C runtime stack.</span><br><span class="line">     * ---------------------------------------------------------------------</span><br><span class="line">     */</span><br><span class="line">    msr spsel, #0</span><br><span class="line"></span><br><span class="line">    /* ---------------------------------------------------------------------</span><br><span class="line">     * Allocate a stack whose memory will be marked as Normal-IS-WBWA when</span><br><span class="line">     * the MMU is enabled. There is no risk of reading stale stack memory</span><br><span class="line">     * after enabling the MMU as only the primary CPU is running at the</span><br><span class="line">     * moment.</span><br><span class="line">     * ---------------------------------------------------------------------</span><br><span class="line">     */</span><br><span class="line">    bl  plat_set_my_stack</span><br><span class="line"></span><br><span class="line">#if STACK_PROTECTOR_ENABLED</span><br><span class="line">    .if \_init_c_runtime</span><br><span class="line">    bl  update_stack_protector_canary</span><br><span class="line">    .endif /* _init_c_runtime */</span><br><span class="line">#endif</span><br><span class="line">    .endm</span><br><span class="line"></span><br><span class="line">    .macro  apply_at_speculative_wa</span><br><span class="line">#if ERRATA_SPECULATIVE_AT</span><br><span class="line">    /*</span><br><span class="line">     * This function expects x30 has been saved.</span><br><span class="line">     * Also, save x29 which will be used in the called function.</span><br><span class="line">     */</span><br><span class="line">    str x29, [sp, #CTX_GPREGS_OFFSET + CTX_GPREG_X29]</span><br><span class="line">    bl  save_and_update_ptw_el1_sys_regs</span><br><span class="line">    ldr x29, [sp, #CTX_GPREGS_OFFSET + CTX_GPREG_X29]</span><br><span class="line">#endif</span><br><span class="line">    .endm</span><br><span class="line"></span><br><span class="line">    .macro  restore_ptw_el1_sys_regs</span><br><span class="line">#if ERRATA_SPECULATIVE_AT</span><br><span class="line">    /* -----------------------------------------------------------</span><br><span class="line">     * In case of ERRATA_SPECULATIVE_AT, must follow below order</span><br><span class="line">     * to ensure that page table walk is not enabled until</span><br><span class="line">     * restoration of all EL1 system registers. TCR_EL1 register</span><br><span class="line">     * should be updated at the end which restores previous page</span><br><span class="line">     * table walk setting of stage1 i.e.(TCR_EL1.EPDx) bits. ISB</span><br><span class="line">     * ensures that CPU does below steps in order.</span><br><span class="line">     *</span><br><span class="line">     * 1. Ensure all other system registers are written before</span><br><span class="line">     *    updating SCTLR_EL1 using ISB.</span><br><span class="line">     * 2. Restore SCTLR_EL1 register.</span><br><span class="line">     * 3. Ensure SCTLR_EL1 written successfully using ISB.</span><br><span class="line">     * 4. Restore TCR_EL1 register.</span><br><span class="line">     * -----------------------------------------------------------</span><br><span class="line">     */</span><br><span class="line">    isb</span><br><span class="line">    ldp x28, x29, [sp, #CTX_ERRATA_SPEC_AT_OFFSET + CTX_ERRATA_SPEC_AT_SCTLR_EL1]</span><br><span class="line">    msr sctlr_el1, x28</span><br><span class="line">    isb</span><br><span class="line">    msr tcr_el1, x29</span><br><span class="line">#endif</span><br><span class="line">    .endm</span><br></pre></td></tr></table></figure>
+
+<p>总体流程如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">1. （可选）初始化 SCTLR_EL3</span><br><span class="line">   ↓</span><br><span class="line">2. （可选）检查 warm boot mailbox → 如果是 warm boot 直接跳转</span><br><span class="line">   ↓               （否则继续冷启动流程）</span><br><span class="line">3. （可选）PIE 全局指针表修复（只 primary 冷启动做一次）</span><br><span class="line">   ↓</span><br><span class="line">4. 设置 VBAR_EL3（异常向量表）</span><br><span class="line">   ↓</span><br><span class="line">5. 调用平台 reset handler（call_reset_handler）</span><br><span class="line">   ↓</span><br><span class="line">6. 架构公共初始化（el3_arch_init_common）</span><br><span class="line">   ↓</span><br><span class="line">7. 设置 EL3 执行上下文（setup_el3_execution_context）</span><br><span class="line">   ↓</span><br><span class="line">8. （可选）判断 primary / secondary CPU</span><br><span class="line">      secondary → 进入平台特定的等待逻辑（通常死循环或 WFI）</span><br><span class="line">      primary   → 继续往下走</span><br><span class="line">   ↓</span><br><span class="line">9. （可选）平台内存初始化（platform_mem_init）</span><br><span class="line">   ↓</span><br><span class="line">10.（可选）初始化 C 运行时环境</span><br><span class="line">      • 失效脏 cache（inv_dcache_range）</span><br><span class="line">      • 清零 .bss / coherent / per-cpu 区域</span><br><span class="line">      • 必要时从 ROM 拷贝 .data 到 RAM</span><br><span class="line">   ↓</span><br><span class="line">11. 切换到 SP_EL0（C 语言栈）</span><br><span class="line">    ↓</span><br><span class="line">12. 设置当前 CPU 的栈（plat_set_my_stack）</span><br><span class="line">    ↓</span><br><span class="line">13. （可选）更新栈保护 canary</span><br><span class="line">    ↓</span><br><span class="line">    进入后续 C 代码（bl bl31_main / bl1_main 等）</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-2-1-SCTLR-EL3寄存器"><a href="#3-2-1-SCTLR-EL3寄存器" class="headerlink" title="3.2.1 SCTLR_EL3寄存器"></a>3.2.1 SCTLR_EL3寄存器</h3><p>此寄存器全名为：System Control Register for Exception Level 3</p>
+<p><img src="/2026/01/24/ARM64-Trust-Firmware-3-BL1%E8%A7%A3%E6%9E%90/17692290470592.png" alt="img"></p>
+<p>各个bit的解释如下：</p>
+<table>
+<thead>
+<tr>
+<th>位</th>
+<th>名称</th>
+<th>含义（简要中文）</th>
+<th>取值解释</th>
+<th>复位值（PE 复位到 EL3 时）</th>
+<th>TF-A 典型做法（el3_entrypoint_common）</th>
+<th>是否常见扩展特性</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>[63:45]</td>
+<td>—</td>
+<td>保留，RES0</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>44</td>
+<td>DSSBS</td>
+<td>禁用投机存储旁路安全（Speculative Store Bypass Safe）</td>
+<td>0：异常进入 EL3 时 PSTATE.SSBS &#x3D; 0（启用 SSBS 防护） 1：PSTATE.SSBS &#x3D; 1（禁用防护）</td>
+<td>IMPLEMENTATION DEFINED</td>
+<td>强制清0（安全优先）</td>
+<td>ARMv8.0-SSBS</td>
+</tr>
+<tr>
+<td>43</td>
+<td>ATA</td>
+<td>EL3 分配标签访问控制（Allocation Tag Access）</td>
+<td>0：禁止访问 Allocation Tags 1：允许访问</td>
+<td>UNKNOWN</td>
+<td>通常不设（依赖平台）</td>
+<td>ARMv8.5-MemTag</td>
+</tr>
+<tr>
+<td>42</td>
+<td>—</td>
+<td>保留，RES0</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>[41:40]</td>
+<td>TCF</td>
+<td>EL3 Tag Check Fault 处理方式</td>
+<td>00：无影响 01：同步异常 10：异步累积 11：保留</td>
+<td>UNKNOWN</td>
+<td>通常不设</td>
+<td>ARMv8.5-MemTag</td>
+</tr>
+<tr>
+<td>[39:38]</td>
+<td>—</td>
+<td>保留，RES0</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>37</td>
+<td>ITFSB</td>
+<td>Tag Check Fault 异步异常进入 EL3 时是否自动同步到 TFSR</td>
+<td>0：不同步 1：同步</td>
+<td>UNKNOWN</td>
+<td>通常不设</td>
+<td>ARMv8.5-MemTag</td>
+</tr>
+<tr>
+<td>36</td>
+<td>BT</td>
+<td>PAC 分支类型兼容性（Branch Type compatibility）</td>
+<td>0：PAC*ASP 与 BTYPE&#x3D;0b11 兼容 1：不兼容</td>
+<td>UNKNOWN</td>
+<td>通常不设</td>
+<td>ARMv8.5-BTI</td>
+</tr>
+<tr>
+<td>[35:32]</td>
+<td>—</td>
+<td>保留，RES0</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>31</td>
+<td>EnIA</td>
+<td>使用 APIAKey_EL1 对指令地址进行 PAC（Pointer Authentication）</td>
+<td>0：禁用 1：启用</td>
+<td>UNKNOWN</td>
+<td>通常不设（或平台决定）</td>
+<td>ARMv8.3-PAuth</td>
+</tr>
+<tr>
+<td>30</td>
+<td>EnIB</td>
+<td>使用 APIBKey_EL1 对指令地址进行 PAC</td>
+<td>同上</td>
+<td>UNKNOWN</td>
+<td>同上</td>
+<td>ARMv8.3-PAuth</td>
+</tr>
+<tr>
+<td>[29:28]</td>
+<td>—</td>
+<td>保留，RES1</td>
+<td>必须写1</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>27</td>
+<td>EnDA</td>
+<td>使用 APDAKey_EL1 对数据地址进行 PAC</td>
+<td>0：禁用 1：启用</td>
+<td>UNKNOWN</td>
+<td>通常不设</td>
+<td>ARMv8.3-PAuth</td>
+</tr>
+<tr>
+<td>26</td>
+<td>—</td>
+<td>保留，RES0</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>25</td>
+<td>EE</td>
+<td>EL3 数据访问 + Stage-1 页表走访 的 Endianness</td>
+<td>0：Little-endian（小端） 1：Big-endian（大端）</td>
+<td>IMPLEMENTATION DEFINED</td>
+<td>强制 0（现代系统全 LE）</td>
+<td>基础特性</td>
+</tr>
+<tr>
+<td>24</td>
+<td>—</td>
+<td>保留，RES0</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>23</td>
+<td>—</td>
+<td>保留，RES1</td>
+<td>必须写1</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>22</td>
+<td>EIS</td>
+<td>异常进入 EL3 是否为上下文同步事件（Context Synchronizing）</td>
+<td>0：不是 1：是</td>
+<td>UNKNOWN</td>
+<td>通常不设（默认0）</td>
+<td>ARMv8.5-CSEH</td>
+</tr>
+<tr>
+<td>21</td>
+<td>IESB</td>
+<td>隐式错误同步屏障（Implicit Error Synchronization Barrier）</td>
+<td>0：禁用 1：启用（异常进入&#x2F;ERET 前加隐式 ESB）</td>
+<td>UNKNOWN</td>
+<td>如果 ENABLE_FEAT_RAS 则设1</td>
+<td>ARMv8.2-IESB</td>
+</tr>
+<tr>
+<td>20</td>
+<td>—</td>
+<td>保留，RES0</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>19</td>
+<td>WXN</td>
+<td>Write 权限隐含 XN（Writeable implies eXecute-Never）</td>
+<td>0：无影响 1：EL3 可写区域强制不可执行</td>
+<td>UNKNOWN</td>
+<td>强制 0（避免限制）</td>
+<td>基础特性</td>
+</tr>
+<tr>
+<td>18</td>
+<td>—</td>
+<td>保留，RES1</td>
+<td>必须写1</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>17</td>
+<td>—</td>
+<td>保留，RES0</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>16</td>
+<td>—</td>
+<td>保留，RES1</td>
+<td>必须写1</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>[15:14]</td>
+<td>—</td>
+<td>保留，RES0</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>13</td>
+<td>EnDB</td>
+<td>使用 APDBKey_EL1 对数据地址进行 PAC</td>
+<td>0：禁用 1：启用</td>
+<td>UNKNOWN</td>
+<td>通常不设</td>
+<td>ARMv8.3-PAuth</td>
+</tr>
+<tr>
+<td>12</td>
+<td>I</td>
+<td>EL3 指令缓存控制</td>
+<td>0：指令 Non-cacheable 1：正常缓存策略</td>
+<td>0</td>
+<td>通常后续设1（开启 I-cache）</td>
+<td>基础特性</td>
+</tr>
+<tr>
+<td>11</td>
+<td>EOS</td>
+<td>异常返回（ERET）是否为上下文同步事件</td>
+<td>0：不是 1：是</td>
+<td>UNKNOWN</td>
+<td>通常不设</td>
+<td>ARMv8.5-CSEH</td>
+</tr>
+<tr>
+<td>[10:7]</td>
+<td>—</td>
+<td>保留，RES0</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>6</td>
+<td>nAA</td>
+<td>非对齐访问控制（针对某些 Acquire&#x2F;Release 指令）</td>
+<td>0：强制 16 字节对齐，否则 Alignment fault 1：允许非对齐</td>
+<td>UNKNOWN</td>
+<td>通常不设（默认0较安全）</td>
+<td>ARMv8.4-LSE</td>
+</tr>
+<tr>
+<td>[5:4]</td>
+<td>—</td>
+<td>保留，RES1</td>
+<td>必须写1</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>3</td>
+<td>SA</td>
+<td>SP（栈指针）对齐检查</td>
+<td>0：禁用 1：SP 必须 16 字节对齐，否则异常</td>
+<td>UNKNOWN</td>
+<td>强制 0（方便栈操作）</td>
+<td>基础特性</td>
+</tr>
+<tr>
+<td>2</td>
+<td>C</td>
+<td>EL3 数据缓存控制</td>
+<td>0：数据 Non-cacheable 1：正常缓存策略</td>
+<td>0</td>
+<td>通常后续设1（开启 D-cache）</td>
+<td>基础特性</td>
+</tr>
+<tr>
+<td>1</td>
+<td>A</td>
+<td>常规内存访问对齐检查</td>
+<td>0：禁用对齐检查 1：启用（未对齐访问 → Alignment fault）</td>
+<td>UNKNOWN</td>
+<td>强制 0（避免不必要故障）</td>
+<td>基础特性</td>
+</tr>
+<tr>
+<td>0</td>
+<td>M</td>
+<td>EL3 Stage-1 MMU 使能</td>
+<td>0：关闭地址翻译 1：开启</td>
+<td>0</td>
+<td>早期通常0，后续视平台设1</td>
+<td>基础特性</td>
+</tr>
+</tbody></table>
+<p>在<code>el3_entrypoint_common</code>中做了如下设置：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">mov_imm x0, (SCTLR_RESET_VAL &amp; ~(SCTLR_EE_BIT | SCTLR_WXN_BIT \</span><br><span class="line">                | SCTLR_SA_BIT | SCTLR_A_BIT | SCTLR_DSSBS_BIT))</span><br><span class="line">#if ENABLE_FEAT_RAS</span><br><span class="line">        /* If FEAT_RAS is present assume FEAT_IESB is also present */</span><br><span class="line">        orr x0, x0, #SCTLR_IESB_BIT</span><br><span class="line">#endif</span><br><span class="line">        msr sctlr_el3, x0</span><br><span class="line">        isb</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>SCTLR_RESET_VAL：硬件复位后的默认值（平台定义，但通常包含未知位）</li>
+<li>强制 <strong>EE</strong><strong>&#x3D;0</strong>（小端）</li>
+<li>强制 <strong>WXN&#x3D;0</strong>（不强制写&#x3D;不可执行）</li>
+<li>强制 <strong>SA</strong><strong>&#x3D;0</strong>（栈不对齐也行）</li>
+<li>强制 <strong>A&#x3D;0</strong>（普通访问不对齐也行）</li>
+<li>强制 <strong>DSSBS&#x3D;0</strong>（启用 SSBS 防护）</li>
+</ul>
+<h3 id="3-2-2-EL3异常向量表设置"><a href="#3-2-2-EL3异常向量表设置" class="headerlink" title="3.2.2 EL3异常向量表设置"></a>3.2.2 EL3异常向量表设置</h3><p><img src="/2026/01/24/ARM64-Trust-Firmware-3-BL1%E8%A7%A3%E6%9E%90/17692290470593.png" alt="img"></p>
+<p><strong>Bits</strong> **[63:11]**：真正的向量基地址（Vector Base Address）</p>
+<ul>
+<li>必須對齊到 2KB（因為最低 11 bits 是保留的）</li>
+</ul>
+<p><strong>Bits</strong> **[10:0]**：RES0（保留，必須為 0）</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">/* ---------------------------------------------------------------------</span><br><span class="line"> * Set the exception vectors.</span><br><span class="line"> * ---------------------------------------------------------------------</span><br><span class="line"> */</span><br><span class="line">adr x0, \_exception_vectors</span><br><span class="line">msr vbar_el3, x0</span><br><span class="line">isb</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>设置EL3的异常向量表为<code>bl1_exceptions</code></li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">/* -----------------------------------------------------------------------------</span><br><span class="line"> * Very simple stackless exception handlers used by BL1.</span><br><span class="line"> * -----------------------------------------------------------------------------</span><br><span class="line"> */</span><br><span class="line">    .globl  bl1_exceptions</span><br><span class="line"></span><br><span class="line">vector_base bl1_exceptions</span><br><span class="line"></span><br><span class="line">    /* -----------------------------------------------------</span><br><span class="line">     * Current EL with SP0 : 0x0 - 0x200</span><br><span class="line">     * -----------------------------------------------------</span><br><span class="line">     */</span><br><span class="line">vector_entry SynchronousExceptionSP0</span><br><span class="line">    mov x0, #SYNC_EXCEPTION_SP_EL0</span><br><span class="line">    bl  plat_report_exception</span><br><span class="line">    no_ret  plat_panic_handler</span><br><span class="line">end_vector_entry SynchronousExceptionSP0</span><br><span class="line"></span><br><span class="line">vector_entry IrqSP0</span><br><span class="line">    mov x0, #IRQ_SP_EL0</span><br><span class="line">    bl  plat_report_exception</span><br><span class="line">    no_ret  plat_panic_handler</span><br><span class="line">end_vector_entry IrqSP0</span><br><span class="line"></span><br><span class="line">vector_entry FiqSP0</span><br><span class="line">    mov x0, #FIQ_SP_EL0</span><br><span class="line">    bl  plat_report_exception</span><br><span class="line">    no_ret  plat_panic_handler</span><br><span class="line">end_vector_entry FiqSP0</span><br><span class="line"></span><br><span class="line">vector_entry SErrorSP0</span><br><span class="line">    mov x0, #SERROR_SP_EL0</span><br><span class="line">    bl  plat_report_exception</span><br><span class="line">    no_ret  plat_panic_handler</span><br><span class="line">end_vector_entry SErrorSP0</span><br><span class="line"></span><br><span class="line">    /* -----------------------------------------------------</span><br><span class="line">     * Current EL with SPx: 0x200 - 0x400</span><br><span class="line">     * -----------------------------------------------------</span><br><span class="line">     */</span><br><span class="line">vector_entry SynchronousExceptionSPx</span><br><span class="line">    mov x0, #SYNC_EXCEPTION_SP_ELX</span><br><span class="line">    bl  plat_report_exception</span><br><span class="line">    no_ret  plat_panic_handler</span><br><span class="line">end_vector_entry SynchronousExceptionSPx</span><br><span class="line"></span><br><span class="line">vector_entry IrqSPx</span><br><span class="line">    mov x0, #IRQ_SP_ELX</span><br><span class="line">    bl  plat_report_exception</span><br><span class="line">    no_ret  plat_panic_handler</span><br><span class="line">end_vector_entry IrqSPx</span><br><span class="line"></span><br><span class="line">vector_entry FiqSPx</span><br><span class="line">    mov x0, #FIQ_SP_ELX</span><br><span class="line">    bl  plat_report_exception</span><br><span class="line">    no_ret  plat_panic_handler</span><br><span class="line">end_vector_entry FiqSPx</span><br><span class="line"></span><br><span class="line">vector_entry SErrorSPx</span><br><span class="line">    mov x0, #SERROR_SP_ELX</span><br><span class="line">    bl  plat_report_exception</span><br><span class="line">    no_ret  plat_panic_handler</span><br><span class="line">end_vector_entry SErrorSPx</span><br><span class="line"></span><br><span class="line">    /* -----------------------------------------------------</span><br><span class="line">     * Lower EL using AArch64 : 0x400 - 0x600</span><br><span class="line">     * -----------------------------------------------------</span><br><span class="line">     */</span><br><span class="line">vector_entry SynchronousExceptionA64</span><br><span class="line">    /* Enable the SError interrupt */</span><br><span class="line">    msr daifclr, #DAIF_ABT_BIT</span><br><span class="line"></span><br><span class="line">    str x30, [sp, #CTX_GPREGS_OFFSET + CTX_GPREG_LR]</span><br><span class="line"></span><br><span class="line">    /* Expect only SMC exceptions */</span><br><span class="line">    mrs x30, esr_el3</span><br><span class="line">    ubfx    x30, x30, #ESR_EC_SHIFT, #ESR_EC_LENGTH</span><br><span class="line">    cmp x30, #EC_AARCH64_SMC</span><br><span class="line">    b.ne    unexpected_sync_exception</span><br><span class="line"></span><br><span class="line">    b   smc_handler64</span><br><span class="line">end_vector_entry SynchronousExceptionA64</span><br><span class="line"></span><br><span class="line">vector_entry IrqA64</span><br><span class="line">    mov x0, #IRQ_AARCH64</span><br><span class="line">    bl  plat_report_exception</span><br><span class="line">    no_ret  plat_panic_handler</span><br><span class="line">end_vector_entry IrqA64</span><br><span class="line"></span><br><span class="line">vector_entry FiqA64</span><br><span class="line">    mov x0, #FIQ_AARCH64</span><br><span class="line">    bl  plat_report_exception</span><br><span class="line">    no_ret  plat_panic_handler</span><br><span class="line">end_vector_entry FiqA64</span><br><span class="line"></span><br><span class="line">vector_entry SErrorA64</span><br><span class="line">    mov x0, #SERROR_AARCH64</span><br><span class="line">    bl  plat_report_exception</span><br><span class="line">    no_ret  plat_panic_handler</span><br><span class="line">end_vector_entry SErrorA64</span><br><span class="line"></span><br><span class="line">    /* -----------------------------------------------------</span><br><span class="line">     * Lower EL using AArch32 : 0x600 - 0x800</span><br><span class="line">     * -----------------------------------------------------</span><br><span class="line">     */</span><br><span class="line">vector_entry SynchronousExceptionA32</span><br><span class="line">    mov x0, #SYNC_EXCEPTION_AARCH32</span><br><span class="line">    bl  plat_report_exception</span><br><span class="line">    no_ret  plat_panic_handler</span><br><span class="line">end_vector_entry SynchronousExceptionA32</span><br><span class="line"></span><br><span class="line">vector_entry IrqA32</span><br><span class="line">    mov x0, #IRQ_AARCH32</span><br><span class="line">    bl  plat_report_exception</span><br><span class="line">    no_ret  plat_panic_handler</span><br><span class="line">end_vector_entry IrqA32</span><br><span class="line"></span><br><span class="line">vector_entry FiqA32</span><br><span class="line">    mov x0, #FIQ_AARCH32</span><br><span class="line">    bl  plat_report_exception</span><br><span class="line">    no_ret  plat_panic_handler</span><br><span class="line">end_vector_entry FiqA32</span><br><span class="line"></span><br><span class="line">vector_entry SErrorA32</span><br><span class="line">    mov x0, #SERROR_AARCH32</span><br><span class="line">    bl  plat_report_exception</span><br><span class="line">    no_ret  plat_panic_handler</span><br><span class="line">end_vector_entry SErrorA32</span><br></pre></td></tr></table></figure>
+
+<p>bl1的异常向量表从 bl1_exceptions 开始，2KB 对齐，总共 0x800 字节，分成 4 个 0x200 字节的块：</p>
+<table>
+<thead>
+<tr>
+<th>偏移</th>
+<th>异常来源</th>
+<th>BL1 处理方式</th>
+<th>预期异常类型</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0x000</td>
+<td>Current EL with SP0</td>
+<td>全部 panic</td>
+<td>不应该发生</td>
+</tr>
+<tr>
+<td>0x200</td>
+<td>Current EL with SPx (EL3 用自己的 SP)</td>
+<td>全部 panic</td>
+<td>不应该发生</td>
+</tr>
+<tr>
+<td>0x400</td>
+<td>Lower EL 使用 AArch64</td>
+<td>只允许 SMC，其余 panic</td>
+<td>只允许 SMC</td>
+</tr>
+<tr>
+<td>0x600</td>
+<td>Lower EL 使用 AArch32</td>
+<td>全部 panic</td>
+<td>不支持 AArch32</td>
+</tr>
+</tbody></table>
+<p><code>plat_report_exception</code>是一个和平台相关的自定义函数，例如：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">    /* -----------------------------------------------------</span><br><span class="line">     * Placeholder function which should be redefined by</span><br><span class="line">     * each platform.</span><br><span class="line">     * -----------------------------------------------------</span><br><span class="line">     */</span><br><span class="line">func plat_report_exception</span><br><span class="line">    ret</span><br><span class="line">endfunc plat_report_exception</span><br><span class="line">    .globl  plat_report_exception</span><br><span class="line"></span><br><span class="line">    /* ---------------------------------------------</span><br><span class="line">     * void plat_report_exception(unsigned int type)</span><br><span class="line">     * Function to report an unhandled exception</span><br><span class="line">     * with platform-specific means.</span><br><span class="line">     * On FVP platform, it updates the LEDs</span><br><span class="line">     * to indicate where we are</span><br><span class="line">     * ---------------------------------------------</span><br><span class="line">     */</span><br><span class="line">func plat_report_exception</span><br><span class="line">    mrs x1, CurrentEl</span><br><span class="line">    lsr x1, x1, #MODE_EL_SHIFT</span><br><span class="line">    lsl x1, x1, #V2M_SYS_LED_EL_SHIFT</span><br><span class="line">    lsl x0, x0, #V2M_SYS_LED_EC_SHIFT</span><br><span class="line">    mov x2, #(SECURE &lt;&lt; V2M_SYS_LED_SS_SHIFT)</span><br><span class="line">    orr x0, x0, x2</span><br><span class="line">    orr x0, x0, x1</span><br><span class="line">    mov x1, #V2M_SYSREGS_BASE</span><br><span class="line">    add x1, x1, #V2M_SYS_LED</span><br><span class="line">    str w0, [x1]</span><br><span class="line">    ret</span><br><span class="line">endfunc plat_report_exception</span><br></pre></td></tr></table></figure>
+
+<p>对于<code>smc_handler64</code>的处理，函数逻辑如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">func smc_handler64</span><br><span class="line">    /* ----------------------------------------------</span><br><span class="line">     * Detect if this is a RUN_IMAGE or other SMC.</span><br><span class="line">     * ----------------------------------------------</span><br><span class="line">     */</span><br><span class="line">    mov x30, #BL1_SMC_RUN_IMAGE</span><br><span class="line">    cmp x30, x0</span><br><span class="line">    b.ne    smc_handler</span><br><span class="line"></span><br><span class="line">    /* ------------------------------------------------</span><br><span class="line">     * Make sure only Secure world reaches here.</span><br><span class="line">     * ------------------------------------------------</span><br><span class="line">     */</span><br><span class="line">    mrs x30, scr_el3</span><br><span class="line">    tst x30, #SCR_NS_BIT</span><br><span class="line">    b.ne    unexpected_sync_exception</span><br><span class="line"></span><br><span class="line">    /* ----------------------------------------------</span><br><span class="line">     * Handling RUN_IMAGE SMC. First switch back to</span><br><span class="line">     * SP_EL0 for the C runtime stack.</span><br><span class="line">     * ----------------------------------------------</span><br><span class="line">     */</span><br><span class="line">    ldr x30, [sp, #CTX_EL3STATE_OFFSET + CTX_RUNTIME_SP]</span><br><span class="line">    msr spsel, #MODE_SP_EL0</span><br><span class="line">    mov sp, x30</span><br><span class="line"></span><br><span class="line">    /* ---------------------------------------------------------------------</span><br><span class="line">     * Pass EL3 control to next BL image.</span><br><span class="line">     * Here it expects X1 with the address of a entry_point_info_t</span><br><span class="line">     * structure describing the next BL image entrypoint.</span><br><span class="line">     * ---------------------------------------------------------------------</span><br><span class="line">     */</span><br><span class="line">    mov x20, x1</span><br><span class="line"></span><br><span class="line">    mov x0, x20</span><br><span class="line">    bl  bl1_print_next_bl_ep_info</span><br><span class="line"></span><br><span class="line">    ldp x0, x1, [x20, #ENTRY_POINT_INFO_PC_OFFSET]</span><br><span class="line">    msr elr_el3, x0</span><br><span class="line">    msr spsr_el3, x1</span><br><span class="line">    ubfx    x0, x1, #MODE_EL_SHIFT, #2</span><br><span class="line">    cmp x0, #MODE_EL3</span><br><span class="line">    b.ne    unexpected_sync_exception</span><br><span class="line"></span><br><span class="line">    bl  disable_mmu_icache_el3</span><br><span class="line">    tlbi    alle3</span><br><span class="line">    dsb ish /* ERET implies ISB, so it is not needed here */</span><br><span class="line"></span><br><span class="line">#if SPIN_ON_BL1_EXIT</span><br><span class="line">    bl  print_debug_loop_message</span><br><span class="line">debug_loop:</span><br><span class="line">    b   debug_loop</span><br><span class="line">#endif</span><br><span class="line"></span><br><span class="line">    mov x0, x20</span><br><span class="line">    bl  bl1_plat_prepare_exit</span><br><span class="line"></span><br><span class="line">    ldp x6, x7, [x20, #(ENTRY_POINT_INFO_ARGS_OFFSET + 0x30)]</span><br><span class="line">    ldp x4, x5, [x20, #(ENTRY_POINT_INFO_ARGS_OFFSET + 0x20)]</span><br><span class="line">    ldp x2, x3, [x20, #(ENTRY_POINT_INFO_ARGS_OFFSET + 0x10)]</span><br><span class="line">    ldp x0, x1, [x20, #(ENTRY_POINT_INFO_ARGS_OFFSET + 0x0)]</span><br><span class="line">    exception_return</span><br><span class="line"></span><br><span class="line">smc_handler:</span><br><span class="line">    bl  prepare_el3_entry</span><br><span class="line"></span><br><span class="line">    /* -----------------------------------------------------</span><br><span class="line">     * Go to BL1 SMC handler.</span><br><span class="line">     * -----------------------------------------------------</span><br><span class="line">     */</span><br><span class="line">    bl  bl1_smc_wrapper_aarch64</span><br><span class="line"></span><br><span class="line">    /* -----------------------------------------------------</span><br><span class="line">     * Do the transition to next BL image.</span><br><span class="line">     * -----------------------------------------------------</span><br><span class="line">     */</span><br><span class="line">    b   el3_exit</span><br><span class="line">endfunc smc_handler64</span><br></pre></td></tr></table></figure>
+
+<p>smc_handler64</p>
+<p> ├─ 如果 x0 &#x3D;&#x3D; BL1_SMC_RUN_IMAGE</p>
+<p> │    └─ 走「RUN_IMAGE 快速路径」→ 直接跳转下一个 BL</p>
+<p> │</p>
+<p> └─ 否则</p>
+<p>​      └─ 走「普通 SMC 路径」</p>
+<p>​           → bl1_smc_wrapper_aarch64</p>
+<p>​           → el3_exit</p>
+<h3 id="3-2-3-CPU复位"><a href="#3-2-3-CPU复位" class="headerlink" title="3.2.3 CPU复位"></a>3.2.3 CPU复位</h3><figure class="highlight c++"><table><tr><td class="code"><pre><span class="line">.macro call_reset_handler</span><br><span class="line"><span class="meta">#<span class="keyword">if</span> defined(IMAGE_BL1) || defined(IMAGE_BL31) || (defined(IMAGE_BL2) &amp;&amp; RESET_TO_BL2)</span></span><br><span class="line">    <span class="comment">/* ---------------------------------------------------------------------</span></span><br><span class="line"><span class="comment">     * It is a cold boot.</span></span><br><span class="line"><span class="comment">     * Perform any processor specific actions upon reset e.g. cache, TLB</span></span><br><span class="line"><span class="comment">     * invalidations etc.</span></span><br><span class="line"><span class="comment">     * ---------------------------------------------------------------------</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="comment">/* The plat_reset_handler can clobber x0 - x18, x30 */</span></span><br><span class="line">    <span class="comment">/* 调用平台级 reset handler */</span></span><br><span class="line">    bl  plat_reset_handler</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Get the matching cpu_ops pointer */</span></span><br><span class="line">    <span class="comment">/* x0 = struct cpu_ops */</span></span><br><span class="line">    bl  get_cpu_ops_ptr</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Get the cpu_ops reset handler */</span></span><br><span class="line">    <span class="comment">/* x2 = cpu_ops-&gt;reset_func */</span></span><br><span class="line">    ldr x2, [x0, #CPU_RESET_FUNC]</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* The cpu_ops reset handler can clobber x0 - x19, x30 */</span></span><br><span class="line">    blr x2</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line">.endm</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span> <span class="comment">/* ASM_MACROS_S */</span></span></span><br></pre></td></tr></table></figure>
+
+<h3 id="3-2-4-公共初始化"><a href="#3-2-4-公共初始化" class="headerlink" title="3.2.4 公共初始化"></a>3.2.4 公共初始化</h3><figure class="highlight c++"><table><tr><td class="code"><pre><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">     * Helper macro to initialise EL3 registers we care about.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    .macro el3_arch_init_common</span><br><span class="line">    <span class="comment">/* ---------------------------------------------------------------------</span></span><br><span class="line"><span class="comment">     * SCTLR_EL3 has already been initialised - read current value before</span></span><br><span class="line"><span class="comment">     * modifying.</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * SCTLR_EL3.I: Enable the instruction cache.</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * SCTLR_EL3.SA: Enable Stack Alignment check. A SP alignment fault</span></span><br><span class="line"><span class="comment">     *  exception is generated if a load or store instruction executed at</span></span><br><span class="line"><span class="comment">     *  EL3 uses the SP as the base address and the SP is not aligned to a</span></span><br><span class="line"><span class="comment">     *  16-byte boundary.</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * SCTLR_EL3.A: Enable Alignment fault checking. All instructions that</span></span><br><span class="line"><span class="comment">     *  load or store one or more registers have an alignment check that the</span></span><br><span class="line"><span class="comment">     *  address being accessed is aligned to the size of the data element(s)</span></span><br><span class="line"><span class="comment">     *  being accessed.</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * SCTLR_EL3.BT: PAuth instructions are compatible with bti jc</span></span><br><span class="line"><span class="comment">     * ---------------------------------------------------------------------</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    mov_imm x1, (SCTLR_I_BIT | SCTLR_A_BIT | SCTLR_SA_BIT)</span><br><span class="line">    mrs x0, sctlr_el3</span><br><span class="line"><span class="meta">#<span class="keyword">if</span> ENABLE_BTI</span></span><br><span class="line">    bic x0, x0, #SCTLR_BT_BIT</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line">    orr x0, x0, x1</span><br><span class="line">    msr sctlr_el3, x0</span><br><span class="line">    isb</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">if</span> ENABLE_FEAT_SCTLR2</span></span><br><span class="line"><span class="meta">#<span class="keyword">if</span> ENABLE_FEAT_SCTLR2 &gt; 1</span></span><br><span class="line">    is_feat_sctlr2_present_asm x1</span><br><span class="line">    beq feat_sctlr2_not_supported\@</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line">    mov x1, #SCTLR2_RESET_VAL</span><br><span class="line">    msr SCTLR2_EL3, x1</span><br><span class="line">feat_sctlr2_not_supported\@:</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">ifdef</span> IMAGE_BL31</span></span><br><span class="line">    <span class="comment">/* ---------------------------------------------------------------------</span></span><br><span class="line"><span class="comment">     * Initialise the per-cpu framework to utilize tpidr_el3.</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * This is done early to enable crash reporting to have access to crash</span></span><br><span class="line"><span class="comment">     * stack. Since crash reporting depends on cpu_data to report the</span></span><br><span class="line"><span class="comment">     * unhandled exception, not doing so can lead to recursive exceptions</span></span><br><span class="line"><span class="comment">     * due to a NULL TPIDR_EL3.</span></span><br><span class="line"><span class="comment">     * ---------------------------------------------------------------------</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    per_cpu_init</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span> <span class="comment">/* IMAGE_BL31 */</span></span></span><br><span class="line"></span><br><span class="line">    <span class="comment">/* ---------------------------------------------------------------------</span></span><br><span class="line"><span class="comment">     * Initialise SCR_EL3, setting all fields rather than relying on hw.</span></span><br><span class="line"><span class="comment">     * All fields are architecturally UNKNOWN on reset. The following fields</span></span><br><span class="line"><span class="comment">     * do not change during the TF lifetime. The remaining fields are set to</span></span><br><span class="line"><span class="comment">     * zero here but are updated ahead of transitioning to a lower EL in the</span></span><br><span class="line"><span class="comment">     * function cm_init_context_common().</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * SCR_EL3.EEL2: Set to one if S-EL2 is present and enabled.</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">NOTE:</span> Modifying EEL2 bit along with EA bit ensures that we mitigate</span></span><br><span class="line"><span class="comment">     * against ERRATA_V2_3099206.</span></span><br><span class="line"><span class="comment">     * ---------------------------------------------------------------------</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    mov_imm x0, SCR_RESET_VAL</span><br><span class="line"><span class="meta">#<span class="keyword">if</span> IMAGE_BL31 &amp;&amp; defined(SPD_spmd) &amp;&amp; SPMD_SPM_AT_SEL2</span></span><br><span class="line">    mrs x1, id_aa64pfr0_el1</span><br><span class="line">    <span class="keyword">and</span> x1, x1, #(ID_AA64PFR0_SEL2_MASK &lt;&lt; ID_AA64PFR0_SEL2_SHIFT)</span><br><span class="line">    cbz x1, <span class="number">1f</span></span><br><span class="line">    orr x0, x0, #SCR_EEL2_BIT</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line"><span class="number">1</span>:</span><br><span class="line">    msr scr_el3, x0</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* ---------------------------------------------------------------------</span></span><br><span class="line"><span class="comment">     * Initialise MDCR_EL3, setting all fields rather than relying on hw.</span></span><br><span class="line"><span class="comment">     * Some fields are architecturally UNKNOWN on reset.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    mov_imm x0, MDCR_EL3_RESET_VAL</span><br><span class="line">    msr mdcr_el3, x0</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* ---------------------------------------------------------------------</span></span><br><span class="line"><span class="comment">     * Initialise CPTR_EL3, setting all fields rather than relying on hw.</span></span><br><span class="line"><span class="comment">     * All fields are architecturally UNKNOWN on reset.</span></span><br><span class="line"><span class="comment">     * ---------------------------------------------------------------------</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    mov_imm x0, CPTR_EL3_RESET_VAL</span><br><span class="line">    msr cptr_el3, x0</span><br><span class="line"></span><br><span class="line">    .endm</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-2-5-恢复EL3执行环境"><a href="#3-2-5-恢复EL3执行环境" class="headerlink" title="3.2.5 恢复EL3执行环境"></a>3.2.5 恢复EL3执行环境</h3><ul>
+<li>EL3 会在 <strong>Secure &#x2F; Non-secure &#x2F; Realm</strong> 等世界之间来回切换</li>
+<li>lower EL 可能修改：<ul>
+<li>中断屏蔽</li>
+<li>debug &#x2F; PMU 状态</li>
+<li>CPTR &#x2F; SCR 等寄存器的某些位</li>
+</ul>
+</li>
+</ul>
+<p>👉 <strong>如果不“每次回来都重置”，EL3 的行为就会被下层世界污染</strong></p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">/*-----------------------------------------------------------------------------</span></span><br><span class="line"><span class="comment"> * Helper macro to configure EL3 registers we care about, while executing</span></span><br><span class="line"><span class="comment"> * at EL3/Root world. Root world has its own execution environment and</span></span><br><span class="line"><span class="comment"> * needs to have its settings configured to be independent of other worlds.</span></span><br><span class="line"><span class="comment"> * -----------------------------------------------------------------------------</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line">    .macro setup_el3_execution_context</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* ---------------------------------------------------------------------</span></span><br><span class="line"><span class="comment">     * The following registers need to be part of separate root context</span></span><br><span class="line"><span class="comment">     * as their values are of importance during EL3 execution.</span></span><br><span class="line"><span class="comment">     * Hence these registers are overwritten to their intital values,</span></span><br><span class="line"><span class="comment">     * irrespective of whichever world they return from to ensure EL3 has a</span></span><br><span class="line"><span class="comment">     * consistent execution context throughout the lifetime of TF-A.</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * DAIF.A: Enable External Aborts and SError Interrupts at EL3.</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * MDCR_EL3.SDD: Set to one to disable AArch64 Secure self-hosted debug.</span></span><br><span class="line"><span class="comment">     *  Debug exceptions, other than Breakpoint Instruction exceptions, are</span></span><br><span class="line"><span class="comment">     *  disabled from all ELs in Secure state.</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * SCR_EL3.EA: Set to one to enable SError interrupts at EL3.</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * SCR_EL3.SIF: Set to one to disable instruction fetches from</span></span><br><span class="line"><span class="comment">     *  Non-secure memory.</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * PMCR_EL0.DP: Set to one so that the cycle counter,</span></span><br><span class="line"><span class="comment">     *  PMCCNTR_EL0 does not count when event counting is prohibited.</span></span><br><span class="line"><span class="comment">     *  Necessary on PMUv3 &lt;= p7 where MDCR_EL3.&#123;SCCD,MCCD&#125; are not</span></span><br><span class="line"><span class="comment">     *  available.</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * CPTR_EL3.EZ: Set to one so that accesses to ZCR_EL3 do not trap</span></span><br><span class="line"><span class="comment">     * CPTR_EL3.ESM: Set to one so that SME related registers don&#x27;t trap</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * PSTATE.DIT: Set to one to enable the Data Independent Timing (DIT)</span></span><br><span class="line"><span class="comment">     *  functionality, if implemented in EL3.</span></span><br><span class="line"><span class="comment">     * ---------------------------------------------------------------------</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">        msr daifclr, #DAIF_ABT_BIT</span><br><span class="line"></span><br><span class="line">        mrs     x15, mdcr_el3</span><br><span class="line">        orr x15, x15, #MDCR_SDD_BIT</span><br><span class="line">        msr mdcr_el3, x15</span><br><span class="line"></span><br><span class="line">        mrs x15, scr_el3</span><br><span class="line">        orr x15, x15, #SCR_EA_BIT</span><br><span class="line">        orr x15, x15, #SCR_SIF_BIT</span><br><span class="line">        bic x15, x15, #SCR_TRNDR_BIT</span><br><span class="line">        msr scr_el3, x15</span><br><span class="line"></span><br><span class="line">        mrs     x15, pmcr_el0</span><br><span class="line">        orr x15, x15, #PMCR_EL0_DP_BIT</span><br><span class="line">        msr pmcr_el0, x15</span><br><span class="line"></span><br><span class="line">        mrs x15, cptr_el3</span><br><span class="line">        orr x15, x15, #CPTR_EZ_BIT</span><br><span class="line">        orr x15, x15, #ESM_BIT</span><br><span class="line">        msr cptr_el3, x15</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">if</span> ENABLE_FEAT_DIT</span></span><br><span class="line"><span class="meta">#<span class="keyword">if</span> ENABLE_FEAT_DIT &gt; 1</span></span><br><span class="line">        mrs x15, id_aa64pfr0_el1</span><br><span class="line">        ubfx    x15, x15, #ID_AA64PFR0_DIT_SHIFT, #ID_AA64PFR0_DIT_LENGTH</span><br><span class="line">        cbz x15, <span class="number">1f</span></span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line">        mov x15, #DIT_BIT</span><br><span class="line">        msr DIT, x15</span><br><span class="line">    <span class="number">1</span>:</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line"></span><br><span class="line">        isb</span><br><span class="line">    .endm</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">endif</span> <span class="comment">/* EL3_COMMON_MACROS_S */</span></span></span><br></pre></td></tr></table></figure>
+
+<h2 id="3-3-bl1-main"><a href="#3-3-bl1-main" class="headerlink" title="3.3 bl1_main"></a>3.3 <code>bl1_main</code></h2><figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">/*******************************************************************************</span></span><br><span class="line"><span class="comment"> * Setup function for BL1.</span></span><br><span class="line"><span class="comment"> * Also perform late architectural and platform specific initialization.</span></span><br><span class="line"><span class="comment"> * It also queries the platform to load and run next BL image. Only called</span></span><br><span class="line"><span class="comment"> * by the primary cpu after a cold boot.</span></span><br><span class="line"><span class="comment"> ******************************************************************************/</span></span><br><span class="line"><span class="function"><span class="type">void</span> __no_pauth <span class="title">bl1_main</span><span class="params">(<span class="type">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span> image_id;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Enable early console if EARLY_CONSOLE flag is enabled */</span></span><br><span class="line">    <span class="built_in">plat_setup_early_console</span>();</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 早期和平台相关的初始化 */</span></span><br><span class="line">    <span class="built_in">bl1_early_platform_setup</span>();</span><br><span class="line">    <span class="comment">/* 晚期平台架构相关设置 */</span></span><br><span class="line">    <span class="built_in">bl1_plat_arch_setup</span>();</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 初始化 EL3 级别的架构扩展（如 SVE、RAS、MTE 等）*/</span></span><br><span class="line">    <span class="built_in">cm_manage_extensions_el3</span>(<span class="built_in">plat_my_core_pos</span>());</span><br><span class="line"></span><br><span class="line">    <span class="comment">/*如果 BL2 不跑在 EL3（常见情况），初始化 per-world（Secure/Non-secure）上下文*/</span></span><br><span class="line"><span class="meta">#<span class="keyword">if</span> !BL2_RUNS_AT_EL3</span></span><br><span class="line">    <span class="comment">/* Init per-world context registers. */</span></span><br><span class="line">    <span class="built_in">cm_manage_extensions_per_world</span>();</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 性能/时间戳记录 */</span></span><br><span class="line"><span class="meta">#<span class="keyword">if</span> ENABLE_RUNTIME_INSTRUMENTATION</span></span><br><span class="line">    <span class="built_in">PMF_CAPTURE_TIMESTAMP</span>(bl_svc, BL1_ENTRY, PMF_CACHE_MAINT);</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 启动信息输出 */</span></span><br><span class="line">    <span class="built_in">NOTICE</span>(FIRMWARE_WELCOME_STR);</span><br><span class="line">    <span class="built_in">NOTICE</span>(<span class="string">&quot;BL1: %s\n&quot;</span>, build_version_string);</span><br><span class="line">    <span class="built_in">NOTICE</span>(<span class="string">&quot;BL1: %s\n&quot;</span>, build_message);</span><br><span class="line"></span><br><span class="line">    <span class="built_in">INFO</span>(<span class="string">&quot;BL1: RAM %p - %p\n&quot;</span>, (<span class="type">void</span> *)BL1_RAM_BASE, (<span class="type">void</span> *)BL1_RAM_LIMIT);</span><br><span class="line"></span><br><span class="line">    <span class="built_in">print_errata_status</span>();</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">if</span> ENABLE_ASSERTIONS</span></span><br><span class="line">    <span class="type">u_register_t</span> val;</span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">     * Ensure that MMU/Caches and coherency are turned on</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line"><span class="meta">#<span class="keyword">ifdef</span> __aarch64__</span></span><br><span class="line">    val = <span class="built_in">read_sctlr_el3</span>();</span><br><span class="line"><span class="meta">#<span class="keyword">else</span></span></span><br><span class="line">    val = <span class="built_in">read_sctlr</span>();</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line">    <span class="built_in">assert</span>((val &amp; SCTLR_M_BIT) != <span class="number">0</span>); <span class="comment">/* MMU 打开 */</span></span><br><span class="line">    <span class="built_in">assert</span>((val &amp; SCTLR_C_BIT) != <span class="number">0</span>); <span class="comment">/* D-Cache 打开 */</span></span><br><span class="line">    <span class="built_in">assert</span>((val &amp; SCTLR_I_BIT) != <span class="number">0</span>); <span class="comment">/* I-Cache 打开 */</span></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">     * Check that Cache Writeback Granule (CWG) in CTR_EL0 matches the</span></span><br><span class="line"><span class="comment">     * provided platform value</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    val = (<span class="built_in">read_ctr_el0</span>() &gt;&gt; CTR_CWG_SHIFT) &amp; CTR_CWG_MASK;</span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">     * If CWG is zero, then no CWG information is available but we can</span></span><br><span class="line"><span class="comment">     * at least check the platform value is less than the architectural</span></span><br><span class="line"><span class="comment">     * maximum.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">if</span> (val != <span class="number">0</span>)</span><br><span class="line">        <span class="built_in">assert</span>(CACHE_WRITEBACK_GRANULE == <span class="built_in">SIZE_FROM_LOG2_WORDS</span>(val));</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        <span class="built_in">assert</span>(CACHE_WRITEBACK_GRANULE &lt;= MAX_CACHE_LINE_SIZE);</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span> <span class="comment">/* ENABLE_ASSERTIONS */</span></span></span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Perform remaining generic architectural setup from EL3 */</span></span><br><span class="line">    <span class="built_in">bl1_arch_setup</span>();</span><br><span class="line">    <span class="comment">/* 加密模块 */</span></span><br><span class="line">    <span class="built_in">crypto_mod_init</span>();</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 认证模块 */</span></span><br><span class="line">    <span class="built_in">auth_mod_init</span>();</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Initialize the measured boot */</span></span><br><span class="line">    <span class="built_in">bl1_plat_mboot_init</span>();</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Perform platform setup in BL1. */</span></span><br><span class="line">    <span class="built_in">bl1_platform_setup</span>();</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Get the image id of next image to load and run. */</span></span><br><span class="line">    image_id = <span class="built_in">bl1_plat_get_next_image_id</span>();</span><br><span class="line"></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">     * We currently interpret any image id other than</span></span><br><span class="line"><span class="comment">     * BL2_IMAGE_ID as the start of firmware update.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">if</span> (image_id == BL2_IMAGE_ID)</span><br><span class="line">        <span class="built_in">bl1_load_bl2</span>();</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        <span class="built_in">NOTICE</span>(<span class="string">&quot;BL1-FWU: *******FWU Process Started*******\n&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Teardown the measured boot driver */</span></span><br><span class="line">    <span class="built_in">bl1_plat_mboot_finish</span>();</span><br><span class="line"></span><br><span class="line">    <span class="built_in">crypto_mod_finish</span>();</span><br><span class="line"></span><br><span class="line">    <span class="built_in">bl1_prepare_next_image</span>(image_id);</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">if</span> ENABLE_RUNTIME_INSTRUMENTATION</span></span><br><span class="line">    <span class="built_in">PMF_CAPTURE_TIMESTAMP</span>(bl_svc, BL1_EXIT, PMF_CACHE_MAINT);</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line"></span><br><span class="line">    <span class="built_in">console_flush</span>();</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Disable pointer authentication before jumping to next boot image. */</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">is_feat_pauth_supported</span>()) &#123;</span><br><span class="line">        <span class="built_in">pauth_disable_el3</span>();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-3-1-加载验证BL2镜像"><a href="#3-3-1-加载验证BL2镜像" class="headerlink" title="3.3.1 加载验证BL2镜像"></a>3.3.1 加载验证BL2镜像</h3><p>主函数在加载BL2镜像时会根据板级配置拿到BL2镜像的大小、地址等信息，然后将其从存储介质（如 Flash 或 FIP 容器）读取 BL2 镜像到可信 SRAM，同时还会执行执行加密校验（哈希、签名验证），确保镜像完整性和来源可信。</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line">    <span class="comment">/* Get the image id of next image to load and run. */</span></span><br><span class="line">    image_id = <span class="built_in">bl1_plat_get_next_image_id</span>();</span><br><span class="line"></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">     * We currently interpret any image id other than</span></span><br><span class="line"><span class="comment">     * BL2_IMAGE_ID as the start of firmware update.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">if</span> (image_id == BL2_IMAGE_ID)</span><br><span class="line">        <span class="built_in">bl1_load_bl2</span>();</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        <span class="built_in">NOTICE</span>(<span class="string">&quot;BL1-FWU: *******FWU Process Started*******\n&quot;</span>);</span><br><span class="line">        </span><br><span class="line">        </span><br><span class="line">        </span><br><span class="line"><span class="comment">/*******************************************************************************</span></span><br><span class="line"><span class="comment"> * This function locates and loads the BL2 raw binary image in the trusted SRAM.</span></span><br><span class="line"><span class="comment"> * Called by the primary cpu after a cold boot.</span></span><br><span class="line"><span class="comment"> * <span class="doctag">TODO:</span> Add support for alternative image load mechanism e.g using virtio/elf</span></span><br><span class="line"><span class="comment"> * loader etc.</span></span><br><span class="line"><span class="comment"> ******************************************************************************/</span></span><br><span class="line"><span class="function"><span class="type">static</span> <span class="type">void</span> <span class="title">bl1_load_bl2</span><span class="params">(<span class="type">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="type">image_desc_t</span> *desc;</span><br><span class="line">    <span class="type">image_info_t</span> *info;</span><br><span class="line">    <span class="type">int</span> err;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Get the image descriptor */</span></span><br><span class="line">    desc = <span class="built_in">bl1_plat_get_image_desc</span>(BL2_IMAGE_ID);</span><br><span class="line">    <span class="built_in">assert</span>(desc != <span class="literal">NULL</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Get the image info */</span></span><br><span class="line">    info = &amp;desc-&gt;image_info;</span><br><span class="line">    <span class="built_in">INFO</span>(<span class="string">&quot;BL1: Loading BL2\n&quot;</span>);</span><br><span class="line"></span><br><span class="line">    err = <span class="built_in">bl1_plat_handle_pre_image_load</span>(BL2_IMAGE_ID);</span><br><span class="line">    <span class="keyword">if</span> (err != <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="built_in">ERROR</span>(<span class="string">&quot;Failure in pre image load handling of BL2 (%d)\n&quot;</span>, err);</span><br><span class="line">        <span class="built_in">plat_error_handler</span>(err);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    err = <span class="built_in">load_auth_image</span>(BL2_IMAGE_ID, info);</span><br><span class="line">    <span class="keyword">if</span> (err != <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="built_in">ERROR</span>(<span class="string">&quot;Failed to load BL2 firmware.\n&quot;</span>);</span><br><span class="line">        <span class="built_in">plat_error_handler</span>(err);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Allow platform to handle image information. */</span></span><br><span class="line">    err = <span class="built_in">bl1_plat_handle_post_image_load</span>(BL2_IMAGE_ID);</span><br><span class="line">    <span class="keyword">if</span> (err != <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="built_in">ERROR</span>(<span class="string">&quot;Failure in post image load handling of BL2 (%d)\n&quot;</span>, err);</span><br><span class="line">        <span class="built_in">plat_error_handler</span>(err);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">NOTICE</span>(<span class="string">&quot;BL1: Booting BL2\n&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-3-2-跳转前的准备"><a href="#3-3-2-跳转前的准备" class="headerlink" title="3.3.2 跳转前的准备"></a>3.3.2 跳转前的准备</h3><figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">/***************************************************************************</span></span><br><span class="line"><span class="comment"> * This structure provides version information and the size of the</span></span><br><span class="line"><span class="comment"> * structure, attributes for the structure it represents</span></span><br><span class="line"><span class="comment"> ***************************************************************************/</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">param_header</span> &#123;</span></span><br><span class="line">    <span class="type">uint8_t</span> type;       <span class="comment">/* type of the structure */</span></span><br><span class="line">    <span class="type">uint8_t</span> version;    <span class="comment">/* version of this structure */</span></span><br><span class="line">    <span class="type">uint16_t</span> size;      <span class="comment">/* size of this structure in bytes */</span></span><br><span class="line">    <span class="type">uint32_t</span> attr;      <span class="comment">/* attributes: unused bits SBZ */</span></span><br><span class="line">&#125; <span class="type">param_header_t</span>;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">entry_point_info</span> &#123;</span></span><br><span class="line">    <span class="type">param_header_t</span> h;</span><br><span class="line">    <span class="type">uintptr_t</span> pc;   </span><br><span class="line">    <span class="type">uint32_t</span> spsr;</span><br><span class="line"><span class="meta">#<span class="keyword">ifdef</span> __aarch64__</span></span><br><span class="line">    <span class="type">aapcs64_params_t</span> args;</span><br><span class="line"><span class="meta">#<span class="keyword">else</span></span></span><br><span class="line">    <span class="type">uintptr_t</span> lr_svc;</span><br><span class="line">    <span class="type">aapcs32_params_t</span> args;</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line">&#125; <span class="type">entry_point_info_t</span>;</span><br></pre></td></tr></table></figure>
+
+<p>对应的SPSR_EL3寄存器如下：</p>
+<p><img src="/2026/01/24/ARM64-Trust-Firmware-3-BL1%E8%A7%A3%E6%9E%90/17692290470594.png" alt="img"></p>
+<p>SPSR_EL3寄存器是ARMv8-A (AArch64 执行状态) 中的 PSTATE（Processor State）的描述，主要关注最后几位：</p>
+<p><strong>Bits</strong> **[4:0]<strong>：</strong>M[4:0]**（Mode bits，执行模式）</p>
+<ul>
+<li><strong>nRW</strong>（bit 4）：0 &#x3D; AArch64 执行状态，1 &#x3D; AArch32 执行状态。</li>
+<li>**M[3:0]**（bit [3:0]）：异常级别 + SP 选择<ul>
+<li>常见编码：<ul>
+<li>0b0000：EL0t（EL0，使用 SP_EL0）</li>
+<li>0b0100：EL1t（EL1，使用 SP_EL0）</li>
+<li>0b0101：EL1h（EL1，使用 SP_EL1）</li>
+<li>0b1000：EL2t &#x2F; EL2h 等</li>
+<li>0b1100：EL3t &#x2F; EL3h</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>M 字段决定当前异常级别（EL）和使用的栈指针（SP）。</li>
+</ul>
+<blockquote>
+<p>异常进入 EL3（如 SMC &#x2F; IRQ &#x2F; reset）</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">PSTATE  ──保存──▶  SPSR_EL3 ``PC      ──保存──▶  ELR_EL3</span><br></pre></td></tr></table></figure>
+
+<p>异常返回（ERET）</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">PSTATE  ◀──恢复──  SPSR_EL3 ``PC      ◀──恢复──  ELR_EL3</span><br></pre></td></tr></table></figure>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">/*******************************************************************************</span></span><br><span class="line"><span class="comment"> * This function prepares the context for Secure/Normal world images.</span></span><br><span class="line"><span class="comment"> * Normal world images are transitioned to EL2(if supported) else EL1.</span></span><br><span class="line"><span class="comment"> ******************************************************************************/</span></span><br><span class="line"><span class="type">void</span> <span class="title function_">bl1_prepare_next_image</span><span class="params">(<span class="type">unsigned</span> <span class="type">int</span> image_id)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span> security_state, mode = MODE_EL1;</span><br><span class="line">    <span class="type">image_desc_t</span> *desc;</span><br><span class="line">    <span class="type">entry_point_info_t</span> *next_bl_ep;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">if</span> CTX_INCLUDE_AARCH32_REGS</span></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">     * Ensure that the build flag to save AArch32 system registers in CPU</span></span><br><span class="line"><span class="comment">     * context is not set for AArch64-only platforms.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">if</span> (el_implemented(<span class="number">1</span>) == EL_IMPL_A64ONLY) &#123;</span><br><span class="line">        ERROR(<span class="string">&quot;EL1 supports AArch64-only. Please set build flag &quot;</span></span><br><span class="line">                <span class="string">&quot;CTX_INCLUDE_AARCH32_REGS = 0\n&quot;</span>);</span><br><span class="line">        panic();</span><br><span class="line">    &#125;</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Get the image descriptor. */</span></span><br><span class="line">    desc = bl1_plat_get_image_desc(image_id);</span><br><span class="line">    assert(desc != <span class="literal">NULL</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Get the entry point info. */</span></span><br><span class="line">    next_bl_ep = &amp;desc-&gt;ep_info;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Get the image security state. */</span></span><br><span class="line">    security_state = GET_SECURITY_STATE(next_bl_ep-&gt;h.attr);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 决定 BL2 运行在哪个 EL, BL2运行在secure EL1 */</span></span><br><span class="line">    <span class="keyword">if</span> ((security_state != SECURE) &amp;&amp; (el_implemented(<span class="number">2</span>) != EL_IMPL_NONE)) &#123;</span><br><span class="line">        mode = MODE_EL2;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">/*  构造 SPSR */</span></span><br><span class="line">    next_bl_ep-&gt;spsr = (<span class="type">uint32_t</span>)SPSR_64((<span class="type">uint64_t</span>) mode,</span><br><span class="line">        (<span class="type">uint64_t</span>)MODE_SP_ELX, DISABLE_ALL_EXCEPTIONS);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Allow platform to make change */</span></span><br><span class="line">    bl1_plat_set_ep_info(image_id, next_bl_ep);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Prepare the context for the next BL image. */</span></span><br><span class="line">    cm_init_my_context(next_bl_ep);</span><br><span class="line">    cm_prepare_el3_exit(security_state);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Indicate that image is in execution state. */</span></span><br><span class="line">    desc-&gt;state = IMAGE_STATE_EXECUTED;</span><br><span class="line"></span><br><span class="line">    print_entry_point_info(next_bl_ep);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="3-4-el3-exit"><a href="#3-4-el3-exit" class="headerlink" title="3.4 el3_exit"></a>3.4 el3_exit</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">/* ----------------lib\el3_runtime\aarch64\context.S--------------------------------------------------</span><br><span class="line"> * This routine assumes that the SP_EL3 is pointing to a valid</span><br><span class="line"> * context structure from where the gp regs and other special</span><br><span class="line"> * registers can be retrieved.</span><br><span class="line"> * ------------------------------------------------------------------</span><br><span class="line"> */</span><br><span class="line">func el3_exit</span><br><span class="line">#if ENABLE_ASSERTIONS</span><br><span class="line">    /* el3_exit assumes SP_EL0 on entry */</span><br><span class="line">    mrs x17, spsel</span><br><span class="line">    cmp x17, #MODE_SP_EL0</span><br><span class="line">    ASM_ASSERT(eq)</span><br><span class="line">#endif /* ENABLE_ASSERTIONS */</span><br><span class="line"></span><br><span class="line">    /* ----------------------------------------------------------</span><br><span class="line">     * Save the current SP_EL0 i.e. the EL3 runtime stack which</span><br><span class="line">     * will be used for handling the next SMC.</span><br><span class="line">     * Then switch to SP_EL3.</span><br><span class="line">     * ----------------------------------------------------------</span><br><span class="line">     */</span><br><span class="line">    mov x17, sp</span><br><span class="line">    msr spsel, #MODE_SP_ELX</span><br><span class="line">    str x17, [sp, #CTX_EL3STATE_OFFSET + CTX_RUNTIME_SP]</span><br><span class="line"></span><br><span class="line">    /* ----------------------------------------------------------</span><br><span class="line">     * Restore CPTR_EL3.</span><br><span class="line">     * ---------------------------------------------------------- */</span><br><span class="line"></span><br><span class="line">    /* The address of the per_world context is stored in x9 */</span><br><span class="line">    get_per_world_context x9</span><br><span class="line"></span><br><span class="line">    ldp x19, x20, [x9, #CTX_CPTR_EL3]</span><br><span class="line">    msr cptr_el3, x19</span><br><span class="line"></span><br><span class="line">#if IMAGE_BL31</span><br><span class="line">    restore_mpam3_el3</span><br><span class="line"></span><br><span class="line">#endif /* IMAGE_BL31 */</span><br><span class="line"></span><br><span class="line">#if IMAGE_BL31 &amp;&amp; DYNAMIC_WORKAROUND_CVE_2018_3639</span><br><span class="line">    /* ----------------------------------------------------------</span><br><span class="line">     * Restore mitigation state as it was on entry to EL3</span><br><span class="line">     * ----------------------------------------------------------</span><br><span class="line">     */</span><br><span class="line">    ldr x17, [sp, #CTX_CVE_2018_3639_OFFSET + CTX_CVE_2018_3639_DISABLE]</span><br><span class="line">    cbz x17, 1f</span><br><span class="line">    blr x17</span><br><span class="line">1:</span><br><span class="line">#endif /* IMAGE_BL31 &amp;&amp; DYNAMIC_WORKAROUND_CVE_2018_3639 */</span><br><span class="line"></span><br><span class="line">#if IMAGE_BL31</span><br><span class="line">    synchronize_errors</span><br><span class="line">#endif /* IMAGE_BL31 */</span><br><span class="line"></span><br><span class="line">    /* --------------------------------------------------------------</span><br><span class="line">     * Restore MDCR_EL3, SPSR_EL3, ELR_EL3 and SCR_EL3 prior to ERET</span><br><span class="line">     * --------------------------------------------------------------</span><br><span class="line">     */</span><br><span class="line">    ldp x16, x17, [sp, #CTX_EL3STATE_OFFSET + CTX_SPSR_EL3]</span><br><span class="line">    ldr x18, [sp, #CTX_EL3STATE_OFFSET + CTX_SCR_EL3]</span><br><span class="line">    ldr x19, [sp, #CTX_EL3STATE_OFFSET + CTX_MDCR_EL3]</span><br><span class="line">    msr spsr_el3, x16</span><br><span class="line">    msr elr_el3, x17</span><br><span class="line">    msr scr_el3, x18</span><br><span class="line">    msr mdcr_el3, x19</span><br><span class="line"></span><br><span class="line">    restore_ptw_el1_sys_regs</span><br><span class="line"></span><br><span class="line">    /* ----------------------------------------------------------</span><br><span class="line">     * Restore general purpose (including x30), PMCR_EL0 and</span><br><span class="line">     * ARMv8.3-PAuth registers.</span><br><span class="line">     * Exit EL3 via ERET to a lower exception level.</span><br><span class="line">     * ----------------------------------------------------------</span><br><span class="line">     */</span><br><span class="line">    bl  restore_gp_pmcr_pauth_regs</span><br><span class="line">    ldr x30, [sp, #CTX_GPREGS_OFFSET + CTX_GPREG_LR]</span><br><span class="line"></span><br><span class="line">#ifdef IMAGE_BL31</span><br><span class="line">    /* Clear the EL3 flag as we are exiting el3 */</span><br><span class="line">    str xzr, [sp, #CTX_EL3STATE_OFFSET + CTX_NESTED_EA_FLAG]</span><br><span class="line">#endif /* IMAGE_BL31 */</span><br><span class="line"></span><br><span class="line">    exception_return</span><br><span class="line"></span><br><span class="line">endfunc el3_exit</span><br></pre></td></tr></table></figure>
+
+<p>所以整体的BL1流程大概如下：</p>
+<p><img src="/2026/01/24/ARM64-Trust-Firmware-3-BL1%E8%A7%A3%E6%9E%90/17692290470595.png" alt="img"></p>
+<p>虽然ARM提供了一个BL1，但是基本上各自的厂商都会实现自己的BL1，并且固化在芯片的ROM中。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="https://yanglianoo.github.io">Timer</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://yanglianoo.github.io/2026/01/24/ARM64-Trust-Firmware-3-BL1%E8%A7%A3%E6%9E%90/">https://yanglianoo.github.io/2026/01/24/ARM64-Trust-Firmware-3-BL1解析/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://yanglianoo.github.io" target="_blank">TimerのBlog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/ARM64/">ARM64</a><a class="post-meta__tags" href="/tags/ATF/">ATF</a><a class="post-meta__tags" href="/tags/ARM%E5%AE%89%E5%85%A8/">ARM安全</a></div><div class="post_share"><div class="social-share" data-image="/2026/01/24/ARM64-Trust-Firmware-3-BL1%E8%A7%A3%E6%9E%90/17692290470595.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><div class="post-reward"><div class="reward-button"><i class="fas fa-qrcode"></i> 打赏</div><div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/img/wechat.jpg" target="_blank"><img class="post-qr-code-img" src="/img/wechat.jpg" alt="微信"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="/img/alipay.jpg" target="_blank"><img class="post-qr-code-img" src="/img/alipay.jpg" alt="支付宝"/></a><div class="post-qr-code-desc">支付宝</div></li></ul></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/2026/01/24/ARM64-Trust-Firmware-2-%E5%90%AF%E5%8A%A8ATF/" title="ARM64-Trust-Firmware[2]-启动ATF"><img class="cover" src="/2026/01/24/ARM64-Trust-Firmware-2-%E5%90%AF%E5%8A%A8ATF/17692287555201.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">ARM64-Trust-Firmware[2]-启动ATF</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2026/01/24/ARM64-Trust-Firmware-1-ARM%E5%AE%89%E5%85%A8%E6%9E%B6%E6%9E%84/" title="ARM64-Trust-Firmware[1]-ARM安全架构"><img class="cover" src="/2026/01/24/ARM64-Trust-Firmware-1-ARM%E5%AE%89%E5%85%A8%E6%9E%B6%E6%9E%84/17692284856153.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-24</div><div class="title">ARM64-Trust-Firmware[1]-ARM安全架构</div></div></a></div><div><a href="/2026/01/24/ARM64-Trust-Firmware-2-%E5%90%AF%E5%8A%A8ATF/" title="ARM64-Trust-Firmware[2]-启动ATF"><img class="cover" src="/2026/01/24/ARM64-Trust-Firmware-2-%E5%90%AF%E5%8A%A8ATF/17692287555201.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-24</div><div class="title">ARM64-Trust-Firmware[2]-启动ATF</div></div></a></div><div><a href="/2024/06/07/Linux%E5%86%85%E6%A0%B8%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/" title="Linux内核启动流程分析"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-06-07</div><div class="title">Linux内核启动流程分析</div></div></a></div><div><a href="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/" title="Xhyper剖析[1]--ARM64基础知识"><img class="cover" src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/176892275018318.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-20</div><div class="title">Xhyper剖析[1]--ARM64基础知识</div></div></a></div><div><a href="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-2-Xhyper%E5%90%AF%E5%8A%A8/" title="Xhyper剖析[2]--Xhyper启动"><img class="cover" src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-2-Xhyper%E5%90%AF%E5%8A%A8/17689237041079.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-20</div><div class="title">Xhyper剖析[2]--Xhyper启动</div></div></a></div><div><a href="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-3-Xhyper%E5%86%85%E5%AD%98%E8%99%9A%E6%8B%9F%E5%8C%96/" title="Xhyper剖析[3]--Xhyper内存虚拟化"><img class="cover" src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-3-Xhyper%E5%86%85%E5%AD%98%E8%99%9A%E6%8B%9F%E5%8C%96/176892388736321.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-20</div><div class="title">Xhyper剖析[3]--Xhyper内存虚拟化</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/head.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">Timer</div><div class="author-info__description">没有一个健康的身体，如何支撑我龌龊的灵魂!</div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">36</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">30</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">10</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/yanglianoo"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/yanglianoo" target="_blank" title="Github"><i class="fab fa-github" style="color: #24292e;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">个人微信：13699648817</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content is-expand"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#3-BL1"><span class="toc-text">3 BL1</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#3-1-bl1-entrypoint"><span class="toc-text">3.1 bl1_entrypoint</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-2-el3-entrypoint-common"><span class="toc-text">3.2 el3_entrypoint_common</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-1-SCTLR-EL3%E5%AF%84%E5%AD%98%E5%99%A8"><span class="toc-text">3.2.1 SCTLR_EL3寄存器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-2-EL3%E5%BC%82%E5%B8%B8%E5%90%91%E9%87%8F%E8%A1%A8%E8%AE%BE%E7%BD%AE"><span class="toc-text">3.2.2 EL3异常向量表设置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-3-CPU%E5%A4%8D%E4%BD%8D"><span class="toc-text">3.2.3 CPU复位</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-4-%E5%85%AC%E5%85%B1%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="toc-text">3.2.4 公共初始化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-5-%E6%81%A2%E5%A4%8DEL3%E6%89%A7%E8%A1%8C%E7%8E%AF%E5%A2%83"><span class="toc-text">3.2.5 恢复EL3执行环境</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-3-bl1-main"><span class="toc-text">3.3 bl1_main</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-1-%E5%8A%A0%E8%BD%BD%E9%AA%8C%E8%AF%81BL2%E9%95%9C%E5%83%8F"><span class="toc-text">3.3.1 加载验证BL2镜像</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-2-%E8%B7%B3%E8%BD%AC%E5%89%8D%E7%9A%84%E5%87%86%E5%A4%87"><span class="toc-text">3.3.2 跳转前的准备</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-4-el3-exit"><span class="toc-text">3.4 el3_exit</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/01/24/ARM64-Trust-Firmware-3-BL1%E8%A7%A3%E6%9E%90/" title="ARM64-Trust-Firmware[3]-BL1解析"><img src="/2026/01/24/ARM64-Trust-Firmware-3-BL1%E8%A7%A3%E6%9E%90/17692290470595.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="ARM64-Trust-Firmware[3]-BL1解析"/></a><div class="content"><a class="title" href="/2026/01/24/ARM64-Trust-Firmware-3-BL1%E8%A7%A3%E6%9E%90/" title="ARM64-Trust-Firmware[3]-BL1解析">ARM64-Trust-Firmware[3]-BL1解析</a><time datetime="2026-01-24T04:29:40.000Z" title="发表于 2026-01-24 12:29:40">2026-01-24</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/01/24/ARM64-Trust-Firmware-2-%E5%90%AF%E5%8A%A8ATF/" title="ARM64-Trust-Firmware[2]-启动ATF"><img src="/2026/01/24/ARM64-Trust-Firmware-2-%E5%90%AF%E5%8A%A8ATF/17692287555201.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="ARM64-Trust-Firmware[2]-启动ATF"/></a><div class="content"><a class="title" href="/2026/01/24/ARM64-Trust-Firmware-2-%E5%90%AF%E5%8A%A8ATF/" title="ARM64-Trust-Firmware[2]-启动ATF">ARM64-Trust-Firmware[2]-启动ATF</a><time datetime="2026-01-24T04:24:53.000Z" title="发表于 2026-01-24 12:24:53">2026-01-24</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/01/24/ARM64-Trust-Firmware-1-ARM%E5%AE%89%E5%85%A8%E6%9E%B6%E6%9E%84/" title="ARM64-Trust-Firmware[1]-ARM安全架构"><img src="/2026/01/24/ARM64-Trust-Firmware-1-ARM%E5%AE%89%E5%85%A8%E6%9E%B6%E6%9E%84/17692284856153.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="ARM64-Trust-Firmware[1]-ARM安全架构"/></a><div class="content"><a class="title" href="/2026/01/24/ARM64-Trust-Firmware-1-ARM%E5%AE%89%E5%85%A8%E6%9E%B6%E6%9E%84/" title="ARM64-Trust-Firmware[1]-ARM安全架构">ARM64-Trust-Firmware[1]-ARM安全架构</a><time datetime="2026-01-24T04:20:51.000Z" title="发表于 2026-01-24 12:20:51">2026-01-24</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-6-%E4%B8%AD%E6%96%AD%E8%99%9A%E6%8B%9F%E5%8C%96/" title="Xhyper剖析[6]--中断虚拟化"><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-6-%E4%B8%AD%E6%96%AD%E8%99%9A%E6%8B%9F%E5%8C%96/17689244713913.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Xhyper剖析[6]--中断虚拟化"/></a><div class="content"><a class="title" href="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-6-%E4%B8%AD%E6%96%AD%E8%99%9A%E6%8B%9F%E5%8C%96/" title="Xhyper剖析[6]--中断虚拟化">Xhyper剖析[6]--中断虚拟化</a><time datetime="2026-01-20T15:54:17.000Z" title="发表于 2026-01-20 23:54:17">2026-01-20</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-5-MMIO%E8%99%9A%E6%8B%9F%E5%8C%96/" title="Xhyper剖析[5]--MMIO虚拟化"><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-5-MMIO%E8%99%9A%E6%8B%9F%E5%8C%96/17689243819381.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Xhyper剖析[5]--MMIO虚拟化"/></a><div class="content"><a class="title" href="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-5-MMIO%E8%99%9A%E6%8B%9F%E5%8C%96/" title="Xhyper剖析[5]--MMIO虚拟化">Xhyper剖析[5]--MMIO虚拟化</a><time datetime="2026-01-20T15:52:10.000Z" title="发表于 2026-01-20 23:52:10">2026-01-20</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('/2026/01/24/ARM64-Trust-Firmware-3-BL1%E8%A7%A3%E6%9E%90/17692290470595.png')"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2026 By Timer</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><div class="js-pjax"></div><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/fireworks.min.js"></script><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div class="no-result" id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js"></script></div></div></body></html>

@@ -1,0 +1,266 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>ARM64-Trust-Firmware[2]-启动ATF | TimerのBlog</title><meta name="author" content="Timer"><meta name="copyright" content="Timer"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="2 启动ATF2.1 基于qemu运行ATF项目地址：https:&#x2F;&#x2F;gitee.com&#x2F;yang_lian&#x2F;atf-demo 运行结果如下：  2.2 基于qemu运行optee我们基于optee来启动ATF，构建optee项目的过程会同时拉取linux kernel和ATF并把这个安全架构的软件栈运行起来  2.2.1 安装repo在Ubuntu 20.04上，直接通过apt命令安装repo可">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ARM64-Trust-Firmware[2]-启动ATF">
+<meta property="og:url" content="https://yanglianoo.github.io/2026/01/24/ARM64-Trust-Firmware-2-%E5%90%AF%E5%8A%A8ATF/index.html">
+<meta property="og:site_name" content="TimerのBlog">
+<meta property="og:description" content="2 启动ATF2.1 基于qemu运行ATF项目地址：https:&#x2F;&#x2F;gitee.com&#x2F;yang_lian&#x2F;atf-demo 运行结果如下：  2.2 基于qemu运行optee我们基于optee来启动ATF，构建optee项目的过程会同时拉取linux kernel和ATF并把这个安全架构的软件栈运行起来  2.2.1 安装repo在Ubuntu 20.04上，直接通过apt命令安装repo可">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://yanglianoo.github.io/2026/01/24/ARM64-Trust-Firmware-2-%E5%90%AF%E5%8A%A8ATF/17692287555201.png">
+<meta property="article:published_time" content="2026-01-24T04:24:53.000Z">
+<meta property="article:modified_time" content="2026-01-24T04:26:49.807Z">
+<meta property="article:author" content="Timer">
+<meta property="article:tag" content="ARM64">
+<meta property="article:tag" content="ATF">
+<meta property="article:tag" content="ARM安全">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://yanglianoo.github.io/2026/01/24/ARM64-Trust-Firmware-2-%E5%90%AF%E5%8A%A8ATF/17692287555201.png"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://yanglianoo.github.io/2026/01/24/ARM64-Trust-Firmware-2-%E5%90%AF%E5%8A%A8ATF/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"languages":{"hits_empty":"找不到您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":500},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '天',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: {"chs_to_cht":"你已切换为繁体","cht_to_chs":"你已切换为简体","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"bottom-left"},
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'ARM64-Trust-Firmware[2]-启动ATF',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2026-01-24 12:26:49'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+    win.getCSS = (url,id = false) => new Promise((resolve, reject) => {
+      const link = document.createElement('link')
+      link.rel = 'stylesheet'
+      link.href = url
+      if (id) link.id = id
+      link.onerror = reject
+      link.onload = link.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        link.onload = link.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(link)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/background.css"><meta name="generator" content="Hexo 6.3.0"><link rel="alternate" href="/atom.xml" title="TimerのBlog" type="application/atom+xml">
+</head><body><div id="web_bg"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/head.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">36</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">30</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">10</div></a></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/2026/01/24/ARM64-Trust-Firmware-2-%E5%90%AF%E5%8A%A8ATF/17692287555201.png')"><nav id="nav"><span id="blog-info"><a href="/" title="TimerのBlog"><span class="site-name">TimerのBlog</span></a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search" href="javascript:void(0);"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">ARM64-Trust-Firmware[2]-启动ATF</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-01-24T04:24:53.000Z" title="发表于 2026-01-24 12:24:53">2026-01-24</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-01-24T04:26:49.807Z" title="更新于 2026-01-24 12:26:49">2026-01-24</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/ARM64-Trust-Firmware/">ARM64-Trust-Firmware</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="ARM64-Trust-Firmware[2]-启动ATF"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="2-启动ATF"><a href="#2-启动ATF" class="headerlink" title="2 启动ATF"></a>2 启动ATF</h1><h2 id="2-1-基于qemu运行ATF"><a href="#2-1-基于qemu运行ATF" class="headerlink" title="2.1 基于qemu运行ATF"></a>2.1 基于qemu运行ATF</h2><p>项目地址：<a target="_blank" rel="noopener" href="https://gitee.com/yang_lian/atf-demo">https://gitee.com/yang_lian/atf-demo</a></p>
+<p>运行结果如下：</p>
+<p><img src="/2026/01/24/ARM64-Trust-Firmware-2-%E5%90%AF%E5%8A%A8ATF/176922875552216.png" alt="img"></p>
+<h2 id="2-2-基于qemu运行optee"><a href="#2-2-基于qemu运行optee" class="headerlink" title="2.2 基于qemu运行optee"></a>2.2 基于qemu运行optee</h2><p>我们基于optee来启动ATF，构建optee项目的过程会同时拉取linux kernel和ATF并把这个安全架构的软件栈运行起来</p>
+<p><img src="/2026/01/24/ARM64-Trust-Firmware-2-%E5%90%AF%E5%8A%A8ATF/17692287555201.png" alt="img"></p>
+<h3 id="2-2-1-安装repo"><a href="#2-2-1-安装repo" class="headerlink" title="2.2.1 安装repo"></a>2.2.1 安装repo</h3><p>在Ubuntu 20.04上，直接通过apt命令安装repo可能会遇到问题。推荐使用以下步骤来安装repo：</p>
+<p><strong>下载<strong><strong>repo</strong></strong>脚本</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">curl https://mirrors.tuna.tsinghua.edu.cn/git/git-repo -o repo</span><br></pre></td></tr></table></figure>
+
+<p><strong>添加执行权限</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">chmod</span> +x repo</span><br></pre></td></tr></table></figure>
+
+<p><strong>移动<strong><strong>repo</strong></strong>脚本到系统路径</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sudo <span class="built_in">mv</span> repo /usr/bin</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-2-2-下载编译OP-TEE源码"><a href="#2-2-2-下载编译OP-TEE源码" class="headerlink" title="2.2.2 下载编译OP-TEE源码"></a>2.2.2 下载编译OP-TEE源码</h3><p>optee的github仓库如下：<a target="_blank" rel="noopener" href="https://github.com/orgs/OP-TEE/repositories">https://github.com/orgs/OP-TEE/repositories</a></p>
+<p>optee官方文档如下：<a target="_blank" rel="noopener" href="https://optee.readthedocs.io/en/latest/building/devices/qemu.html#qemu-v8">https://optee.readthedocs.io/en/latest/building/devices/qemu.html#qemu-v8</a></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">$ </span><span class="language-bash"><span class="built_in">mkdir</span> optee</span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash"><span class="built_in">cd</span> optee</span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">repo init -u https://github.com/OP-TEE/manifest.git -m qemu_v8.xml</span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">repo <span class="built_in">sync</span></span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash"><span class="built_in">cd</span> build</span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">make toolchains</span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">make run</span></span><br></pre></td></tr></table></figure>
+
+<p>步骤如下：</p>
+<p><img src="/2026/01/24/ARM64-Trust-Firmware-2-%E5%90%AF%E5%8A%A8ATF/17692287555202.png" alt="img"></p>
+<p>下面这个错误：</p>
+<p><img src="/2026/01/24/ARM64-Trust-Firmware-2-%E5%90%AF%E5%8A%A8ATF/17692287555203.png" alt="img"></p>
+<ul>
+<li>是因为使用WSL编译的原因，WSL的PATH引入了windows的路径导致的</li>
+<li>解决办法：PATH&#x3D;&#x2F;usr&#x2F;local&#x2F;sbin:&#x2F;usr&#x2F;local&#x2F;bin:&#x2F;usr&#x2F;sbin:&#x2F;usr&#x2F;bin:&#x2F;sbin:&#x2F;bin make run</li>
+</ul>
+<p><img src="/2026/01/24/ARM64-Trust-Firmware-2-%E5%90%AF%E5%8A%A8ATF/17692287555204.png" alt="img"></p>
+<ul>
+<li>清空LD_LIBRARY_PATH</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">unset</span> LD_LIBRARY_PATH</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2026/01/24/ARM64-Trust-Firmware-2-%E5%90%AF%E5%8A%A8ATF/17692287555205.png" alt="img"></p>
+<ul>
+<li><code>sudo apt-get install python3-venv</code></li>
+</ul>
+<p><img src="/2026/01/24/ARM64-Trust-Firmware-2-%E5%90%AF%E5%8A%A8ATF/17692287555206.png" alt="img"></p>
+<ul>
+<li><code>pip3 install tomli</code></li>
+</ul>
+<p><img src="/2026/01/24/ARM64-Trust-Firmware-2-%E5%90%AF%E5%8A%A8ATF/17692287555217.png" alt="img"></p>
+<ul>
+<li>从官网下载源码（<a target="_blank" rel="noopener" href="https://download.gnome.org/sources/glib/">GLib 下载页</a>），选择 2.66.0 及以上版本（如 2.78.0）：</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">wget https://download.gnome.org/sources/glib/2.78/glib-2.78.0.tar.xz</span><br><span class="line">tar -xf glib-2.78.0.tar.xz</span><br><span class="line"><span class="built_in">cd</span> glib-2.78.0</span><br><span class="line"><span class="comment"># 安装编译依赖（以 Ubuntu 为例）sudo apt install meson ninja-build libffi-dev gettext libmount-dev libpcre2-dev</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 编译安装</span></span><br><span class="line">meson setup build --prefix=/usr</span><br><span class="line">ninja -C build</span><br><span class="line">sudo ninja -C build install</span><br><span class="line">pkg-config --modversion glib-2.0</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2026/01/24/ARM64-Trust-Firmware-2-%E5%90%AF%E5%8A%A8ATF/17692287555218.png" alt="img"></p>
+<ul>
+<li><code>rm -rf ../qemu/build</code></li>
+</ul>
+<h3 id="2-2-3-wsl启动图形界面"><a href="#2-2-3-wsl启动图形界面" class="headerlink" title="2.2.3 wsl启动图形界面"></a>2.2.3 wsl启动图形界面</h3><p>由于我的环境使用的是wsl所以需要配置一下xrdp: <a target="_blank" rel="noopener" href="https://blog.csdn.net/lpwmm/article/details/106861134">https://blog.csdn.net/lpwmm/article/details/106861134</a></p>
+<p>由于WSL2里面不能用<code>systemd</code>,所以需要手动启动</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">$ sudo /etc/init.d/xrdp start</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-2-4-测试optee"><a href="#2-2-4-测试optee" class="headerlink" title="2.2.4 测试optee"></a>2.2.4 测试optee</h3><p><a target="_blank" rel="noopener" href="https://xdo0.github.io/2022/10/05/op-tee-build.html">https://xdo0.github.io/2022/10/05/op-tee-build.html</a></p>
+<p><code>make run-only</code>会开启如下的一个qemu界面，启动的时候可能有点慢，请耐心等待一会儿</p>
+<p><img src="/2026/01/24/ARM64-Trust-Firmware-2-%E5%90%AF%E5%8A%A8ATF/17692287555219.png" alt="img"></p>
+<p>然后输入c：</p>
+<p><img src="/2026/01/24/ARM64-Trust-Firmware-2-%E5%90%AF%E5%8A%A8ATF/176922875552110.png" alt="img"></p>
+<p>此时会有两个终端启动，分别为<code>Secure World</code>和<code>Normal World</code>，在<code>Normal world</code>中输入<code>root</code>登录，登录后就可以执行<code>Normal world</code>中的<code>CA</code>了，例如：</p>
+<p><img src="/2026/01/24/ARM64-Trust-Firmware-2-%E5%90%AF%E5%8A%A8ATF/176922875552111.png" alt="img"></p>
+<p>可以在&#x2F;dev下看见optee的设备节点：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># ls -al /dev/tee*</span></span><br><span class="line">crw-rw----    1 root     teeclnt   247,   0 Nov  2 06:33 /dev/tee0</span><br><span class="line">crw-rw----    1 root     <span class="built_in">tee</span>       247,  16 Nov  2 06:33 /dev/teepriv0</span><br></pre></td></tr></table></figure>
+
+<p>OP-TEE Client (tee-supllicant)以进程的形式运行在后台，而且随着linux启动。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># ps -A | grep tee</span></span><br><span class="line">   58 root     [irq/21-optee_no]</span><br><span class="line">  103 <span class="built_in">tee</span>      /usr/sbin/tee-supplicant -d /dev/teepriv0</span><br><span class="line">  143 root     grep <span class="built_in">tee</span></span><br></pre></td></tr></table></figure>
+
+<p>安全应用会产生ta文件在文件系统<code>/lib/optee_armtz</code></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># ls /lib/optee_armtz/</span></span><br><span class="line">023f8f1a-292a-432b-8fc4-de8471358067.ta</span><br><span class="line">02a42f43-d8b7-4a57-aa4d-87bd9b5587cb.ta</span><br><span class="line">057f4b66-bdab-11eb-96cf-33d6e41cc849.ta</span><br><span class="line">0864c8ec-bdab-11eb-8926-c7fa47a8c92d.ta</span><br><span class="line">0a5a06b2-bdab-11eb-add0-77f29de31296.ta</span><br><span class="line">0bef16a2-bdab-11eb-94be-6f9815f37c21.ta</span><br><span class="line">0e6bf4fe-bdab-11eb-9bc5-3f4ecb50aee7.ta</span><br><span class="line">10de87e2-bdab-11eb-b73c-63fec73e597c.ta</span><br><span class="line">133af0ca-bdab-11eb-9130-43bf7873bf67.ta</span><br><span class="line">1585d412-bdab-11eb-ba91-3b085fd2601f.ta</span><br><span class="line">1945e8e7-0278-4bfb-bb99-af1080b2a934.ta</span><br><span class="line">197c710c-bdab-11eb-8f3f-17a5f698d23b.ta</span><br><span class="line">1b5f5b74-e9cf-4e62-8c3e-7e41da6d76f6.ta</span><br><span class="line">1cd6d392-bdab-11eb-9082-abc902ac5cd4.ta</span><br><span class="line">21b1a1da-bdab-11eb-b614-275a7098826f.ta</span><br><span class="line">25497083-a58a-4fc5-8a72-1ad7b69b8562.ta</span><br><span class="line">255fc838-de89-42d3-9a8e-d044c50fa57c.ta</span><br><span class="line">2a287631-de1b-4fdd-a55c-b9312e40769a.ta</span><br><span class="line">380231ac-fb99-47ad-a689-9e017eb6e78a.ta</span><br><span class="line">484d4143-2d53-4841-3120-4a6f636b6542.ta</span><br><span class="line">528938ce-fc59-11e8-8eb2-f2801f1b9fd1.ta</span><br><span class="line">59db8536-e5e6-11eb-8e9b-a316ce7a6568.ta</span><br><span class="line">5b9e0e40-2636-11e1-ad9e-0002a5d5c51b.ta</span><br><span class="line">5c206987-16a3-59cc-ab0f-64b9cfc9e758.ta</span><br><span class="line">5ce0c432-0ab0-40e5-a056-782ca0e6aba2.ta</span><br><span class="line">5dbac793-f574-4871-8ad3-04331ec17f24.ta</span><br><span class="line">731e279e-aafb-4575-a771-38caa6f0cca6.ta</span><br><span class="line">80a4c275-0a47-4905-8285-1486a9771a08.ta</span><br><span class="line">873bcd08-c2c3-11e6-a937-d0bf9c45c61c.ta</span><br><span class="line">87c2d78e-eb7b-11eb-8d25-df4d5338f285.ta</span><br><span class="line">8aaaf200-2450-11e4-abe2-0002a5d5c51b.ta</span><br><span class="line">8aaaf200-2450-11e4-abe2-0002a5d5c52b.ta</span><br><span class="line">9aaaf200-2450-11e4-abe2-0002a5d5c51b.ta</span><br><span class="line">a3859d33-b540-4a69-8d29-696dde9115cc.ta</span><br><span class="line">a4c04d50-f180-11e8-8eb2-f2801f1b9fd1.ta</span><br><span class="line">a720ccbb-51da-417d-b82e-e5445d474a7a.ta</span><br><span class="line">a734eed9-d6a1-4244-aa50-7c99719e7b7b.ta</span><br><span class="line">b3091a65-9751-4784-abf7-0298a7cc35ba.ta</span><br><span class="line">b689f2a7-8adf-477a-9f99-32e90c0ad0a2.ta</span><br><span class="line">b6c53aba-9669-4668-a7f2-205629d00f86.ta</span><br><span class="line">bcac6292-5b9d-4b20-a2e5-b389d5e8ae2f.ta</span><br><span class="line">c3f6e2c0-3548-11e1-b86c-0800200c9a66.ta</span><br><span class="line">c7e478c2-89b3-46eb-ac19-571e66c3830d.ta</span><br><span class="line">c9d73f40-ba45-4315-92c4-cf1255958729.ta</span><br><span class="line">cb3e5ba0-adf1-11e0-998b-0002a5d5c51b.ta</span><br><span class="line">d17f73a0-36ef-11e1-984a-0002a5d5c51b.ta</span><br><span class="line">e13010e0-2ae1-11e5-896a-0002a5d5c51b.ta</span><br><span class="line">e6a33ed4-562b-463a-bb7e-ff5e15a493c8.ta</span><br><span class="line">ec59c1fc-b9e0-4c3c-8756-0a3cc48f0088.ta</span><br><span class="line">f04a0fe7-1f5d-4b9b-abf7-619b85b4ce8c.ta</span><br><span class="line">f066f150-42af-404f-ae32-c8e6cd117e70.ta</span><br><span class="line">f157cda0-550c-11e5-a6fa-0002a5d5c51b.ta</span><br><span class="line">f4e750bb-1437-4fbf-8785-8d3580c34994.ta</span><br><span class="line">fa9ea860-ef3b-4d59-8457-5564a60c0379.ta</span><br><span class="line">fd02c9da-306c-48c7-a49c-bbd827ae86ee.ta</span><br><span class="line">ff09aa8a-fbb9-4734-ae8c-d7cd1a3f6744.ta</span><br><span class="line">ffd2bded-ab7d-4988-95ee-e4962fff7154.ta</span><br></pre></td></tr></table></figure>
+
+<p>有一些example实例：”&#x2F;usr&#x2F;bin”</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># ls /usr/bin/optee*</span></span><br><span class="line">/usr/bin/optee_example_acipher         /usr/bin/optee_example_plugins</span><br><span class="line">/usr/bin/optee_example_aes             /usr/bin/optee_example_random</span><br><span class="line">/usr/bin/optee_example_ecdsa           /usr/bin/optee_example_secure_storage</span><br><span class="line">/usr/bin/optee_example_hello_world     /usr/bin/optee_example_sign_verify</span><br><span class="line">/usr/bin/optee_example_hotp</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2026/01/24/ARM64-Trust-Firmware-2-%E5%90%AF%E5%8A%A8ATF/176922875552212.png" alt="img"></p>
+<h3 id="2-2-5-基于QEMU的OPTEE启动过程"><a href="#2-2-5-基于QEMU的OPTEE启动过程" class="headerlink" title="2.2.5 基于QEMU的OPTEE启动过程"></a>2.2.5 基于QEMU的OPTEE启动过程</h3><p>OPTEE的整个工程编译出来的结果在<code>out/bin</code>目录：</p>
+<p><img src="/2026/01/24/ARM64-Trust-Firmware-2-%E5%90%AF%E5%8A%A8ATF/176922875552213.png" alt="img"></p>
+<p>我们可以看到各个二进制文件都是谁生成的：</p>
+<ul>
+<li>linux &amp; rootfs：uImage 、Image 、linux.bin、rootfs</li>
+<li>ATF：bl1.bin、bl2.bin、bl31.bin</li>
+<li>OPTEE：<ul>
+<li>bl32_extra1.bin（tee-pager_v2.bin）</li>
+<li>bl32_extra2.bin（tee-pageable_v2.bin）</li>
+<li>bl32.bin（tee-header_v2.bin）</li>
+<li>bl33.bin（u-boot.bin）</li>
+</ul>
+</li>
+</ul>
+<p>qemu启动的脚本如下：</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">.<span class="property">PHONY</span>: run-only</span><br><span class="line">run-<span class="attr">only</span>:</span><br><span class="line">    ln -sf $(<span class="variable constant_">ROOT</span>)/out-br/images/rootfs.<span class="property">cpio</span>.<span class="property">gz</span> $(<span class="variable constant_">BINARIES_PATH</span>)/</span><br><span class="line">    $(call check-terminal)</span><br><span class="line">    $(call run-help)</span><br><span class="line">    $(call launch-terminal,$(<span class="variable constant_">QEMU_NW_PORT</span>),<span class="string">&quot;Normal World&quot;</span>)</span><br><span class="line">    $(call launch-terminal,$(<span class="variable constant_">QEMU_SW_PORT</span>),<span class="string">&quot;Secure World&quot;</span>)</span><br><span class="line">    $(call wait-<span class="keyword">for</span>-ports,$(<span class="variable constant_">QEMU_NW_PORT</span>),$(<span class="variable constant_">QEMU_SW_PORT</span>))</span><br><span class="line">    cd $(<span class="variable constant_">BINARIES_PATH</span>) &amp;&amp; $(<span class="variable constant_">QEMU_BIN</span>) $(<span class="variable constant_">QEMU_RUN_ARGS</span>)</span><br></pre></td></tr></table></figure>
+
+<p>根据log可见，和上面的启动命令是一一对应的</p>
+<p><img src="/2026/01/24/ARM64-Trust-Firmware-2-%E5%90%AF%E5%8A%A8ATF/176922875552214.png" alt="img"></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">timer@DESKTOP-JI9EVEH:~/optee/build$ make run-only</span><br><span class="line"><span class="built_in">ln</span> -sf /home/timer/optee/build/../out-br/images/rootfs.cpio.gz /home/timer/optee/build/../out/bin/</span><br><span class="line"></span><br><span class="line">* QEMU is now waiting to start the execution</span><br><span class="line">* Start execution with either a <span class="string">&#x27;c&#x27;</span> followed by &lt;enter&gt; <span class="keyword">in</span> the QEMU console or</span><br><span class="line">* attach a debugger and <span class="built_in">continue</span> from there.</span><br><span class="line">*</span><br><span class="line">* To run OP-TEE tests, use the xtest <span class="built_in">command</span> <span class="keyword">in</span> the <span class="string">&#x27;Normal World&#x27;</span> terminal</span><br><span class="line">* Enter <span class="string">&#x27;xtest -h&#x27;</span> <span class="keyword">for</span> <span class="built_in">help</span>.</span><br><span class="line"></span><br><span class="line"><span class="built_in">cd</span> /home/timer/optee/build/../out/bin &amp;&amp; /home/timer/optee/build/../qemu/build/qemu-system-aarch64 -nographic -smp 2 -cpu max,sme=on,pauth-impdef=on -d unimp -semihosting-config <span class="built_in">enable</span>=on,target=native -m 1057 -bios bl1.bin -initrd rootfs.cpio.gz -kernel Image -append <span class="string">&#x27;console=ttyAMA0,38400 keep_bootcon root=/dev/vda2 &#x27;</span> -machine virt,acpi=off,secure=on,mte=off,gic-version=3,virtualization=<span class="literal">false</span>  -object rng-random,filename=/dev/urandom,<span class="built_in">id</span>=rng0 -device virtio-rng-pci,rng=rng0,max-bytes=1024,period=1000 -netdev user,<span class="built_in">id</span>=vmnic -device virtio-net-device,netdev=vmnic   -s -S -serial tcp:127.0.0.1:54320 -serial tcp:127.0.0.1:54321</span><br><span class="line">QEMU 10.0.0 monitor - <span class="built_in">type</span> <span class="string">&#x27;help&#x27;</span> <span class="keyword">for</span> more information</span><br></pre></td></tr></table></figure>
+
+<p>其中第一阶段：<code>-bios bl1.bin</code>，启动的过程可以在<code>Normal World</code>的log中看见</p>
+<p><img src="/2026/01/24/ARM64-Trust-Firmware-2-%E5%90%AF%E5%8A%A8ATF/176922875552215.png" alt="img"></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="https://yanglianoo.github.io">Timer</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://yanglianoo.github.io/2026/01/24/ARM64-Trust-Firmware-2-%E5%90%AF%E5%8A%A8ATF/">https://yanglianoo.github.io/2026/01/24/ARM64-Trust-Firmware-2-启动ATF/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://yanglianoo.github.io" target="_blank">TimerのBlog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/ARM64/">ARM64</a><a class="post-meta__tags" href="/tags/ATF/">ATF</a><a class="post-meta__tags" href="/tags/ARM%E5%AE%89%E5%85%A8/">ARM安全</a></div><div class="post_share"><div class="social-share" data-image="/2026/01/24/ARM64-Trust-Firmware-2-%E5%90%AF%E5%8A%A8ATF/17692287555201.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><div class="post-reward"><div class="reward-button"><i class="fas fa-qrcode"></i> 打赏</div><div class="reward-main"><ul class="reward-all"><li class="reward-item"><a href="/img/wechat.jpg" target="_blank"><img class="post-qr-code-img" src="/img/wechat.jpg" alt="微信"/></a><div class="post-qr-code-desc">微信</div></li><li class="reward-item"><a href="/img/alipay.jpg" target="_blank"><img class="post-qr-code-img" src="/img/alipay.jpg" alt="支付宝"/></a><div class="post-qr-code-desc">支付宝</div></li></ul></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2026/01/24/ARM64-Trust-Firmware-3-BL1%E8%A7%A3%E6%9E%90/" title="ARM64-Trust-Firmware[3]-BL1解析"><img class="cover" src="/2026/01/24/ARM64-Trust-Firmware-3-BL1%E8%A7%A3%E6%9E%90/17692290470595.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">ARM64-Trust-Firmware[3]-BL1解析</div></div></a></div><div class="next-post pull-right"><a href="/2026/01/24/ARM64-Trust-Firmware-1-ARM%E5%AE%89%E5%85%A8%E6%9E%B6%E6%9E%84/" title="ARM64-Trust-Firmware[1]-ARM安全架构"><img class="cover" src="/2026/01/24/ARM64-Trust-Firmware-1-ARM%E5%AE%89%E5%85%A8%E6%9E%B6%E6%9E%84/17692284856153.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">ARM64-Trust-Firmware[1]-ARM安全架构</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2026/01/24/ARM64-Trust-Firmware-1-ARM%E5%AE%89%E5%85%A8%E6%9E%B6%E6%9E%84/" title="ARM64-Trust-Firmware[1]-ARM安全架构"><img class="cover" src="/2026/01/24/ARM64-Trust-Firmware-1-ARM%E5%AE%89%E5%85%A8%E6%9E%B6%E6%9E%84/17692284856153.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-24</div><div class="title">ARM64-Trust-Firmware[1]-ARM安全架构</div></div></a></div><div><a href="/2026/01/24/ARM64-Trust-Firmware-3-BL1%E8%A7%A3%E6%9E%90/" title="ARM64-Trust-Firmware[3]-BL1解析"><img class="cover" src="/2026/01/24/ARM64-Trust-Firmware-3-BL1%E8%A7%A3%E6%9E%90/17692290470595.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-24</div><div class="title">ARM64-Trust-Firmware[3]-BL1解析</div></div></a></div><div><a href="/2024/06/07/Linux%E5%86%85%E6%A0%B8%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B%E5%88%86%E6%9E%90/" title="Linux内核启动流程分析"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-06-07</div><div class="title">Linux内核启动流程分析</div></div></a></div><div><a href="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/" title="Xhyper剖析[1]--ARM64基础知识"><img class="cover" src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-1-2-ARM64%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/176892275018318.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-20</div><div class="title">Xhyper剖析[1]--ARM64基础知识</div></div></a></div><div><a href="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-2-Xhyper%E5%90%AF%E5%8A%A8/" title="Xhyper剖析[2]--Xhyper启动"><img class="cover" src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-2-Xhyper%E5%90%AF%E5%8A%A8/17689237041079.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-20</div><div class="title">Xhyper剖析[2]--Xhyper启动</div></div></a></div><div><a href="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-3-Xhyper%E5%86%85%E5%AD%98%E8%99%9A%E6%8B%9F%E5%8C%96/" title="Xhyper剖析[3]--Xhyper内存虚拟化"><img class="cover" src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-3-Xhyper%E5%86%85%E5%AD%98%E8%99%9A%E6%8B%9F%E5%8C%96/176892388736321.png" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2026-01-20</div><div class="title">Xhyper剖析[3]--Xhyper内存虚拟化</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/head.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">Timer</div><div class="author-info__description">没有一个健康的身体，如何支撑我龌龊的灵魂!</div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">36</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">30</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">10</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/yanglianoo"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons is-center"><a class="social-icon" href="https://github.com/yanglianoo" target="_blank" title="Github"><i class="fab fa-github" style="color: #24292e;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">个人微信：13699648817</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content is-expand"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#2-%E5%90%AF%E5%8A%A8ATF"><span class="toc-text">2 启动ATF</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#2-1-%E5%9F%BA%E4%BA%8Eqemu%E8%BF%90%E8%A1%8CATF"><span class="toc-text">2.1 基于qemu运行ATF</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-2-%E5%9F%BA%E4%BA%8Eqemu%E8%BF%90%E8%A1%8Coptee"><span class="toc-text">2.2 基于qemu运行optee</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-1-%E5%AE%89%E8%A3%85repo"><span class="toc-text">2.2.1 安装repo</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-2-%E4%B8%8B%E8%BD%BD%E7%BC%96%E8%AF%91OP-TEE%E6%BA%90%E7%A0%81"><span class="toc-text">2.2.2 下载编译OP-TEE源码</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-3-wsl%E5%90%AF%E5%8A%A8%E5%9B%BE%E5%BD%A2%E7%95%8C%E9%9D%A2"><span class="toc-text">2.2.3 wsl启动图形界面</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-4-%E6%B5%8B%E8%AF%95optee"><span class="toc-text">2.2.4 测试optee</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-5-%E5%9F%BA%E4%BA%8EQEMU%E7%9A%84OPTEE%E5%90%AF%E5%8A%A8%E8%BF%87%E7%A8%8B"><span class="toc-text">2.2.5 基于QEMU的OPTEE启动过程</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/01/24/ARM64-Trust-Firmware-3-BL1%E8%A7%A3%E6%9E%90/" title="ARM64-Trust-Firmware[3]-BL1解析"><img src="/2026/01/24/ARM64-Trust-Firmware-3-BL1%E8%A7%A3%E6%9E%90/17692290470595.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="ARM64-Trust-Firmware[3]-BL1解析"/></a><div class="content"><a class="title" href="/2026/01/24/ARM64-Trust-Firmware-3-BL1%E8%A7%A3%E6%9E%90/" title="ARM64-Trust-Firmware[3]-BL1解析">ARM64-Trust-Firmware[3]-BL1解析</a><time datetime="2026-01-24T04:29:40.000Z" title="发表于 2026-01-24 12:29:40">2026-01-24</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/01/24/ARM64-Trust-Firmware-2-%E5%90%AF%E5%8A%A8ATF/" title="ARM64-Trust-Firmware[2]-启动ATF"><img src="/2026/01/24/ARM64-Trust-Firmware-2-%E5%90%AF%E5%8A%A8ATF/17692287555201.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="ARM64-Trust-Firmware[2]-启动ATF"/></a><div class="content"><a class="title" href="/2026/01/24/ARM64-Trust-Firmware-2-%E5%90%AF%E5%8A%A8ATF/" title="ARM64-Trust-Firmware[2]-启动ATF">ARM64-Trust-Firmware[2]-启动ATF</a><time datetime="2026-01-24T04:24:53.000Z" title="发表于 2026-01-24 12:24:53">2026-01-24</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/01/24/ARM64-Trust-Firmware-1-ARM%E5%AE%89%E5%85%A8%E6%9E%B6%E6%9E%84/" title="ARM64-Trust-Firmware[1]-ARM安全架构"><img src="/2026/01/24/ARM64-Trust-Firmware-1-ARM%E5%AE%89%E5%85%A8%E6%9E%B6%E6%9E%84/17692284856153.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="ARM64-Trust-Firmware[1]-ARM安全架构"/></a><div class="content"><a class="title" href="/2026/01/24/ARM64-Trust-Firmware-1-ARM%E5%AE%89%E5%85%A8%E6%9E%B6%E6%9E%84/" title="ARM64-Trust-Firmware[1]-ARM安全架构">ARM64-Trust-Firmware[1]-ARM安全架构</a><time datetime="2026-01-24T04:20:51.000Z" title="发表于 2026-01-24 12:20:51">2026-01-24</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-6-%E4%B8%AD%E6%96%AD%E8%99%9A%E6%8B%9F%E5%8C%96/" title="Xhyper剖析[6]--中断虚拟化"><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-6-%E4%B8%AD%E6%96%AD%E8%99%9A%E6%8B%9F%E5%8C%96/17689244713913.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Xhyper剖析[6]--中断虚拟化"/></a><div class="content"><a class="title" href="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-6-%E4%B8%AD%E6%96%AD%E8%99%9A%E6%8B%9F%E5%8C%96/" title="Xhyper剖析[6]--中断虚拟化">Xhyper剖析[6]--中断虚拟化</a><time datetime="2026-01-20T15:54:17.000Z" title="发表于 2026-01-20 23:54:17">2026-01-20</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-5-MMIO%E8%99%9A%E6%8B%9F%E5%8C%96/" title="Xhyper剖析[5]--MMIO虚拟化"><img src="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-5-MMIO%E8%99%9A%E6%8B%9F%E5%8C%96/17689243819381.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Xhyper剖析[5]--MMIO虚拟化"/></a><div class="content"><a class="title" href="/2026/01/20/Xhyper%E5%89%96%E6%9E%90-5-MMIO%E8%99%9A%E6%8B%9F%E5%8C%96/" title="Xhyper剖析[5]--MMIO虚拟化">Xhyper剖析[5]--MMIO虚拟化</a><time datetime="2026-01-20T15:52:10.000Z" title="发表于 2026-01-20 23:52:10">2026-01-20</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('/2026/01/24/ARM64-Trust-Firmware-2-%E5%90%AF%E5%8A%A8ATF/17692287555201.png')"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2026 By Timer</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><div class="js-pjax"></div><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/fireworks.min.js"></script><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div class="no-result" id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js"></script></div></div></body></html>
